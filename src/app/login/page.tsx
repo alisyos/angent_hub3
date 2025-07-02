@@ -27,6 +27,13 @@ const testAccounts = [
     role: "일반사용자",
     name: "일반사용자",
     credits: 100
+  },
+  {
+    email: "employee@test.com",
+    password: "employee123", 
+    role: "회사일반사용자",
+    name: "회사일반사용자",
+    credits: 200
   }
 ];
 
@@ -72,6 +79,9 @@ export default function Login() {
             router.push('/admin');
             break;
           case '회사관리자':
+            router.push('/company');
+            break;
+          case '회사일반사용자':
             router.push('/company');
             break;
           case '일반사용자':
@@ -120,6 +130,7 @@ export default function Login() {
             <div><strong>관리자:</strong> admin@test.com / admin123</div>
             <div><strong>회사관리자:</strong> company@test.com / company123</div>
             <div><strong>일반사용자:</strong> user@test.com / user123</div>
+            <div><strong>회사일반사용자:</strong> employee@test.com / employee123</div>
           </div>
         </div>
       </div>

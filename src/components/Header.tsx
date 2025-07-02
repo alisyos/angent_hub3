@@ -67,6 +67,11 @@ export default function Header() {
           ...baseNav,
           { name: '회사 관리', href: '/company' },
         ];
+      case '회사일반사용자':
+        return [
+          ...baseNav,
+          { name: '회사 현황', href: '/company' },
+        ];
       default:
         return baseNav;
     }
@@ -112,7 +117,7 @@ export default function Header() {
                 <div className="relative">
                   <div className="flex items-center space-x-3">
                     <div className="text-right">
-                      <p className="text-sm font-medium text-gray-900">{userInfo.name}</p>
+                      <p className="text-sm font-medium text-gray-900">{userInfo.email}</p>
                       <p className="text-xs text-gray-500">{userInfo.role}</p>
                     </div>
                     <div className="flex items-center space-x-2">
@@ -184,7 +189,7 @@ export default function Header() {
                   <div className="flex items-center space-x-3 mb-3">
                     <User className="w-8 h-8 text-gray-400 bg-gray-100 rounded-full p-2" />
                     <div>
-                      <p className="text-sm font-medium text-gray-900">{userInfo.name}</p>
+                      <p className="text-sm font-medium text-gray-900">{userInfo.email}</p>
                       <p className="text-xs text-gray-500">{userInfo.role}</p>
                     </div>
                   </div>
