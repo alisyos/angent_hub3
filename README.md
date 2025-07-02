@@ -1,36 +1,204 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# AI 에이전트 허브 플랫폼
 
-## Getting Started
+다양한 업무 지원 AI 에이전트를 통합한 플랫폼입니다. 사용자는 크레딧을 충전하여 다양한 AI 에이전트를 활용할 수 있습니다.
 
-First, run the development server:
+## 🚀 주요 기능
 
+### 🔐 인증 및 회원관리
+- 이메일 회원가입 및 로그인
+- 소셜 로그인 (Google, 네이버, 카카오) 지원 예정
+- 일반 계정, 회사 계정, 관리자 계정 구분
+- 회사 관리자의 직원 초대 및 권한 관리
+
+### 💳 크레딧 시스템
+- 선불 크레딧 충전 방식
+- 다양한 크레딧 패키지 (100, 300, 500, 1000 크레딧)
+- 보너스 크레딧 제공
+- 다양한 결제 수단 (신용카드, 네이버페이, 카카오페이, 토스페이)
+
+### 🤖 AI 에이전트
+현재 10개의 AI 에이전트 제공:
+
+#### 일반사무
+- **회의록 자동화 AI** (10 크레딧) - 회의 내용을 체계적인 회의록으로 변환
+- **이메일 작성 AI** (8 크레딧) - 목적에 맞는 전문적인 이메일 작성
+- **AI PPT 슬라이드 생성기** (25 크레딧) - 전문적인 프레젠테이션 슬라이드 구성
+- **음성파일 기반 문서 자동화 AI** (30 크레딧) - 음성을 다양한 문서로 변환
+
+#### 마케팅/광고
+- **리뷰 분석 AI** (15 크레딧) - 고객 리뷰 분석 및 인사이트 제공
+- **키워드 분석 AI** (12 크레딧) - 온라인 키워드 트렌드 종합 분석
+- **SNS 이벤트 기획 AI** (18 크레딧) - SNS 이벤트 전략적 기획
+- **광고 문구 분석 및 제안 AI** (20 크레딧) - 광고 문구 분석 및 개선안 제안
+
+#### 콘텐츠 제작
+- **AI 카드뉴스 생성기** (20 크레딧) - 매력적인 카드뉴스 자동 생성
+- **AI 블로그 생성기** (15 크레딧) - 고품질 블로그 포스팅 작성
+
+### 🔍 검색 및 필터링
+- 에이전트명, 설명, 해시태그 기반 실시간 검색
+- 카테고리별 필터링
+- 크레딧 소모량별 정렬
+
+### 📱 반응형 디자인
+- 모바일, 태블릿, 데스크톱 최적화
+- 직관적인 UI/UX
+- 현대적인 디자인 시스템
+
+## 🛠️ 기술 스택
+
+### Frontend
+- **Next.js 15** - React 프레임워크
+- **TypeScript** - 타입 안전성
+- **Tailwind CSS** - 유틸리티 퍼스트 CSS 프레임워크
+- **Lucide React** - 아이콘 라이브러리
+
+### 개발 도구
+- **React Hook Form** - 폼 관리
+- **Zod** - 스키마 검증
+- **ESLint** - 코드 품질 관리
+
+### 배포
+- **Vercel** - 배포 플랫폼
+
+## 🚀 시작하기
+
+### 전제 조건
+- Node.js 18.17 이상
+- npm 또는 yarn
+
+### 설치 및 실행
+
+1. 저장소 클론
 ```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+git clone <repository-url>
+cd angent_hub3
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+2. 의존성 설치
+```bash
+npm install
+```
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+3. 개발 서버 실행
+```bash
+npm run dev
+```
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+4. 브라우저에서 http://localhost:3000 접속
 
-## Learn More
+### 빌드
+```bash
+npm run build
+npm start
+```
 
-To learn more about Next.js, take a look at the following resources:
+## 📁 프로젝트 구조
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+```
+src/
+├── app/                    # Next.js App Router 페이지
+│   ├── page.tsx           # 메인 대시보드
+│   ├── login/page.tsx     # 로그인 페이지
+│   ├── credits/page.tsx   # 크레딧 충전 페이지
+│   └── agent/[id]/page.tsx # AI 에이전트 실행 페이지
+├── components/             # 재사용 가능한 컴포넌트
+│   ├── Header.tsx         # 헤더 및 네비게이션
+│   ├── AgentCard.tsx      # AI 에이전트 카드
+│   └── CategoryFilter.tsx # 카테고리 필터
+├── data/                  # 정적 데이터
+│   └── agents.ts          # AI 에이전트 데이터
+├── types/                 # TypeScript 타입 정의
+│   └── agent.ts           # 에이전트 관련 타입
+└── globals.css            # 전역 스타일
+```
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+## 🎯 주요 페이지
 
-## Deploy on Vercel
+### 메인 대시보드 (/)
+- AI 에이전트 카테고리별 표시
+- 실시간 검색 기능
+- 카테고리 필터링
+- 에이전트 카드 그리드
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+### 로그인 (/login)
+- 이메일/비밀번호 로그인
+- 소셜 로그인 버튼 (개발 예정)
+- 회원가입 링크
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+### 크레딧 충전 (/credits)
+- 크레딧 패키지 선택
+- 결제 방법 선택
+- 실시간 가격 계산
+- FAQ 섹션
+
+### AI 에이전트 실행 (/agent/[id])
+- 동적 입력 폼 (텍스트, 파일, 선택형)
+- 실시간 결과 표시
+- 결과 다운로드 및 복사
+- 크레딧 차감 표시
+
+## 🔮 향후 개발 계획
+
+### 1단계 (현재)
+- ✅ 기본 UI/UX 구현
+- ✅ AI 에이전트 데이터 구조
+- ✅ 검색 및 필터링
+- ✅ 반응형 디자인
+
+### 2단계
+- 🔄 실제 AI 모델 연동 (OpenAI, Claude)
+- 🔄 사용자 인증 시스템 (NextAuth.js)
+- 🔄 결제 시스템 연동
+- 🔄 데이터베이스 연동
+
+### 3단계
+- 📋 회사 관리자 페이지
+- 📋 관리자 대시보드
+- 📋 사용량 통계
+- 📋 문의하기 시스템
+
+### 4단계
+- 📋 크레딧 사용 내역
+- 📋 결과물 히스토리
+- 📋 에이전트 즐겨찾기
+- 📋 알림 시스템
+
+## 🎨 디자인 시스템
+
+### 컬러 팔레트
+- **Primary**: Blue (#3B82F6)
+- **Secondary**: Gray (#6B7280)
+- **Success**: Green (#10B981)
+- **Warning**: Yellow (#F59E0B)
+- **Error**: Red (#EF4444)
+
+### 카테고리 컬러
+- **일반사무**: Blue
+- **마케팅/광고**: Green
+- **콘텐츠 제작**: Purple
+
+## 📱 반응형 브레이크포인트
+- **Mobile**: < 768px
+- **Tablet**: 768px - 1024px
+- **Desktop**: > 1024px
+
+## 🤝 기여하기
+
+1. Fork the Project
+2. Create your Feature Branch (`git checkout -b feature/AmazingFeature`)
+3. Commit your Changes (`git commit -m 'Add some AmazingFeature'`)
+4. Push to the Branch (`git push origin feature/AmazingFeature`)
+5. Open a Pull Request
+
+## 📄 라이선스
+
+이 프로젝트는 MIT 라이선스 하에 배포됩니다.
+
+## 📞 문의
+
+프로젝트에 대한 문의사항이 있으시면 이슈를 등록해 주세요.
+
+---
+
+⭐ 이 프로젝트가 도움이 되셨다면 Star를 눌러주세요!
