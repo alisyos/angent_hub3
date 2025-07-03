@@ -106,7 +106,7 @@ export default function Dashboard() {
         });
         return;
       }
-    } catch (error) {
+    } catch {
       showModal({
         title: '로그인 필요',
         message: 'AI 에이전트를 사용하려면 로그인이 필요합니다.',

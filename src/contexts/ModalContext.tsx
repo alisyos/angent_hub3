@@ -67,8 +67,4 @@ export function useModal() {
   return context;
 }
 
-// alert() 대체 함수
-export function showAlert(message: string, type: 'info' | 'success' | 'warning' | 'error' = 'info', title?: string) {
-  // 이 함수는 컴포넌트 외부에서는 사용할 수 없으므로, 각 컴포넌트에서 useModal 훅을 사용해야 합니다.
-  console.warn('showAlert should be used within a component using useModal hook');
-} 
+ 
