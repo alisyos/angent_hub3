@@ -15,6 +15,8 @@ export default function Dashboard() {
   const [searchQuery, setSearchQuery] = useState('');
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
   const [expandedCategories, setExpandedCategories] = useState<Set<AgentCategory | 'agentList'>>(new Set(['agentList']));
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 9;
 
   // Handle URL category parameter
   useEffect(() => {
@@ -47,6 +49,17 @@ export default function Dashboard() {
     return filtered;
   }, [selectedCategory, searchQuery]);
 
+  // Pagination logic
+  const totalPages = Math.ceil(filteredAgents.length / itemsPerPage);
+  const startIndex = (currentPage - 1) * itemsPerPage;
+  const endIndex = startIndex + itemsPerPage;
+  const paginatedAgents = filteredAgents.slice(startIndex, endIndex);
+
+  // Reset to first page when filters change
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [selectedCategory, searchQuery]);
+
   // Calculate category counts
   const categoryCounts = useMemo(() => {
     const counts: Record<AgentCategory | 'agentList', number> = {
@@ -70,6 +83,12 @@ export default function Dashboard() {
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
     // 검색 로직은 이미 searchQuery state로 처리됨
+  };
+
+  const handlePageChange = (page: number) => {
+    setCurrentPage(page);
+    // 페이지 변경 시 상단으로 스크롤
+    window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
   // Category icons and colors
@@ -235,30 +254,91 @@ export default function Dashboard() {
           </div>
 
           {/* Search Results Info */}
-          {searchQuery && (
-            <div className="mb-6">
-              <p className="text-gray-600">
-                <span className="font-semibold">"{searchQuery}"</span> 검색 결과: {filteredAgents.length}개 에이전트
-              </p>
+          {(searchQuery || filteredAgents.length > 0) && (
+            <div className="mb-6 flex items-center justify-between">
+              <div>
+                {searchQuery ? (
+                  <p className="text-gray-600">
+                    <span className="font-semibold">"{searchQuery}"</span> 검색 결과: {filteredAgents.length}개 에이전트
+                  </p>
+                ) : (
+                  <p className="text-gray-600">
+                    총 {filteredAgents.length}개의 에이전트
+                  </p>
+                )}
+              </div>
+              {filteredAgents.length > 0 && totalPages > 1 && (
+                <div className="text-sm text-gray-500">
+                  {startIndex + 1}-{Math.min(endIndex, filteredAgents.length)} / {filteredAgents.length}
+                </div>
+              )}
             </div>
           )}
 
           {/* Agents Grid */}
-          {filteredAgents.length > 0 ? (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {filteredAgents.map((agent) => (
-                <AgentCard
-                  key={agent.id}
-                  agent={agent}
-                  onClick={handleAgentClick}
-                />
-              ))}
-            </div>
+          {paginatedAgents.length > 0 ? (
+            <>
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
+                {paginatedAgents.map((agent) => (
+                  <AgentCard
+                    key={agent.id}
+                    agent={agent}
+                    onClick={handleAgentClick}
+                  />
+                ))}
+              </div>
+
+              {/* Pagination */}
+              {totalPages > 1 && (
+                <div className="flex items-center justify-center space-x-2 mt-8">
+                  <button
+                    onClick={() => handlePageChange(currentPage - 1)}
+                    disabled={currentPage === 1}
+                    className="inline-flex items-center px-3 py-2 border border-gray-300 rounded-md text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                  >
+                    <ChevronLeft className="w-4 h-4 mr-1" />
+                    이전
+                  </button>
+                  
+                  <div className="flex items-center space-x-1">
+                    {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
+                      <button
+                        key={page}
+                        onClick={() => handlePageChange(page)}
+                        className={`px-3 py-2 text-sm font-medium rounded-md transition-colors ${
+                          currentPage === page
+                            ? 'bg-blue-600 text-white'
+                            : 'text-gray-700 hover:bg-gray-50 border border-gray-300'
+                        }`}
+                      >
+                        {page}
+                      </button>
+                    ))}
+                  </div>
+
+                  <button
+                    onClick={() => handlePageChange(currentPage + 1)}
+                    disabled={currentPage === totalPages}
+                    className="inline-flex items-center px-3 py-2 border border-gray-300 rounded-md text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                  >
+                    다음
+                    <ChevronRight className="w-4 h-4 ml-1" />
+                  </button>
+                </div>
+              )}
+
+              {/* Page Info */}
+              {totalPages > 1 && (
+                <div className="text-center mt-4 text-sm text-gray-500">
+                  페이지 {currentPage} / {totalPages}
+                </div>
+              )}
+            </>
           ) : (
             <div className="text-center py-12">
               <div className="text-gray-400 text-6xl mb-4">🔍</div>
               <h3 className="text-xl font-semibold text-gray-600 mb-2">
-                검색 결과가 없습니다
+                {filteredAgents.length === 0 ? '검색 결과가 없습니다' : '에이전트가 없습니다'}
               </h3>
               <p className="text-gray-500">
                 다른 키워드로 검색하거나 카테고리를 변경해보세요.

@@ -1,20 +1,21 @@
 'use client';
 
 import { useState } from 'react';
+import { useRouter } from 'next/navigation';
 import Header from '@/components/Header';
 import Footer from '@/components/Footer';
-import { Mail, Phone, MapPin, Send, FileText, Zap, CreditCard, User } from 'lucide-react';
+import { Mail, Phone, MapPin, Send, FileText, Zap, CreditCard, User, Paperclip, X } from 'lucide-react';
 
 export default function Contact() {
+  const router = useRouter();
   const [formData, setFormData] = useState({
     type: '',
     name: '',
     email: '',
     title: '',
-    content: '',
-    priority: 'normal',
-    emailNotification: true
+    content: ''
   });
+  const [attachedFiles, setAttachedFiles] = useState<File[]>([]);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -30,10 +31,9 @@ export default function Contact() {
         name: '',
         email: '',
         title: '',
-        content: '',
-        priority: 'normal',
-        emailNotification: true
+        content: ''
       });
+      setAttachedFiles([]);
     }, 1000);
   };
 
@@ -42,6 +42,35 @@ export default function Contact() {
       ...prev,
       [field]: value
     }));
+  };
+
+  const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (e.target.files) {
+      const selectedFiles = Array.from(e.target.files);
+      const validFiles = selectedFiles.filter(file => {
+        // 파일 크기 제한 (10MB)
+        const maxSize = 10 * 1024 * 1024;
+        if (file.size > maxSize) {
+          alert(`파일 크기가 너무 큽니다. (최대 10MB)\n파일명: ${file.name}`);
+          return false;
+        }
+        return true;
+      });
+
+      setAttachedFiles(prev => [...prev, ...validFiles]);
+    }
+  };
+
+  const handleFileRemove = (index: number) => {
+    setAttachedFiles(prev => prev.filter((_, i) => i !== index));
+  };
+
+  const formatFileSize = (bytes: number) => {
+    if (bytes === 0) return '0 Bytes';
+    const k = 1024;
+    const sizes = ['Bytes', 'KB', 'MB', 'GB'];
+    const i = Math.floor(Math.log(bytes) / Math.log(k));
+    return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
   };
 
   const inquiryTypes = [
@@ -63,7 +92,7 @@ export default function Contact() {
             문의하기
           </h1>
           <p className="text-lg text-gray-600 max-w-2xl mx-auto">
-            궁금한 점이나 문제가 있으시면 언제든지 문의해 주세요. 
+            궁금한 점이나 문제가 있으시면 언제든지 문의해 주세요.<br />
             전문 상담원이 빠르게 답변 드리겠습니다.
           </p>
         </div>
@@ -72,7 +101,7 @@ export default function Contact() {
           {/* Contact Form */}
           <div className="lg:col-span-2">
             <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-8">
-              <h2 className="text-xl font-semibold text-gray-900 mb-6">문의 양식</h2>
+              <h2 className="text-xl font-semibold text-gray-900 mb-6">문의 작성</h2>
               
               <form onSubmit={handleSubmit} className="space-y-6">
                 {/* Inquiry Type */}
@@ -174,35 +203,77 @@ export default function Contact() {
                   />
                 </div>
 
-                {/* Priority */}
+                {/* File Attachment */}
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
-                    긴급도
+                    파일 첨부 (선택)
                   </label>
-                  <select
-                    value={formData.priority}
-                    onChange={(e) => handleInputChange('priority', e.target.value)}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                  >
-                    <option value="normal">일반</option>
-                    <option value="important">중요</option>
-                    <option value="urgent">긴급</option>
-                  </select>
+                  <div className="space-y-3">
+                    {/* File Input */}
+                    <div className="flex items-center justify-center w-full">
+                      <label
+                        htmlFor="file-upload"
+                        className="flex flex-col items-center justify-center w-full h-32 border-2 border-gray-300 border-dashed rounded-lg cursor-pointer bg-gray-50 hover:bg-gray-100 transition-colors"
+                      >
+                        <div className="flex flex-col items-center justify-center pt-5 pb-6">
+                          <Paperclip className="w-8 h-8 mb-3 text-gray-400" />
+                          <p className="mb-2 text-sm text-gray-500">
+                            <span className="font-semibold">클릭하여 파일 첨부</span> 또는 드래그 앤 드롭
+                          </p>
+                          <p className="text-xs text-gray-500">
+                            최대 10MB (이미지, 문서, 압축파일 등)
+                          </p>
+                        </div>
+                        <input
+                          id="file-upload"
+                          type="file"
+                          multiple
+                          className="hidden"
+                          onChange={handleFileSelect}
+                          accept=".pdf,.doc,.docx,.txt,.png,.jpg,.jpeg,.gif,.zip,.rar"
+                        />
+                      </label>
+                    </div>
+
+                    {/* Attached Files List */}
+                    {attachedFiles.length > 0 && (
+                      <div className="space-y-2">
+                        <p className="text-sm font-medium text-gray-700">
+                          첨부된 파일 ({attachedFiles.length}개)
+                        </p>
+                        <div className="space-y-2">
+                          {attachedFiles.map((file, index) => (
+                            <div
+                              key={index}
+                              className="flex items-center justify-between p-3 bg-gray-50 rounded-lg border border-gray-200"
+                            >
+                              <div className="flex items-center space-x-3">
+                                <FileText className="w-5 h-5 text-gray-400" />
+                                <div>
+                                  <p className="text-sm font-medium text-gray-900 truncate max-w-xs">
+                                    {file.name}
+                                  </p>
+                                  <p className="text-xs text-gray-500">
+                                    {formatFileSize(file.size)}
+                                  </p>
+                                </div>
+                              </div>
+                              <button
+                                type="button"
+                                onClick={() => handleFileRemove(index)}
+                                className="text-gray-400 hover:text-red-500 transition-colors"
+                              >
+                                <X className="w-5 h-5" />
+                              </button>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+                  </div>
                 </div>
 
-                {/* Email Notification */}
-                <div className="flex items-center">
-                  <input
-                    type="checkbox"
-                    id="emailNotification"
-                    checked={formData.emailNotification}
-                    onChange={(e) => handleInputChange('emailNotification', e.target.checked)}
-                    className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
-                  />
-                  <label htmlFor="emailNotification" className="ml-2 block text-sm text-gray-700">
-                    이메일로 답변 알림 받기
-                  </label>
-                </div>
+
 
                 {/* Submit Button */}
                 <div>
@@ -239,7 +310,7 @@ export default function Contact() {
                   <Mail className="w-5 h-5 text-blue-600 mt-1" />
                   <div>
                     <p className="font-medium text-gray-900">이메일</p>
-                    <p className="text-sm text-gray-600">support@aigenthub.com</p>
+                    <p className="text-sm text-gray-600">team@gptko.co.kr</p>
                   </div>
                 </div>
                 
@@ -247,7 +318,7 @@ export default function Contact() {
                   <Phone className="w-5 h-5 text-blue-600 mt-1" />
                   <div>
                     <p className="font-medium text-gray-900">전화번호</p>
-                    <p className="text-sm text-gray-600">02-1234-5678</p>
+                    <p className="text-sm text-gray-600">02-858-2023</p>
                     <p className="text-xs text-gray-500">평일 09:00 - 18:00</p>
                   </div>
                 </div>
@@ -257,32 +328,16 @@ export default function Contact() {
                   <div>
                     <p className="font-medium text-gray-900">주소</p>
                     <p className="text-sm text-gray-600">
-                      서울특별시 강남구<br />
-                      테헤란로 123, 456호
+                      서울특별시 금천구<br />
+                      가산디지털1로 128, 1804호<br />
+                      (우: 08507)
                     </p>
                   </div>
                 </div>
               </div>
             </div>
 
-            {/* Response Time */}
-            <div className="bg-blue-50 rounded-xl border border-blue-200 p-6">
-              <h3 className="text-lg font-semibold text-blue-900 mb-3">응답 시간</h3>
-              <div className="space-y-2 text-sm text-blue-800">
-                <div className="flex justify-between">
-                  <span>일반 문의:</span>
-                  <span className="font-medium">24시간 이내</span>
-                </div>
-                <div className="flex justify-between">
-                  <span>기술 지원:</span>
-                  <span className="font-medium">12시간 이내</span>
-                </div>
-                <div className="flex justify-between">
-                  <span>긴급 문의:</span>
-                  <span className="font-medium">2시간 이내</span>
-                </div>
-              </div>
-            </div>
+
 
             {/* FAQ Link */}
             <div className="bg-gray-50 rounded-xl border border-gray-200 p-6">
@@ -291,7 +346,10 @@ export default function Contact() {
                 자주 묻는 질문을 먼저 확인해 보세요. 
                 빠른 답변을 찾을 수 있습니다.
               </p>
-              <button className="w-full btn-secondary">
+              <button 
+                onClick={() => router.push('/faq')}
+                className="w-full btn-secondary"
+              >
                 FAQ 보기
               </button>
             </div>

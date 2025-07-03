@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { CreditCard, Check, Star, ArrowLeft } from 'lucide-react';
+import { CreditCard, Check, Star } from 'lucide-react';
 import { creditPackages } from '@/data/agents';
 import Header from '@/components/Header';
 import Footer from '@/components/Footer';
@@ -34,13 +34,6 @@ export default function Credits() {
       <main className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {/* Header */}
         <div className="mb-8">
-          <button 
-            onClick={() => window.history.back()}
-            className="flex items-center text-gray-600 hover:text-gray-900 mb-4"
-          >
-            <ArrowLeft className="w-4 h-4 mr-2" />
-            뒤로 가기
-          </button>
           <h1 className="text-3xl font-bold text-gray-900 mb-2">크레딧 충전</h1>
           <p className="text-gray-600">AI 에이전트 사용을 위한 크레딧을 충전하세요</p>
         </div>

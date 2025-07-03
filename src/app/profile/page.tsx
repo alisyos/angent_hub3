@@ -60,7 +60,15 @@ export default function Profile() {
     period: 'all' // 'all', 'week', 'month', 'custom'
   });
 
+  const [usageFilter, setUsageFilter] = useState({
+    startDate: '',
+    endDate: '',
+    category: 'all', // 'all', '일반사무', '마케팅/광고', '콘텐츠 제작'
+    period: 'all' // 'all', 'week', 'month', 'custom'
+  });
+
   const [currentPage, setCurrentPage] = useState(1);
+  const [usageCurrentPage, setUsageCurrentPage] = useState(1);
   const itemsPerPage = 10;
   
   const [userInfo, setUserInfo] = useState({
@@ -102,11 +110,31 @@ export default function Profile() {
   ];
 
   const usageStats = [
-    { agent: '회의록 자동화 AI', usage: 12, credits: 600, category: '일반사무' },
-    { agent: 'PPT 슬라이드 생성기', usage: 8, credits: 640, category: '일반사무' },
-    { agent: '이메일 자동 작성 AI', usage: 15, credits: 450, category: '일반사무' },
-    { agent: 'SNS 이벤트 기획 AI', usage: 5, credits: 250, category: '마케팅/광고' },
-    { agent: '카드뉴스 생성 AI', usage: 3, credits: 180, category: '콘텐츠 제작' }
+    { agent: '회의록 자동화 AI', usage: 12, credits: 600, category: '일반사무', dates: ['2024-01-20', '2024-01-19', '2024-01-18', '2024-01-17', '2024-01-16', '2024-01-15', '2024-01-14', '2024-01-13', '2024-01-12', '2024-01-11', '2024-01-10', '2024-01-09'] },
+    { agent: 'PPT 슬라이드 생성기', usage: 8, credits: 640, category: '일반사무', dates: ['2024-01-17', '2024-01-15', '2024-01-12', '2024-01-10', '2024-01-08', '2024-01-05', '2024-01-03', '2024-01-01'] },
+    { agent: '이메일 자동 작성 AI', usage: 15, credits: 450, category: '일반사무', dates: ['2024-01-18', '2024-01-16', '2024-01-14', '2024-01-12', '2024-01-10', '2024-01-08', '2024-01-06', '2024-01-04', '2024-01-02', '2023-12-31', '2023-12-29', '2023-12-27', '2023-12-25', '2023-12-23', '2023-12-21'] },
+    { agent: 'SNS 이벤트 기획 AI', usage: 5, credits: 250, category: '마케팅/광고', dates: ['2024-01-15', '2024-01-10', '2024-01-05', '2023-12-30', '2023-12-25'] },
+    { agent: '카드뉴스 생성 AI', usage: 3, credits: 180, category: '콘텐츠 제작', dates: ['2024-01-11', '2024-01-02', '2023-12-28'] },
+    { agent: '음성파일 기반 문서 자동화 AI', usage: 6, credits: 180, category: '일반사무', dates: ['2024-01-19', '2024-01-14', '2024-01-09', '2024-01-04', '2023-12-30', '2023-12-25'] },
+    { agent: '리뷰 분석 AI', usage: 9, credits: 135, category: '마케팅/광고', dates: ['2024-01-18', '2024-01-15', '2024-01-12', '2024-01-08', '2024-01-05', '2024-01-01', '2023-12-28', '2023-12-25', '2023-12-22'] },
+    { agent: '키워드 분석 AI', usage: 7, credits: 84, category: '마케팅/광고', dates: ['2024-01-17', '2024-01-13', '2024-01-10', '2024-01-06', '2024-01-03', '2023-12-31', '2023-12-27'] },
+    { agent: '광고 문구 분석 및 제안 AI', usage: 4, credits: 80, category: '마케팅/광고', dates: ['2024-01-16', '2024-01-11', '2024-01-07', '2024-01-02'] },
+    { agent: 'AI 블로그 생성기', usage: 11, credits: 165, category: '콘텐츠 제작', dates: ['2024-01-20', '2024-01-17', '2024-01-14', '2024-01-11', '2024-01-08', '2024-01-05', '2024-01-02', '2023-12-30', '2023-12-27', '2023-12-24', '2023-12-21'] },
+    { agent: '데이터 분석 AI', usage: 8, credits: 200, category: '일반사무', dates: ['2024-01-19', '2024-01-16', '2024-01-13', '2024-01-10', '2024-01-07', '2024-01-04', '2024-01-01', '2023-12-29'] },
+    { agent: '소셜 미디어 콘텐츠 AI', usage: 6, credits: 120, category: '마케팅/광고', dates: ['2024-01-18', '2024-01-14', '2024-01-11', '2024-01-08', '2024-01-05', '2024-01-02'] },
+    { agent: '번역 AI', usage: 13, credits: 260, category: '일반사무', dates: ['2024-01-20', '2024-01-18', '2024-01-16', '2024-01-14', '2024-01-12', '2024-01-10', '2024-01-08', '2024-01-06', '2024-01-04', '2024-01-02', '2023-12-31', '2023-12-29', '2023-12-27'] },
+    { agent: '요약 AI', usage: 10, credits: 200, category: '일반사무', dates: ['2024-01-19', '2024-01-17', '2024-01-15', '2024-01-13', '2024-01-11', '2024-01-09', '2024-01-07', '2024-01-05', '2024-01-03', '2024-01-01'] },
+    { agent: '인포그래픽 생성 AI', usage: 5, credits: 325, category: '콘텐츠 제작', dates: ['2024-01-16', '2024-01-12', '2024-01-08', '2024-01-04', '2023-12-31'] },
+    { agent: '마케팅 전략 AI', usage: 7, credits: 280, category: '마케팅/광고', dates: ['2024-01-18', '2024-01-14', '2024-01-10', '2024-01-06', '2024-01-02', '2023-12-29', '2023-12-25'] },
+    { agent: '동영상 스크립트 AI', usage: 4, credits: 280, category: '콘텐츠 제작', dates: ['2024-01-15', '2024-01-09', '2024-01-03', '2023-12-28'] },
+    { agent: '제품 설명 AI', usage: 9, credits: 315, category: '마케팅/광고', dates: ['2024-01-20', '2024-01-17', '2024-01-14', '2024-01-11', '2024-01-08', '2024-01-05', '2024-01-02', '2023-12-30', '2023-12-27'] },
+    { agent: '이벤트 기획 AI', usage: 6, credits: 270, category: '마케팅/광고', dates: ['2024-01-19', '2024-01-15', '2024-01-11', '2024-01-07', '2024-01-03', '2023-12-30'] },
+    { agent: '고객 상담 AI', usage: 12, credits: 480, category: '일반사무', dates: ['2024-01-20', '2024-01-18', '2024-01-16', '2024-01-14', '2024-01-12', '2024-01-10', '2024-01-08', '2024-01-06', '2024-01-04', '2024-01-02', '2023-12-31', '2023-12-29'] },
+    { agent: '보고서 생성 AI', usage: 8, credits: 400, category: '일반사무', dates: ['2024-01-19', '2024-01-16', '2024-01-13', '2024-01-10', '2024-01-07', '2024-01-04', '2024-01-01', '2023-12-28'] },
+    { agent: '웹사이트 콘텐츠 AI', usage: 5, credits: 200, category: '콘텐츠 제작', dates: ['2024-01-17', '2024-01-12', '2024-01-07', '2024-01-02', '2023-12-28'] },
+    { agent: '챗봇 응답 AI', usage: 14, credits: 420, category: '일반사무', dates: ['2024-01-20', '2024-01-19', '2024-01-18', '2024-01-17', '2024-01-16', '2024-01-15', '2024-01-14', '2024-01-13', '2024-01-12', '2024-01-11', '2024-01-10', '2024-01-09', '2024-01-08', '2024-01-07'] },
+    { agent: 'SEO 최적화 AI', usage: 7, credits: 280, category: '마케팅/광고', dates: ['2024-01-18', '2024-01-14', '2024-01-10', '2024-01-06', '2024-01-02', '2023-12-29', '2023-12-25'] },
+    { agent: '뉴스레터 생성 AI', usage: 6, credits: 180, category: '콘텐츠 제작', dates: ['2024-01-16', '2024-01-11', '2024-01-06', '2024-01-01', '2023-12-27', '2023-12-22'] }
   ];
 
   useEffect(() => {
@@ -318,7 +346,108 @@ export default function Profile() {
         period: 'all'
       });
       setCurrentPage(1);
+    } else if (tab === 'usage') {
+      // 사용 통계 탭으로 변경 시 필터 초기화
+      setUsageFilter({
+        startDate: '',
+        endDate: '',
+        category: 'all',
+        period: 'all'
+      });
+      setUsageCurrentPage(1);
     }
+  };
+
+  // 사용 통계 필터링 함수
+  const getFilteredUsageStats = () => {
+    const now = new Date();
+    const weekAgo = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
+    const monthAgo = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
+
+    return usageStats.filter(stat => {
+      // 카테고리 필터링
+      if (usageFilter.category !== 'all' && stat.category !== usageFilter.category) {
+        return false;
+      }
+      return true;
+    }).map(stat => {
+      let filteredDates = stat.dates;
+
+      // 기간 필터링
+      if (usageFilter.period !== 'all') {
+        filteredDates = stat.dates.filter(date => {
+          const itemDate = new Date(date);
+          
+          if (usageFilter.period === 'week') {
+            return itemDate >= weekAgo;
+          } else if (usageFilter.period === 'month') {
+            return itemDate >= monthAgo;
+          } else if (usageFilter.period === 'custom' && usageFilter.startDate && usageFilter.endDate) {
+            const startDate = new Date(usageFilter.startDate);
+            const endDate = new Date(usageFilter.endDate);
+            return itemDate >= startDate && itemDate <= endDate;
+          }
+          return true;
+        });
+      }
+
+      const filteredUsage = filteredDates.length;
+      const filteredCredits = Math.round((filteredUsage / stat.usage) * stat.credits);
+
+      return {
+        ...stat,
+        usage: filteredUsage,
+        credits: filteredCredits,
+        dates: filteredDates
+      };
+    }).filter(stat => stat.usage > 0);
+  };
+
+  // 사용 통계 합계 계산 함수
+  const getFilteredUsageSummary = () => {
+    const filteredStats = getFilteredUsageStats();
+    const totalUsage = filteredStats.reduce((sum, stat) => sum + stat.usage, 0);
+    const totalCredits = filteredStats.reduce((sum, stat) => sum + stat.credits, 0);
+    const mostUsedAgent = filteredStats.length > 0 
+      ? filteredStats.reduce((max, stat) => stat.usage > max.usage ? stat : max).agent
+      : '-';
+
+    return { totalUsage, totalCredits, mostUsedAgent };
+  };
+
+  // 사용 통계 필터 변경 핸들러
+  const handleUsageFilterChange = (field: string, value: string) => {
+    if (field === 'period') {
+      // 기간 선택이 변경되면 커스텀 날짜 초기화
+      setUsageFilter(prev => ({ 
+        ...prev, 
+        [field]: value,
+        startDate: '',
+        endDate: ''
+      }));
+    } else {
+      setUsageFilter(prev => ({ ...prev, [field]: value }));
+    }
+    setUsageCurrentPage(1); // 필터 변경 시 첫 페이지로
+  };
+
+  // 사용 통계 페이지 변경 핸들러
+  const handleUsagePageChange = (page: number) => {
+    setUsageCurrentPage(page);
+  };
+
+  // 페이징된 사용 통계 데이터 가져오기
+  const getPaginatedUsageStats = () => {
+    const filteredStats = getFilteredUsageStats();
+    const startIndex = (usageCurrentPage - 1) * itemsPerPage;
+    const endIndex = startIndex + itemsPerPage;
+    return filteredStats.slice(startIndex, endIndex);
+  };
+
+  // 사용 통계 총 페이지 수 계산
+  const getUsageTotalPages = () => {
+    const filteredStats = getFilteredUsageStats();
+    return Math.ceil(filteredStats.length / itemsPerPage);
   };
 
   return (
@@ -804,12 +933,80 @@ export default function Profile() {
         {/* Usage Tab */}
         {activeTab === 'usage' && (
           <div className="space-y-6">
+            {/* 필터 영역 */}
+            <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+              <div className="flex items-center justify-between mb-6">
+                <h2 className="text-lg font-semibold text-gray-900 flex items-center">
+                  <Filter className="w-5 h-5 mr-2" />
+                  사용 통계
+                </h2>
+              </div>
+
+              {/* 필터 컨트롤 */}
+              <div className="space-y-3 mb-6">
+                {/* 첫 번째 행: 카테고리 선택 */}
+                <div className="flex items-center space-x-4">
+                  <label className="text-sm font-medium text-gray-700 w-12">카테고리</label>
+                  <select
+                    value={usageFilter.category}
+                    onChange={(e) => handleUsageFilterChange('category', e.target.value)}
+                    className="flex-1 max-w-xs px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  >
+                    <option value="all">전체</option>
+                    <option value="일반사무">일반사무</option>
+                    <option value="마케팅/광고">마케팅/광고</option>
+                    <option value="콘텐츠 제작">콘텐츠 제작</option>
+                  </select>
+                </div>
+
+                {/* 두 번째 행: 기간 선택 */}
+                <div className="flex items-center space-x-4">
+                  <label className="text-sm font-medium text-gray-700 w-12">기간</label>
+                  <select
+                    value={usageFilter.period}
+                    onChange={(e) => handleUsageFilterChange('period', e.target.value)}
+                    className="flex-1 max-w-xs px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  >
+                    <option value="all">전체</option>
+                    <option value="week">1주일</option>
+                    <option value="month">1개월</option>
+                    <option value="custom">직접입력</option>
+                  </select>
+                </div>
+
+                {/* 직접입력 선택 시에만 날짜 입력 필드 표시 */}
+                {usageFilter.period === 'custom' && (
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4 ml-16">
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">시작 날짜</label>
+                      <input
+                        type="date"
+                        value={usageFilter.startDate}
+                        onChange={(e) => handleUsageFilterChange('startDate', e.target.value)}
+                        className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">종료 날짜</label>
+                      <input
+                        type="date"
+                        value={usageFilter.endDate}
+                        onChange={(e) => handleUsageFilterChange('endDate', e.target.value)}
+                        className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                      />
+                    </div>
+                  </div>
+                )}
+              </div>
+            </div>
+
+            {/* 통계 카드들 */}
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
               <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
                 <div className="flex items-center justify-between">
                   <div>
-                    <p className="text-sm font-medium text-gray-600">총 사용량</p>
-                    <p className="text-2xl font-bold text-gray-900 mt-2">2,120</p>
+                    <p className="text-sm font-medium text-gray-600">총 사용 크레딧</p>
+                    <p className="text-2xl font-bold text-gray-900 mt-2">{getFilteredUsageSummary().totalCredits.toLocaleString()}</p>
                   </div>
                   <BarChart3 className="w-8 h-8 text-blue-600" />
                 </div>
@@ -818,8 +1015,8 @@ export default function Profile() {
               <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
                 <div className="flex items-center justify-between">
                   <div>
-                    <p className="text-sm font-medium text-gray-600">이번 달 사용</p>
-                    <p className="text-2xl font-bold text-gray-900 mt-2">43회</p>
+                    <p className="text-sm font-medium text-gray-600">총 사용 횟수</p>
+                    <p className="text-2xl font-bold text-gray-900 mt-2">{getFilteredUsageSummary().totalUsage}회</p>
                   </div>
                   <Calendar className="w-8 h-8 text-green-600" />
                 </div>
@@ -828,36 +1025,107 @@ export default function Profile() {
               <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
                 <div className="flex items-center justify-between">
                   <div>
-                    <p className="text-sm font-medium text-gray-600">선호 에이전트</p>
-                    <p className="text-lg font-bold text-gray-900 mt-2">회의록 자동화</p>
+                    <p className="text-sm font-medium text-gray-600">최다 사용 에이전트</p>
+                    <p className="text-lg font-bold text-gray-900 mt-2">{getFilteredUsageSummary().mostUsedAgent}</p>
                   </div>
                   <Bot className="w-8 h-8 text-purple-600" />
                 </div>
               </div>
             </div>
 
+            {/* AI 에이전트별 사용 현황 */}
             <div className="bg-white rounded-xl shadow-sm border border-gray-200">
               <div className="px-6 py-4 border-b border-gray-200">
-                <h2 className="text-lg font-semibold text-gray-900">AI 에이전트별 사용 현황</h2>
-              </div>
-              <div className="p-6">
-                <div className="space-y-4">
-                  {usageStats.map((stat, index) => (
-                    <div key={index} className="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
-                      <div className="flex-1">
-                        <div className="flex items-center justify-between mb-2">
-                          <h3 className="text-sm font-medium text-gray-900">{stat.agent}</h3>
-                          <span className="text-sm font-bold text-blue-600">{stat.usage}회</span>
-                        </div>
-                        <div className="flex items-center justify-between text-xs text-gray-500">
-                          <span>{stat.category}</span>
-                          <span>{stat.credits} 크레딧 사용</span>
-                        </div>
-                      </div>
-                    </div>
-                  ))}
+                <div className="flex items-center justify-between">
+                  <h2 className="text-lg font-semibold text-gray-900">AI 에이전트별 사용 현황</h2>
+                  <div className="flex items-center space-x-4">
+                    {getFilteredUsageStats().length > 0 && (
+                      <span className="text-sm text-gray-500">
+                        {((usageCurrentPage - 1) * itemsPerPage) + 1}-{Math.min(usageCurrentPage * itemsPerPage, getFilteredUsageStats().length)} / {getFilteredUsageStats().length}
+                      </span>
+                    )}
+                    <span className="text-sm text-gray-500">총 {getFilteredUsageStats().length}개 에이전트</span>
+                  </div>
                 </div>
               </div>
+              <div className="p-6">
+                {getPaginatedUsageStats().length > 0 ? (
+                  <div className="space-y-4">
+                    {getPaginatedUsageStats().map((stat, index) => (
+                      <div key={index} className="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
+                        <div className="flex-1">
+                          <div className="flex items-center justify-between mb-2">
+                            <h3 className="text-sm font-medium text-gray-900">{stat.agent}</h3>
+                            <span className="text-sm font-bold text-blue-600">{stat.usage}회</span>
+                          </div>
+                          <div className="flex items-center justify-between text-xs text-gray-500">
+                            <span>{stat.category}</span>
+                            <span>{stat.credits.toLocaleString()} 크레딧 사용</span>
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <div className="text-center py-12">
+                    <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                      <Bot className="w-8 h-8 text-gray-400" />
+                    </div>
+                    <h3 className="text-sm font-medium text-gray-900 mb-1">검색 결과가 없습니다</h3>
+                    <p className="text-sm text-gray-500">
+                      선택한 조건에 해당하는 사용 통계가 없습니다.<br/>
+                      다른 조건으로 검색해보세요.
+                    </p>
+                  </div>
+                )}
+              </div>
+
+              {/* 페이지네이ション */}
+              {getFilteredUsageStats().length > 0 && getUsageTotalPages() > 1 && (
+                <div className="px-6 py-4 border-t border-gray-200">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center space-x-2">
+                      <button
+                        onClick={() => handleUsagePageChange(usageCurrentPage - 1)}
+                        disabled={usageCurrentPage === 1}
+                        className="inline-flex items-center px-3 py-2 border border-gray-300 rounded-md text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+                      >
+                        <ChevronLeft className="w-4 h-4 mr-1" />
+                        이전
+                      </button>
+                      
+                      <div className="flex items-center space-x-1">
+                        {Array.from({ length: getUsageTotalPages() }, (_, i) => i + 1).map((page) => (
+                          <button
+                            key={page}
+                            onClick={() => handleUsagePageChange(page)}
+                            className={`px-3 py-2 text-sm font-medium rounded-md ${
+                              usageCurrentPage === page
+                                ? 'bg-blue-600 text-white'
+                                : 'text-gray-700 hover:bg-gray-50 border border-gray-300'
+                            }`}
+                          >
+                            {page}
+                          </button>
+                        ))}
+                      </div>
+
+                      <button
+                        onClick={() => handleUsagePageChange(usageCurrentPage + 1)}
+                        disabled={usageCurrentPage === getUsageTotalPages()}
+                        className="inline-flex items-center px-3 py-2 border border-gray-300 rounded-md text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+                      >
+                        다음
+                        <ChevronRight className="w-4 h-4 ml-1" />
+                      </button>
+                    </div>
+
+                    <div className="text-sm text-gray-500">
+                      페이지 {usageCurrentPage} / {getUsageTotalPages()}
+                    </div>
+                  </div>
+                </div>
+              )}
             </div>
           </div>
         )}
