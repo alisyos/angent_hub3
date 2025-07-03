@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import Link from 'next/link';
 import { User, CreditCard, Menu, X, LogOut, Settings } from 'lucide-react';
 
 interface UserInfo {
@@ -85,9 +86,9 @@ export default function Header() {
         <div className="flex justify-between items-center h-16">
           {/* Logo */}
           <div className="flex-shrink-0">
-            <a href="/" className="text-xl font-bold gradient-bg bg-clip-text text-transparent">
-              AI 에이전트 허브
-            </a>
+                      <Link href="/" className="text-xl font-bold gradient-bg bg-clip-text text-transparent">
+            AI 에이전트 허브
+          </Link>
           </div>
 
           {/* Desktop Navigation */}

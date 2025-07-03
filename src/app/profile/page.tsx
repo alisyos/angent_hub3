@@ -8,15 +8,12 @@ import {
   Mail, 
   Phone, 
   Building2, 
-  CreditCard, 
   BarChart3, 
   History,
-  Settings,
   Edit,
   Save,
   X,
   Calendar,
-  TrendingUp,
   Bot,
   Lock,
   Eye,
@@ -28,19 +25,19 @@ import {
   ChevronRight
 } from 'lucide-react';
 
-interface UserInfo {
-  email: string;
-  name: string;
-  role: string;
-  credits: number;
-  isLoggedIn: boolean;
-  loginTime: string;
-}
+// interface UserInfo {
+//   email: string;
+//   name: string;
+//   role: string;
+//   credits: number;
+//   isLoggedIn: boolean;
+//   loginTime: string;
+// }
 
 export default function Profile() {
   const [isEditing, setIsEditing] = useState(false);
   const [activeTab, setActiveTab] = useState('profile');
-  const [loggedInUser, setLoggedInUser] = useState<UserInfo | null>(null);
+  // const [loggedInUser, setLoggedInUser] = useState<UserInfo | null>(null);
   const [passwordChange, setPasswordChange] = useState({
     isChanging: false,
     currentPassword: '',
@@ -144,7 +141,7 @@ export default function Profile() {
       try {
         const parsed = JSON.parse(savedUserInfo);
         if (parsed.isLoggedIn) {
-          setLoggedInUser(parsed);
+          // setLoggedInUser(parsed);
           // 프로필 정보에 로그인 정보 반영
           setUserInfo({
             name: parsed.role === '일반사용자' ? '김일반' : 

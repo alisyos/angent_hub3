@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { useParams, useRouter } from 'next/navigation';
+import { useModal } from '@/contexts/ModalContext';
 import Header from '@/components/Header';
 import Footer from '@/components/Footer';
 import { aiAgents } from '@/data/agents';
@@ -11,11 +12,13 @@ import { ArrowLeft, Play, Coins, Upload, Download, Copy, Briefcase, Megaphone, P
 export default function AgentExecution() {
   const params = useParams();
   const router = useRouter();
+  const { showModal } = useModal();
   const [agent, setAgent] = useState<AIAgent | null>(null);
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const [formData, setFormData] = useState<Record<string, any>>({});
   const [isExecuting, setIsExecuting] = useState(false);
   const [result, setResult] = useState<string | null>(null);
-  const [selectedCategory, setSelectedCategory] = useState<AgentCategory | 'agentList'>('agentList');
+  // const [selectedCategory, setSelectedCategory] = useState<AgentCategory | 'agentList'>('agentList');
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
   const [expandedCategories, setExpandedCategories] = useState<Set<AgentCategory | 'agentList'>>(new Set(['agentList']));
 
@@ -25,11 +28,10 @@ export default function AgentExecution() {
     
     if (foundAgent) {
       setAgent(foundAgent);
-      setSelectedCategory(foundAgent.category);
       // Expand the current agent's category
       setExpandedCategories(prev => new Set([...prev, foundAgent.category]));
       // Initialize form data
-      const initialData: Record<string, any> = {};
+      const initialData: Record<string, string | File> = {};
       foundAgent.inputs.forEach(input => {
         initialData[input.name] = '';
       });
@@ -37,7 +39,7 @@ export default function AgentExecution() {
     }
   }, [params.id]);
 
-  const handleInputChange = (inputName: string, value: any) => {
+  const handleInputChange = (inputName: string, value: string | File | undefined) => {
     setFormData(prev => ({
       ...prev,
       [inputName]: value
@@ -59,19 +61,19 @@ export default function AgentExecution() {
     '콘텐츠 제작': PenTool,
   };
 
-  const categoryColors = {
-    agentList: 'bg-gray-100 text-gray-800 border-gray-200 hover:bg-gray-200',
-    '일반사무': 'bg-blue-100 text-blue-800 border-blue-200 hover:bg-blue-200',
-    '마케팅/광고': 'bg-green-100 text-green-800 border-green-200 hover:bg-green-200',
-    '콘텐츠 제작': 'bg-purple-100 text-purple-800 border-purple-200 hover:bg-purple-200',
-  };
+  // const categoryColors = {
+  //   agentList: 'bg-gray-100 text-gray-800 border-gray-200 hover:bg-gray-200',
+  //   '일반사무': 'bg-blue-100 text-blue-800 border-blue-200 hover:bg-blue-200',
+  //   '마케팅/광고': 'bg-green-100 text-green-800 border-green-200 hover:bg-green-200',
+  //   '콘텐츠 제작': 'bg-purple-100 text-purple-800 border-purple-200 hover:bg-purple-200',
+  // };
 
-  const selectedCategoryColors = {
-    agentList: 'bg-gray-600 text-white border-gray-600',
-    '일반사무': 'bg-blue-600 text-white border-blue-600',
-    '마케팅/광고': 'bg-green-600 text-white border-green-600',
-    '콘텐츠 제작': 'bg-purple-600 text-white border-purple-600',
-  };
+  // const selectedCategoryColors = {
+  //   agentList: 'bg-gray-600 text-white border-gray-600',
+  //   '일반사무': 'bg-blue-600 text-white border-blue-600',
+  //   '마케팅/광고': 'bg-green-600 text-white border-green-600',
+  //   '콘텐츠 제작': 'bg-purple-600 text-white border-purple-600',
+  // };
 
   const categories: (AgentCategory | 'agentList')[] = ['agentList', '일반사무', '마케팅/광고', '콘텐츠 제작'];
 
@@ -111,7 +113,11 @@ export default function AgentExecution() {
       .map(input => input.name);
     
     if (missingInputs.length > 0) {
-      alert(`다음 필수 항목을 입력해주세요: ${missingInputs.join(', ')}`);
+      showModal({
+        title: '입력 필요',
+        message: `다음 필수 항목을 입력해주세요: ${missingInputs.join(', ')}`,
+        type: 'warning'
+      });
       return;
     }
 
@@ -124,7 +130,7 @@ export default function AgentExecution() {
 
 📝 입력 정보:
 ${Object.entries(formData)
-  .filter(([_, value]) => value)
+  .filter(([, value]) => value)
   .map(([key, value]) => `• ${key}: ${value}`)
   .join('\n')}
 

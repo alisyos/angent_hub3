@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { Mail, Lock, Eye, EyeOff } from 'lucide-react';
+import { useModal } from '@/contexts/ModalContext';
 import Footer from '@/components/Footer';
 
 // 테스트 계정 정보
@@ -39,6 +40,7 @@ const testAccounts = [
 
 export default function Login() {
   const router = useRouter();
+  const { showModal } = useModal();
   const [formData, setFormData] = useState({
     email: '',
     password: '',
@@ -100,7 +102,11 @@ export default function Login() {
   };
 
   const handleSocialLogin = (provider: string) => {
-    alert(`${provider} 로그인 기능은 개발 중입니다.`);
+    showModal({
+      title: '기능 개발 중',
+      message: `${provider} 로그인 기능은 개발 중입니다.`,
+      type: 'info'
+    });
   };
 
   return (

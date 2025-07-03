@@ -1,7 +1,11 @@
 'use client';
 
 import { useState, useMemo, useEffect } from 'react';
-import { useSearchParams } from 'next/navigation';
+import { useModal } from '@/contexts/ModalContext';
+
+// Force dynamic rendering
+export const dynamic = 'force-dynamic';
+// import { useSearchParams } from 'next/navigation';
 import Header from '@/components/Header';
 import Footer from '@/components/Footer';
 import AgentCard from '@/components/AgentCard';
@@ -10,7 +14,8 @@ import { AIAgent, AgentCategory } from '@/types/agent';
 import { Search, Briefcase, Megaphone, PenTool, Grid3X3, ChevronLeft, ChevronRight, ChevronDown, ChevronRight as ChevronRightSmall } from 'lucide-react';
 
 export default function Dashboard() {
-  const searchParams = useSearchParams();
+  const { showModal } = useModal();
+  // const searchParams = useSearchParams();
   const [selectedCategory, setSelectedCategory] = useState<AgentCategory | 'agentList'>('agentList');
   const [searchQuery, setSearchQuery] = useState('');
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
@@ -19,13 +24,13 @@ export default function Dashboard() {
   const itemsPerPage = 9;
 
   // Handle URL category parameter
-  useEffect(() => {
-    const categoryParam = searchParams.get('category');
-    if (categoryParam && ['일반사무', '마케팅/광고', '콘텐츠 제작'].includes(categoryParam)) {
-      setSelectedCategory(categoryParam as AgentCategory);
-      setExpandedCategories(prev => new Set([...prev, categoryParam as AgentCategory]));
-    }
-  }, [searchParams]);
+  // useEffect(() => {
+  //   const categoryParam = searchParams.get('category');
+  //   if (categoryParam && ['일반사무', '마케팅/광고', '콘텐츠 제작'].includes(categoryParam)) {
+  //     setSelectedCategory(categoryParam as AgentCategory);
+  //     setExpandedCategories(prev => new Set([...prev, categoryParam as AgentCategory]));
+  //   }
+  // }, [searchParams]);
 
   // Filter agents based on category and search query
   const filteredAgents = useMemo(() => {
@@ -77,6 +82,40 @@ export default function Dashboard() {
   }, []);
 
   const handleAgentClick = (agent: AIAgent) => {
+    // 클라이언트 사이드에서만 실행
+    if (typeof window === 'undefined') return;
+    
+    // 로그인 상태 확인
+    const userInfo = localStorage.getItem('userInfo');
+    if (!userInfo) {
+      showModal({
+        title: '로그인 필요',
+        message: 'AI 에이전트를 사용하려면 로그인이 필요합니다.',
+        type: 'warning'
+      });
+      return;
+    }
+
+    try {
+      const parsedUserInfo = JSON.parse(userInfo);
+      if (!parsedUserInfo.isLoggedIn) {
+        showModal({
+          title: '로그인 필요',
+          message: 'AI 에이전트를 사용하려면 로그인이 필요합니다.',
+          type: 'warning'
+        });
+        return;
+      }
+    } catch (error) {
+      showModal({
+        title: '로그인 필요',
+        message: 'AI 에이전트를 사용하려면 로그인이 필요합니다.',
+        type: 'warning'
+      });
+      return;
+    }
+
+    // 로그인된 상태라면 에이전트 페이지로 이동
     window.location.href = `/agent/${agent.id}`;
   };
 
@@ -99,19 +138,19 @@ export default function Dashboard() {
     '콘텐츠 제작': PenTool,
   };
 
-  const categoryColors = {
-    agentList: 'bg-gray-100 text-gray-800 border-gray-200 hover:bg-gray-200',
-    '일반사무': 'bg-blue-100 text-blue-800 border-blue-200 hover:bg-blue-200',
-    '마케팅/광고': 'bg-green-100 text-green-800 border-green-200 hover:bg-green-200',
-    '콘텐츠 제작': 'bg-purple-100 text-purple-800 border-purple-200 hover:bg-purple-200',
-  };
+  // const categoryColors = {
+  //   agentList: 'bg-gray-100 text-gray-800 border-gray-200 hover:bg-gray-200',
+  //   '일반사무': 'bg-blue-100 text-blue-800 border-blue-200 hover:bg-blue-200',
+  //   '마케팅/광고': 'bg-green-100 text-green-800 border-green-200 hover:bg-green-200',
+  //   '콘텐츠 제작': 'bg-purple-100 text-purple-800 border-purple-200 hover:bg-purple-200',
+  // };
 
-  const selectedCategoryColors = {
-    agentList: 'bg-gray-600 text-white border-gray-600',
-    '일반사무': 'bg-blue-600 text-white border-blue-600',
-    '마케팅/광고': 'bg-green-600 text-white border-green-600',
-    '콘텐츠 제작': 'bg-purple-600 text-white border-purple-600',
-  };
+  // const selectedCategoryColors = {
+  //   agentList: 'bg-gray-600 text-white border-gray-600',
+  //   '일반사무': 'bg-blue-600 text-white border-blue-600',
+  //   '마케팅/광고': 'bg-green-600 text-white border-green-600',
+  //   '콘텐츠 제작': 'bg-purple-600 text-white border-purple-600',
+  // };
 
   const categories: (AgentCategory | 'agentList')[] = ['agentList', '일반사무', '마케팅/광고', '콘텐츠 제작'];
 
@@ -259,7 +298,7 @@ export default function Dashboard() {
               <div>
                 {searchQuery ? (
                   <p className="text-gray-600">
-                    <span className="font-semibold">"{searchQuery}"</span> 검색 결과: {filteredAgents.length}개 에이전트
+                    <span className="font-semibold">&quot;{searchQuery}&quot;</span> 검색 결과: {filteredAgents.length}개 에이전트
                   </p>
                 ) : (
                   <p className="text-gray-600">

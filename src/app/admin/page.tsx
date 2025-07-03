@@ -6,12 +6,9 @@ import Footer from '@/components/Footer';
 import { 
   Users, 
   Bot, 
-  CreditCard, 
   TrendingUp, 
-  Calendar,
   AlertCircle,
   CheckCircle,
-  Clock,
   DollarSign
 } from 'lucide-react';
 
@@ -46,7 +43,13 @@ export default function AdminDashboard() {
     { name: '키워드 분석 AI', usage: 523, revenue: 62760 }
   ];
 
-  const StatCard = ({ icon: Icon, title, value, change, changeType }: any) => (
+  const StatCard = ({ icon: Icon, title, value, change, changeType }: {
+    icon: React.ComponentType<React.SVGProps<SVGSVGElement>>;
+    title: string;
+    value: string;
+    change?: string;
+    changeType?: 'positive' | 'negative';
+  }) => (
     <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
       <div className="flex items-center justify-between">
         <div>

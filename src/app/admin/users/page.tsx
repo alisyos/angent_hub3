@@ -5,8 +5,6 @@ import Header from '@/components/Header';
 import Footer from '@/components/Footer';
 import { 
   Search, 
-  Filter, 
-  MoreVertical, 
   Eye, 
   Edit, 
   Ban, 

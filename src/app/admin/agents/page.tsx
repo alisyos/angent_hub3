@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+// import { useState } from 'react';
 import Header from '@/components/Header';
 import Footer from '@/components/Footer';
 import { 
@@ -19,7 +19,7 @@ import {
 import { aiAgents } from '@/data/agents';
 
 export default function AdminAgents() {
-  const [selectedAgent, setSelectedAgent] = useState<string | null>(null);
+  // const [selectedAgent, setSelectedAgent] = useState<string | null>(null);
 
   const agentStats = {
     'meeting-recorder': { usage: 1245, revenue: 124500, trend: 12.5 },
@@ -166,7 +166,7 @@ export default function AdminAgents() {
               </thead>
               <tbody className="bg-white divide-y divide-gray-200">
                 {aiAgents.map((agent) => {
-                  const stats = agentStats[agent.id as keyof typeof agentStats];
+                  const stats = agentStats[agent.id as keyof typeof agentStats] || { usage: 0, revenue: 0, trend: 0 };
                   return (
                     <tr key={agent.id} className="hover:bg-gray-50">
                       <td className="px-6 py-4 whitespace-nowrap">

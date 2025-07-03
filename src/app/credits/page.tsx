@@ -2,11 +2,13 @@
 
 import { useState } from 'react';
 import { CreditCard, Check, Star } from 'lucide-react';
+import { useModal } from '@/contexts/ModalContext';
 import { creditPackages } from '@/data/agents';
 import Header from '@/components/Header';
 import Footer from '@/components/Footer';
 
 export default function Credits() {
+  const { showModal } = useModal();
   const [selectedPackage, setSelectedPackage] = useState<string | null>(null);
   const [selectedPayment, setSelectedPayment] = useState<string>('card');
 
@@ -19,12 +21,20 @@ export default function Credits() {
 
   const handlePurchase = () => {
     if (!selectedPackage) {
-      alert('크레딧 패키지를 선택해주세요.');
+      showModal({
+        title: '패키지 선택 필요',
+        message: '크레딧 패키지를 선택해주세요.',
+        type: 'warning'
+      });
       return;
     }
     
     const pkg = creditPackages.find(p => p.id === selectedPackage);
-    alert(`${pkg?.name} 구매가 완료되었습니다!\n${pkg?.credits}개 크레딧이 추가되었습니다.`);
+    showModal({
+      title: '구매 완료',
+      message: `${pkg?.name} 구매가 완료되었습니다!\n${pkg?.credits}개 크레딧이 추가되었습니다.`,
+      type: 'success'
+    });
   };
 
   return (

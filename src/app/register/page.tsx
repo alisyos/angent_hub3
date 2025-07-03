@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import Link from 'next/link';
+import { useModal } from '@/contexts/ModalContext';
 import Footer from '@/components/Footer';
 import { 
   Mail, 
@@ -9,7 +10,6 @@ import {
   User, 
   Building2, 
   Phone, 
-  MapPin,
   Eye,
   EyeOff,
   ArrowRight,
@@ -20,6 +20,7 @@ import {
 } from 'lucide-react';
 
 export default function Register() {
+  const { showModal } = useModal();
   const [accountType, setAccountType] = useState<'individual' | 'company'>('individual');
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
@@ -70,7 +71,11 @@ export default function Register() {
 
   const handleSendVerificationCode = async () => {
     if (!formData.email) {
-      alert('이메일 주소를 입력해주세요.');
+      showModal({
+        title: '입력 필요',
+        message: '이메일 주소를 입력해주세요.',
+        type: 'warning'
+      });
       return;
     }
 
@@ -125,7 +130,11 @@ export default function Register() {
     
     // 유효성 검증
     if (!emailVerification.isVerified) {
-      alert('이메일 인증을 완료해주세요.');
+      showModal({
+        title: '인증 필요',
+        message: '이메일 인증을 완료해주세요.',
+        type: 'warning'
+      });
       return;
     }
 
@@ -135,11 +144,19 @@ export default function Register() {
     }
 
     console.log('Registration attempt:', { accountType, ...formData });
-    alert('회원가입이 완료되었습니다!');
+    showModal({
+      title: '가입 완료',
+      message: '회원가입이 완료되었습니다!',
+      type: 'success'
+    });
   };
 
   const handleSocialRegister = (provider: string) => {
-    alert(`${provider} 소셜 회원가입 기능은 개발 중입니다.`);
+    showModal({
+      title: '기능 개발 중',
+      message: `${provider} 소셜 회원가입 기능은 개발 중입니다.`,
+      type: 'info'
+    });
   };
 
   return (
@@ -360,7 +377,7 @@ export default function Register() {
                   )}
                 </div>
                 <p className="mt-1 text-xs text-gray-500">
-                  데모: 인증 코드 "123456"을 입력하세요
+                  데모: 인증 코드 &quot;123456&quot;을 입력하세요
                 </p>
               </div>
             )}

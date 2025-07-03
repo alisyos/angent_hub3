@@ -2,12 +2,14 @@
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
+import { useModal } from '@/contexts/ModalContext';
 import Header from '@/components/Header';
 import Footer from '@/components/Footer';
 import { Mail, Phone, MapPin, Send, FileText, Zap, CreditCard, User, Paperclip, X } from 'lucide-react';
 
 export default function Contact() {
   const router = useRouter();
+  const { showModal } = useModal();
   const [formData, setFormData] = useState({
     type: '',
     name: '',
@@ -25,7 +27,11 @@ export default function Contact() {
     // Simulate form submission
     setTimeout(() => {
       setIsSubmitting(false);
-      alert('문의가 성공적으로 접수되었습니다. 빠른 시일 내에 답변 드리겠습니다.');
+      showModal({
+        title: '접수 완료',
+        message: '문의가 성공적으로 접수되었습니다. 빠른 시일 내에 답변 드리겠습니다.',
+        type: 'success'
+      });
       setFormData({
         type: '',
         name: '',
@@ -51,7 +57,11 @@ export default function Contact() {
         // 파일 크기 제한 (10MB)
         const maxSize = 10 * 1024 * 1024;
         if (file.size > maxSize) {
-          alert(`파일 크기가 너무 큽니다. (최대 10MB)\n파일명: ${file.name}`);
+          showModal({
+            title: '파일 크기 초과',
+            message: `파일 크기가 너무 큽니다. (최대 10MB)\n파일명: ${file.name}`,
+            type: 'error'
+          });
           return false;
         }
         return true;
