@@ -4,14 +4,12 @@ import { useState, useMemo, useEffect } from 'react';
 import CompanyLayout from '@/components/CompanyLayout';
 import { aiAgents } from '@/data/agents';
 import { 
-  Users,
   Settings,
   ChevronLeft,
   ChevronRight,
   Plus,
   Search,
   X,
-  Check,
   ChevronUp,
   ChevronDown,
   Filter
@@ -21,7 +19,6 @@ export default function CompanyEmployees() {
   const [activeTab, setActiveTab] = useState('employees');
   const [currentPage, setCurrentPage] = useState(1);
   const [isAgentModalOpen, setIsAgentModalOpen] = useState(false);
-  const [selectedDepartment, setSelectedDepartment] = useState<string | null>(null);
   const [selectedAgents, setSelectedAgents] = useState<string[]>([]);
   const [searchTerm, setSearchTerm] = useState('');
   
@@ -34,7 +31,7 @@ export default function CompanyEmployees() {
   
   // 편집 모달 상태
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
-  const [editingEmployee, setEditingEmployee] = useState<any>(null);
+  const [editingEmployee, setEditingEmployee] = useState<typeof allEmployees[0] | null>(null);
   
   // 부서 관리 필터 및 정렬 상태
   const [departmentSearchTerm, setDepartmentSearchTerm] = useState('');
@@ -134,7 +131,7 @@ export default function CompanyEmployees() {
 
   // 필터링 및 정렬된 직원 목록
   const filteredAndSortedEmployees = useMemo(() => {
-    let filtered = employees.filter(employee => {
+    const filtered = employees.filter(employee => {
       // 검색 필터
       const matchesSearch = employeeSearchTerm === '' || 
         employee.name.toLowerCase().includes(employeeSearchTerm.toLowerCase()) ||
@@ -204,6 +201,7 @@ export default function CompanyEmployees() {
   });
 
   // 현재 페이지 데이터 계산
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const getCurrentPageData = (data: any[], page: number) => {
     const startIndex = (page - 1) * itemsPerPage;
     const endIndex = startIndex + itemsPerPage;
@@ -363,6 +361,7 @@ export default function CompanyEmployees() {
     });
 
     const handleSave = () => {
+      if (!editingEmployee) return;
       setEmployees(prev => 
         prev.map(emp => 
           emp.id === editingEmployee.id 
@@ -375,6 +374,7 @@ export default function CompanyEmployees() {
     };
 
     const handleDelete = () => {
+      if (!editingEmployee) return;
       if (confirm('정말로 이 직원 계정을 삭제하시겠습니까?')) {
         setEmployees(prev => prev.filter(emp => emp.id !== editingEmployee.id));
         setIsEditModalOpen(false);
@@ -520,7 +520,8 @@ export default function CompanyEmployees() {
       if (!isAgentModalOpen && selectedAgents.length >= 0) {
         setFormData(prev => ({ ...prev, agents: selectedAgents }));
       }
-    }, [isAgentModalOpen, selectedAgents]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, []);
 
     const handleSave = () => {
       if (isNewDepartment) {
