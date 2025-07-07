@@ -4,23 +4,12 @@ import { useState } from 'react';
 import CompanyLayout from '@/components/CompanyLayout';
 import { 
   Building,
-  Users,
   Shield,
   Bell,
   CreditCard,
-  Globe,
-  Mail,
-  Phone,
-  MapPin,
   Save,
   Upload,
-  Eye,
-  EyeOff,
-  Key,
-  UserCheck,
-  FileText,
-  Settings as SettingsIcon,
-  AlertCircle
+  Settings as SettingsIcon
 } from 'lucide-react';
 
 export default function CompanySettings() {
@@ -81,7 +70,7 @@ export default function CompanySettings() {
     setNotificationSettings(prev => ({ ...prev, [setting]: value }));
   };
 
-  const handleSecurityChange = (setting: string, value: any) => {
+  const handleSecurityChange = (setting: string, value: string | number | boolean) => {
     setSecuritySettings(prev => ({ ...prev, [setting]: value }));
   };
 

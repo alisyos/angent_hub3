@@ -7,16 +7,11 @@ import {
   TrendingUp,
   TrendingDown,
   BarChart3,
-  PieChart,
-  Calendar,
   FileText,
   Users,
   DollarSign,
-  Clock,
   Target,
-  Filter,
-  RefreshCw,
-  Share2
+  RefreshCw
 } from 'lucide-react';
 
 export default function CompanyAnalytics() {

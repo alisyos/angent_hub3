@@ -9,12 +9,9 @@ import {
   Edit2,
   Trash2,
   Plus,
-  Calendar,
-  RefreshCw,
   AlertCircle,
   CheckCircle,
   XCircle,
-  Settings,
   HelpCircle
 } from 'lucide-react';
 

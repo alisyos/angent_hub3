@@ -10,9 +10,10 @@ interface CompanyLayoutProps {
   title: string;
   description?: string;
   actions?: ReactNode;
+  hideTimePeriod?: boolean;
 }
 
-export default function CompanyLayout({ children, title, description, actions }: CompanyLayoutProps) {
+export default function CompanyLayout({ children, title, description, actions, hideTimePeriod = false }: CompanyLayoutProps) {
   const [selectedPeriod, setSelectedPeriod] = useState('7d');
 
   return (
@@ -35,16 +36,18 @@ export default function CompanyLayout({ children, title, description, actions }:
                 )}
               </div>
               <div className="flex items-center space-x-3">
-                <select
-                  value={selectedPeriod}
-                  onChange={(e) => setSelectedPeriod(e.target.value)}
-                  className="px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                >
-                  <option value="1d">최근 1일</option>
-                  <option value="7d">최근 7일</option>
-                  <option value="30d">최근 30일</option>
-                  <option value="90d">최근 90일</option>
-                </select>
+                {!hideTimePeriod && (
+                  <select
+                    value={selectedPeriod}
+                    onChange={(e) => setSelectedPeriod(e.target.value)}
+                    className="px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  >
+                    <option value="1d">최근 1일</option>
+                    <option value="7d">최근 7일</option>
+                    <option value="30d">최근 30일</option>
+                    <option value="90d">최근 90일</option>
+                  </select>
+                )}
                 {actions}
               </div>
             </div>

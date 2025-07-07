@@ -1,6 +1,5 @@
 'use client';
 
-import { useState } from 'react';
 import CompanyLayout from '@/components/CompanyLayout';
 import { 
   Users, 
@@ -18,8 +17,6 @@ import {
 } from 'lucide-react';
 
 export default function CompanyDashboard() {
-  const [selectedPeriod, setSelectedPeriod] = useState('7d');
-
   const companyStats = {
     totalEmployees: 45,
     activeEmployees: 38,

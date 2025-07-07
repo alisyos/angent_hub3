@@ -12,7 +12,6 @@ import {
   TrendingUp,
   AlertTriangle,
   CheckCircle,
-  Settings,
   ArrowRight
 } from 'lucide-react';
 
