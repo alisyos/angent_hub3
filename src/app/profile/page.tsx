@@ -931,8 +931,8 @@ export default function Profile() {
                           </td>
                           <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
                             {userInfo.accountType === 'company' 
-                              ? `${(item as any).cumulativeUsage.toLocaleString()}` 
-                              : (item as any).balance.toLocaleString()
+                              ? `${('cumulativeUsage' in item ? (item as {cumulativeUsage: number}).cumulativeUsage : 0).toLocaleString()}` 
+                              : ('balance' in item ? (item as {balance: number}).balance : 0).toLocaleString()
                             }
                           </td>
                         </tr>
