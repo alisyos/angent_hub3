@@ -37,7 +37,7 @@ export default function AdminFAQ() {
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage, setItemsPerPage] = useState(10);
-  const [filterValues, setFilterValues] = useState<Record<string, any>>({});
+  const [filterValues, setFilterValues] = useState<Record<string, string | string[]>>({});
   const [searchValue, setSearchValue] = useState('');
   const [editingFaq, setEditingFaq] = useState<Partial<FAQAdmin>>({
     category: '',
@@ -326,7 +326,7 @@ export default function AdminFAQ() {
   };
 
   // 이벤트 핸들러
-  const handleFilterChange = (key: string, value: any) => {
+  const handleFilterChange = (key: string, value: string | string[]) => {
     const newFilterValues = { ...filterValues, [key]: value };
     setFilterValues(newFilterValues);
     applyFilters();

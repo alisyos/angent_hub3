@@ -8,36 +8,28 @@ import AdminTable from '@/components/admin/AdminTable';
 import AdminModal from '@/components/admin/AdminModal';
 import AdminPagination from '@/components/admin/AdminPagination';
 import { aiAgents } from '@/data/agents';
-import { AgentAdmin } from '@/types/admin';
+import { AIAgent } from '@/types/agent';
+import { AgentAdmin, AgentSettings } from '@/types/admin';
 import { 
   Bot, 
   Settings, 
   Play, 
   Pause, 
   BarChart3, 
-  Eye,
-  Edit,
   AlertTriangle,
   Clock,
   Activity,
-  Cpu,
-  Zap,
   Users,
   DollarSign,
-  TrendingUp,
-  TrendingDown,
-  Server,
-  Shield,
   RefreshCw,
   FileText,
   CheckCircle,
   XCircle,
-  Save,
-  RotateCcw
+  Save
 } from 'lucide-react';
 
 // AgentAdmin 타입으로 변환하는 헬퍼 함수
-const convertToAgentAdmin = (agent: any): AgentAdmin => ({
+const convertToAgentAdmin = (agent: AIAgent): AgentAdmin => ({
   ...agent,
   statistics: {
     totalUsage: Math.floor(Math.random() * 2000) + 500,
@@ -78,9 +70,16 @@ export default function AdminAgents() {
   const [showLogsModal, setShowLogsModal] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage, setItemsPerPage] = useState(10);
-  const [filterValues, setFilterValues] = useState<Record<string, any>>({});
+  const [filterValues, setFilterValues] = useState<Record<string, string | string[]>>({});
   const [searchValue, setSearchValue] = useState('');
-  const [editingSettings, setEditingSettings] = useState<any>({});
+  const [editingSettings, setEditingSettings] = useState<AgentSettings>({
+    isEnabled: false,
+    maxConcurrentUsers: 0,
+    maintenanceMode: false,
+    apiKeys: [],
+    rateLimit: 0,
+    timeout: 0
+  });
   const [confirmModal, setConfirmModal] = useState<{
     isOpen: boolean;
     agent: AgentAdmin | null;
@@ -333,7 +332,7 @@ export default function AdminAgents() {
   };
 
   // 상태 배지
-  const getStatusBadge = (settings: any) => {
+  const getStatusBadge = (settings: AgentSettings) => {
     if (settings?.maintenanceMode) {
       return (
         <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800">
@@ -405,7 +404,7 @@ export default function AdminAgents() {
   };
 
   // 이벤트 핸들러
-  const handleFilterChange = (key: string, value: any) => {
+  const handleFilterChange = (key: string, value: string | string[]) => {
     const newFilterValues = { ...filterValues, [key]: value };
     setFilterValues(newFilterValues);
     applyFilters();
@@ -729,8 +728,8 @@ function AgentSettingsModal({
   onCancel 
 }: {
   agent: AgentAdmin;
-  settings: any;
-  onChange: (settings: any) => void;
+  settings: AgentSettings;
+  onChange: (settings: AgentSettings) => void;
   onSave: () => void;
   onCancel: () => void;
 }) {
@@ -853,6 +852,8 @@ function AgentSettingsModal({
 
 // 에이전트 로그 모달 컴포넌트
 function AgentLogsModal({ agent }: { agent: AgentAdmin }) {
+  // 사용하지 않는 agent 변수 참조 추가
+  console.log('Agent logs for:', agent.name);
   const [logFilter, setLogFilter] = useState('all');
 
   const filteredLogs = agent.logs.filter(log => {

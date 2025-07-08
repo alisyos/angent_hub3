@@ -1,13 +1,12 @@
 import React from 'react';
 import { ChevronUp, ChevronDown, MoreHorizontal } from 'lucide-react';
 
-export interface TableColumn<T> {
-  key: keyof T | string;
+interface Column<T = unknown> {
+  key: string;
   label: string;
+  render?: (item: T) => React.ReactNode;
   sortable?: boolean;
-  width?: string;
   className?: string;
-  render?: (value: any, row: T, index: number) => React.ReactNode;
 }
 
 export interface TableAction<T> {
@@ -18,8 +17,8 @@ export interface TableAction<T> {
   show?: (row: T) => boolean;
 }
 
-interface AdminTableProps<T> {
-  columns: TableColumn<T>[];
+interface AdminTableProps<T = unknown> {
+  columns: Column<T>[];
   data: T[];
   actions?: TableAction<T>[];
   loading?: boolean;
@@ -28,6 +27,11 @@ interface AdminTableProps<T> {
   onSort?: (column: string) => void;
   emptyMessage?: string;
   className?: string;
+  onRowClick?: (item: T) => void;
+  selectedRows?: string[];
+  onRowSelect?: (item: T) => void;
+  onSelectAll?: () => void;
+  rowClassName?: (item: T) => string;
 }
 
 const actionColors = {
@@ -47,23 +51,28 @@ export default function AdminTable<T>({
   sortOrder,
   onSort,
   emptyMessage = '데이터가 없습니다.',
-  className = ''
+  className = '',
+  onRowClick,
+  selectedRows,
+  onRowSelect,
+  onSelectAll,
+  rowClassName
 }: AdminTableProps<T>) {
   
-  const getValue = (row: T, key: keyof T | string): any => {
+  const getValue = (row: T, key: string): any => {
     if (typeof key === 'string' && key.includes('.')) {
       return key.split('.').reduce((obj: any, k) => obj?.[k], row);
     }
     return row[key as keyof T];
   };
 
-  const handleSort = (column: TableColumn<T>) => {
+  const handleSort = (column: Column<T>) => {
     if (column.sortable && onSort) {
-      onSort(column.key as string);
+      onSort(column.key);
     }
   };
 
-  const getSortIcon = (column: TableColumn<T>) => {
+  const getSortIcon = (column: Column<T>) => {
     if (!column.sortable) return null;
     
     if (sortBy === column.key) {
@@ -110,11 +119,9 @@ export default function AdminTable<T>({
                 <th
                   key={index}
                   className={`px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider ${
-                    column.width || ''
-                  } ${column.className || ''} ${
                     column.sortable ? 'cursor-pointer hover:bg-gray-100 group' : ''
-                  }`}
-                  style={{ width: column.width }}
+                  } ${column.className || ''}`}
+                  style={{ width: column.sortable ? 'auto' : column.width }}
                   onClick={() => handleSort(column)}
                 >
                   <div className="flex items-center space-x-1">
@@ -144,8 +151,12 @@ export default function AdminTable<T>({
                 </td>
               </tr>
             ) : (
-              data.map((row, rowIndex) => (
-                <tr key={rowIndex} className="hover:bg-gray-50 transition-colors">
+              data.map((item: T, index) => (
+                <tr
+                  key={index}
+                  className={`hover:bg-gray-50 transition-colors ${rowClassName ? rowClassName(item) : ''}`}
+                  onClick={() => onRowClick?.(item)}
+                >
                   {columns.map((column, colIndex) => (
                     <td
                       key={colIndex}
@@ -154,8 +165,8 @@ export default function AdminTable<T>({
                       }`}
                     >
                       {column.render 
-                        ? column.render(getValue(row, column.key), row, rowIndex)
-                        : getValue(row, column.key)
+                        ? column.render(item)
+                        : getValue(item, column.key)
                       }
                     </td>
                   ))}
@@ -163,13 +174,13 @@ export default function AdminTable<T>({
                     <td className="px-6 py-4 whitespace-nowrap text-right text-sm">
                       <div className="flex items-center justify-end space-x-2">
                         {actions
-                          .filter(action => !action.show || action.show(row))
+                          .filter(action => !action.show || action.show(item))
                           .map((action, actionIndex) => {
                             const Icon = action.icon;
                             return (
                               <button
                                 key={actionIndex}
-                                onClick={() => action.onClick(row, rowIndex)}
+                                onClick={() => action.onClick(item, index)}
                                 className={`p-2 rounded-lg transition-colors ${
                                   actionColors[action.color || 'gray']
                                 }`}

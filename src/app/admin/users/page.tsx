@@ -3,24 +3,28 @@
 import { useState } from 'react';
 import AdminLayout from '@/components/AdminLayout';
 import { 
-  Users, 
-  Eye, 
-  Edit, 
-  Ban, 
-  CheckCircle,
-  XCircle,
-  Building2,
-  User,
-  Crown,
+  Search, 
+  Filter, 
+  MoreVertical, 
+  Download, 
+  Upload, 
+  Settings, 
+  User, 
+  Building2, 
+  Shield, 
   CreditCard,
+  CheckCircle,
   Clock,
+  Ban,
+  Edit,
+  Eye,
+  Trash2,
   Plus,
-  UserCheck,
-  UserX,
-  UserMinus
+  Save,
+  X
 } from 'lucide-react';
 import AdminStats from '@/components/admin/AdminStats';
-import AdminTable, { TableColumn, TableAction } from '@/components/admin/AdminTable';
+import AdminTable from '@/components/admin/AdminTable';
 import AdminFilter, { FilterConfig } from '@/components/admin/AdminFilter';
 import AdminPagination from '@/components/admin/AdminPagination';
 import AdminModal, { ConfirmModal } from '@/components/admin/AdminModal';
@@ -29,7 +33,7 @@ import { AdminUser } from '@/types/admin';
 
 export default function AdminUsers() {
   const [searchValue, setSearchValue] = useState('');
-  const [filterValues, setFilterValues] = useState<Record<string, any>>({});
+  const [filterValues, setFilterValues] = useState<Record<string, string | string[]>>({});
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage, setItemsPerPage] = useState(25);
   const [selectedUser, setSelectedUser] = useState<AdminUser | null>(null);
@@ -107,20 +111,20 @@ export default function AdminUsers() {
   };
 
   // 테이블 컬럼 정의
-  const columns: TableColumn<AdminUser>[] = [
+  const columns = [
     {
       key: 'name',
       label: '사용자',
-      render: (_, user) => (
+      render: (user: any) => (
         <div className="flex items-center">
           <div className="w-10 h-10 bg-gradient-to-br from-blue-500 to-purple-600 rounded-lg flex items-center justify-center mr-3">
             <span className="text-white font-medium text-sm">
-              {user.name.charAt(0)}
+              {user?.name?.charAt(0) || 'U'}
             </span>
           </div>
           <div>
-            <div className="font-medium text-gray-900">{user.name}</div>
-            <div className="text-sm text-gray-500">{user.email}</div>
+            <div className="font-medium text-gray-900">{user?.name || '이름 없음'}</div>
+            <div className="text-sm text-gray-500">{user?.email || '이메일 없음'}</div>
           </div>
         </div>
       )
@@ -128,49 +132,49 @@ export default function AdminUsers() {
     {
       key: 'type',
       label: '유형',
-      render: (_, user) => getUserTypeBadge(user.type)
+      render: (user: any) => getUserTypeBadge(user?.type)
     },
     {
       key: 'status',
       label: '상태',
-      render: (_, user) => getStatusBadge(user.status)
+      render: (user: any) => getStatusBadge(user?.status)
     },
     {
       key: 'credits',
       label: '크레딧',
-      render: (_, user) => (
+      render: (user: any) => (
         <div className="flex items-center">
           <CreditCard className="w-4 h-4 text-amber-500 mr-1" />
-          <span className="font-medium">{user.credits.toLocaleString()}</span>
+          <span className="font-medium">{user?.credits?.toLocaleString() || '0'}</span>
         </div>
       )
     },
     {
       key: 'totalSpent',
       label: '총 사용액',
-      render: (_, user) => `${(user.totalSpent / 1000).toFixed(0)}K원`
+      render: (user: any) => `${((user?.totalSpent || 0) / 1000).toFixed(0)}K원`
     },
     {
       key: 'lastLoginAt',
       label: '최근 로그인',
-      render: (_, user) => (
+      render: (user: any) => (
         <div className="flex items-center text-sm text-gray-500">
           <Clock className="w-4 h-4 mr-1" />
-          {new Date(user.lastLoginAt).toLocaleDateString('ko-KR')}
+          {user?.lastLoginAt ? new Date(user.lastLoginAt).toLocaleDateString('ko-KR') : '로그인 기록 없음'}
         </div>
       )
     }
   ];
 
   // 테이블 액션 정의
-  const actions: TableAction<AdminUser>[] = [
+  const actions = [
     {
       label: '상세 보기',
       icon: Eye,
-      onClick: (user) => {
+      onClick: (user: any) => {
         setSelectedUser({
           ...user,
-          activityLogs: generateUserActivityLogs(user.id, 20)
+          activityLogs: generateUserActivityLogs(user?.id || '', 20)
         });
         setIsUserModalOpen(true);
       },
@@ -179,7 +183,7 @@ export default function AdminUsers() {
     {
       label: '수정',
       icon: Edit,
-      onClick: (user) => {
+      onClick: (user: any) => {
         console.log('Edit user:', user);
       },
       color: 'gray'
@@ -187,7 +191,7 @@ export default function AdminUsers() {
     {
       label: '정지',
       icon: Ban,
-      onClick: (user) => {
+      onClick: (user: any) => {
         setConfirmModal({
           isOpen: true,
           type: 'suspend',
@@ -195,12 +199,12 @@ export default function AdminUsers() {
         });
       },
       color: 'yellow',
-      show: (user) => user.status === 'active'
+      show: (user: any) => user?.status === 'active'
     },
     {
       label: '활성화',
       icon: CheckCircle,
-      onClick: (user) => {
+      onClick: (user: any) => {
         setConfirmModal({
           isOpen: true,
           type: 'activate',
@@ -208,7 +212,7 @@ export default function AdminUsers() {
         });
       },
       color: 'green',
-      show: (user) => user.status !== 'active'
+      show: (user: any) => user?.status !== 'active'
     }
   ];
 
@@ -217,7 +221,7 @@ export default function AdminUsers() {
     const configs = {
       individual: { bg: 'bg-blue-100', text: 'text-blue-800', label: '개인', icon: User },
       company: { bg: 'bg-green-100', text: 'text-green-800', label: '회사', icon: Building2 },
-      admin: { bg: 'bg-purple-100', text: 'text-purple-800', label: '관리자', icon: Crown }
+      admin: { bg: 'bg-purple-100', text: 'text-purple-800', label: '관리자', icon: Shield }
     };
     
     const config = configs[type as keyof typeof configs];
@@ -235,9 +239,9 @@ export default function AdminUsers() {
 
   const getStatusBadge = (status: string) => {
     const configs = {
-      active: { bg: 'bg-green-100', text: 'text-green-800', label: '활성', icon: UserCheck },
-      inactive: { bg: 'bg-gray-100', text: 'text-gray-800', label: '비활성', icon: UserX },
-      suspended: { bg: 'bg-red-100', text: 'text-red-800', label: '정지', icon: UserMinus }
+      active: { bg: 'bg-green-100', text: 'text-green-800', label: '활성', icon: CheckCircle },
+      inactive: { bg: 'bg-gray-100', text: 'text-gray-800', label: '비활성', icon: X },
+      suspended: { bg: 'bg-red-100', text: 'text-red-800', label: '정지', icon: Ban }
     };
     
     const config = configs[status as keyof typeof configs];
@@ -253,7 +257,7 @@ export default function AdminUsers() {
       );
   };
 
-  const handleFilterChange = (key: string, value: any) => {
+  const handleFilterChange = (key: string, value: string | string[]) => {
     setFilterValues(prev => ({
       ...prev,
       [key]: value
@@ -290,13 +294,13 @@ export default function AdminUsers() {
           <AdminStats
             title="전체 사용자"
             value={stats.total}
-            icon={Users}
+            icon={User}
             color="blue"
           />
           <AdminStats
             title="활성 사용자"
             value={stats.active}
-            icon={UserCheck}
+            icon={CheckCircle}
             color="green"
             change={{ value: 12.5, type: 'positive', label: '전월대비' }}
           />
@@ -309,7 +313,7 @@ export default function AdminUsers() {
           <AdminStats
             title="정지된 계정"
             value={stats.suspended}
-            icon={UserMinus}
+            icon={Ban}
             color="red"
           />
         </div>

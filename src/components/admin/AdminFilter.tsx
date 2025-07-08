@@ -19,8 +19,8 @@ interface AdminFilterProps {
   onSearchChange: (value: string) => void;
   searchPlaceholder?: string;
   filters?: FilterConfig[];
-  filterValues: Record<string, any>;
-  onFilterChange: (key: string, value: any) => void;
+  filterValues: Record<string, string | string[]>;
+  onFilterChange: (key: string, value: string | string[]) => void;
   onReset?: () => void;
   showReset?: boolean;
   className?: string;

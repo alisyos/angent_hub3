@@ -10,20 +10,19 @@ import AdminPagination from '@/components/admin/AdminPagination';
 import { mockInquiries } from '@/data/admin';
 import { InquiryAdmin, InquiryResponse } from '@/types/admin';
 import { 
-  MessageSquare, 
-  CheckCircle, 
-  Clock, 
-  AlertCircle,
-  Pause,
-  Eye,
-  MessageCircle,
-  User,
-  Calendar,
-  Tag,
-  Send,
-  Edit,
-  Archive,
-  AlertTriangle,
+  Search, 
+  Filter, 
+  MoreVertical, 
+  Download, 
+  Upload, 
+  Settings, 
+  Eye, 
+  MessageSquare,
+  FileText,
+  CheckCircle,
+  XCircle,
+  Clock,
+  Save,
   X
 } from 'lucide-react';
 
@@ -36,7 +35,7 @@ export default function AdminInquiries() {
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage, setItemsPerPage] = useState(10);
   const [responseText, setResponseText] = useState('');
-  const [filterValues, setFilterValues] = useState<Record<string, any>>({});
+  const [filterValues, setFilterValues] = useState<Record<string, string | string[]>>({});
   const [searchValue, setSearchValue] = useState('');
   const [confirmModal, setConfirmModal] = useState<{
     isOpen: boolean;
@@ -175,7 +174,7 @@ export default function AdminInquiries() {
             title="답변 작성"
             disabled={!inquiry}
           >
-            <MessageCircle className="w-4 h-4" />
+            <MessageSquare className="w-4 h-4" />
           </button>
           <button
             onClick={() => inquiry && handleStatusChange(inquiry, 'resolved')}
@@ -191,7 +190,7 @@ export default function AdminInquiries() {
             title="삭제"
             disabled={!inquiry}
           >
-            <Archive className="w-4 h-4" />
+            <X className="w-4 h-4" />
           </button>
         </div>
       )
@@ -202,7 +201,7 @@ export default function AdminInquiries() {
   const getStatusBadge = (status: string) => {
     const styles = {
       pending: { bg: 'bg-yellow-100', text: 'text-yellow-800', icon: Clock },
-      in_progress: { bg: 'bg-blue-100', text: 'text-blue-800', icon: AlertCircle },
+      in_progress: { bg: 'bg-blue-100', text: 'text-blue-800', icon: XCircle },
       resolved: { bg: 'bg-green-100', text: 'text-green-800', icon: CheckCircle },
       closed: { bg: 'bg-gray-100', text: 'text-gray-800', icon: X }
     };
@@ -305,7 +304,7 @@ export default function AdminInquiries() {
   };
 
   // 이벤트 핸들러
-  const handleFilterChange = (key: string, value: any) => {
+  const handleFilterChange = (key: string, value: string | string[]) => {
     const newFilterValues = { ...filterValues, [key]: value };
     setFilterValues(newFilterValues);
     
@@ -450,7 +449,7 @@ export default function AdminInquiries() {
           <AdminStats
             title="처리중"
             value={inquiries.filter(i => i.status === 'in_progress').length}
-            icon={AlertCircle}
+            icon={XCircle}
             color="blue"
             change={{ value: 8, type: 'positive' }}
           />
@@ -545,7 +544,7 @@ export default function AdminInquiries() {
                 disabled={!responseText.trim()}
                 className="px-4 py-2 text-sm font-medium text-white bg-blue-600 border border-transparent rounded-md hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed flex items-center"
               >
-                <Send className="w-4 h-4 mr-2" />
+                <Save className="w-4 h-4 mr-2" />
                 답변 전송
               </button>
             </div>

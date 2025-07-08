@@ -1,14 +1,7 @@
-import { 
-  AdminUser, 
-  InquiryAdmin, 
-  PaymentAdmin, 
-  FAQAdmin, 
-  UserActivityLog,
-  CompanyDetails 
-} from '@/types/admin';
+import { User, Payment, FAQ, Inquiry, AgentAdmin } from '@/types/admin';
 
 // === 사용자 관리 Mock 데이터 ===
-export const mockUsers: AdminUser[] = [
+export const mockUsers: User[] = [
   {
     id: '1',
     email: 'kim.cs@example.com',
@@ -117,7 +110,7 @@ export const mockUsers: AdminUser[] = [
 ];
 
 // === 문의 관리 Mock 데이터 ===
-export const mockInquiries: InquiryAdmin[] = [
+export const mockInquiries: Inquiry[] = [
   {
     id: '1',
     type: 'billing',
@@ -216,7 +209,7 @@ export const mockInquiries: InquiryAdmin[] = [
 ];
 
 // === 결제 관리 Mock 데이터 ===
-export const mockPayments: PaymentAdmin[] = [
+export const mockPayments: Payment[] = [
   {
     id: 'pay001',
     user: {
@@ -281,7 +274,7 @@ export const mockPayments: PaymentAdmin[] = [
 ];
 
 // === FAQ 관리 Mock 데이터 ===
-export const mockFAQs: FAQAdmin[] = [
+export const mockFAQs: FAQ[] = [
   {
     id: 'faq001',
     category: 'general',
