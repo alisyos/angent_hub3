@@ -10,11 +10,11 @@ import AdminPagination from '@/components/admin/AdminPagination';
 import { aiAgents } from '@/data/agents';
 import { AgentAdmin } from '@/types/admin';
 import { 
-  Bot,
-  Settings,
-  Play,
-  Pause,
-  BarChart3,
+  Bot, 
+  Settings, 
+  Play, 
+  Pause, 
+  BarChart3, 
   Eye,
   Edit,
   AlertTriangle,
@@ -391,7 +391,7 @@ export default function AdminAgents() {
           } else if (value === 'poor') {
             filtered = filtered.filter(agent => (agent?.statistics?.successRate ?? 0) < 85);
           }
-        } else {
+    } else {
           filtered = filtered.filter(agent => {
             const agentValue = agent?.[key as keyof AgentAdmin];
             return agentValue === value;
@@ -629,9 +629,9 @@ export default function AdminAgents() {
                   ? (confirmModal.agent?.settings.isEnabled ? '비활성화' : '활성화')
                   : '재시작'
                 }
-              </button>
-            </div>
+            </button>
           </div>
+        </div>
         </AdminModal>
     </AdminLayout>
   );
@@ -642,7 +642,7 @@ function AgentDashboardModal({ agent }: { agent: AgentAdmin }) {
   return (
     <div className="space-y-6">
       {/* 기본 정보 */}
-      <div>
+              <div>
         <h3 className="text-lg font-medium text-gray-900 mb-4">에이전트 정보</h3>
         <div className="grid grid-cols-3 gap-4">
           <div className="text-center p-4 bg-blue-50 rounded-lg">
@@ -652,26 +652,26 @@ function AgentDashboardModal({ agent }: { agent: AgentAdmin }) {
           <div className="text-center p-4 bg-green-50 rounded-lg">
             <div className="text-2xl font-bold text-green-600">{agent.statistics.successRate.toFixed(1)}%</div>
             <div className="text-sm text-green-600">성공률</div>
-          </div>
+              </div>
           <div className="text-center p-4 bg-purple-50 rounded-lg">
             <div className="text-2xl font-bold text-purple-600">{(agent.statistics.revenue / 1000).toFixed(0)}K원</div>
             <div className="text-sm text-purple-600">월 수익</div>
+              </div>
+            </div>
           </div>
-        </div>
-      </div>
-
+          
       {/* 성능 지표 */}
       <div>
         <h3 className="text-lg font-medium text-gray-900 mb-4">성능 지표</h3>
         <div className="grid grid-cols-2 gap-6">
-          <div>
+              <div>
             <h4 className="text-sm font-medium text-gray-700 mb-2">처리 시간</h4>
             <div className="flex items-center space-x-2">
               <Clock className="w-4 h-4 text-gray-400" />
               <span className="text-sm text-gray-900">평균 {agent.statistics.averageProcessingTime.toFixed(1)}초</span>
             </div>
           </div>
-          <div>
+              <div>
             <h4 className="text-sm font-medium text-gray-700 mb-2">사용자 평점</h4>
             <div className="flex items-center space-x-2">
               <span className="text-sm text-gray-900">{agent.statistics.userRating.toFixed(1)} / 5.0</span>
@@ -684,13 +684,13 @@ function AgentDashboardModal({ agent }: { agent: AgentAdmin }) {
               </div>
             </div>
           </div>
-          <div>
+              <div>
             <h4 className="text-sm font-medium text-gray-700 mb-2">오류 발생</h4>
             <div className="flex items-center space-x-2">
               <AlertTriangle className="w-4 h-4 text-red-400" />
               <span className="text-sm text-gray-900">{agent.statistics.errorCount}건</span>
-            </div>
-          </div>
+              </div>
+              </div>
           <div>
             <h4 className="text-sm font-medium text-gray-700 mb-2">동시 사용자</h4>
             <div className="flex items-center space-x-2">
@@ -699,8 +699,8 @@ function AgentDashboardModal({ agent }: { agent: AgentAdmin }) {
             </div>
           </div>
         </div>
-      </div>
-
+          </div>
+          
       {/* 월별 사용량 차트 */}
       <div>
         <h3 className="text-lg font-medium text-gray-900 mb-4">월별 사용량 추이</h3>
@@ -734,7 +734,7 @@ function AgentSettingsModal({
   onSave: () => void;
   onCancel: () => void;
 }) {
-  return (
+                  return (
     <div className="space-y-6">
       <div className="grid grid-cols-2 gap-4">
         <div>
@@ -758,8 +758,8 @@ function AgentSettingsModal({
             />
             <span className="text-sm font-medium text-gray-700">점검 모드</span>
           </label>
-        </div>
-      </div>
+                            </div>
+                          </div>
 
       <div className="grid grid-cols-2 gap-4">
         <div>
@@ -787,8 +787,8 @@ function AgentSettingsModal({
             onChange={(e) => onChange({ ...settings, rateLimit: parseInt(e.target.value) || 60 })}
             className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent"
           />
-        </div>
-      </div>
+                          </div>
+                        </div>
 
       <div>
         <label className="block text-sm font-medium text-gray-700 mb-2">
@@ -802,7 +802,7 @@ function AgentSettingsModal({
           onChange={(e) => onChange({ ...settings, timeout: parseInt(e.target.value) || 60 })}
           className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent"
         />
-      </div>
+                        </div>
 
       <div>
         <label className="block text-sm font-medium text-gray-700 mb-2">
@@ -826,7 +826,7 @@ function AgentSettingsModal({
                 className="px-3 py-2 text-sm text-blue-600 border border-blue-600 rounded-md hover:bg-blue-50"
               >
                 재생성
-              </button>
+                          </button>
             </div>
           ))}
         </div>
@@ -838,15 +838,15 @@ function AgentSettingsModal({
           className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50"
         >
           취소
-        </button>
+                          </button>
         <button
           onClick={onSave}
           className="px-4 py-2 text-sm font-medium text-white bg-blue-600 border border-transparent rounded-md hover:bg-blue-700 flex items-center"
         >
           <Save className="w-4 h-4 mr-2" />
           저장
-        </button>
-      </div>
+                          </button>
+                        </div>
     </div>
   );
 }
@@ -910,7 +910,7 @@ function AgentLogsModal({ agent }: { agent: AgentAdmin }) {
             </div>
           </div>
         ))}
-      </div>
+        </div>
     </div>
   );
 } 

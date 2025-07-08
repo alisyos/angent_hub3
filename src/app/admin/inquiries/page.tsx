@@ -520,7 +520,7 @@ export default function AdminInquiries() {
               </p>
             </div>
             
-            <div>
+              <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">
                 답변 내용
               </label>
@@ -531,7 +531,7 @@ export default function AdminInquiries() {
                 className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                 placeholder="답변을 입력하세요..."
               />
-            </div>
+              </div>
             
             <div className="flex justify-end space-x-3">
               <button
@@ -565,7 +565,7 @@ export default function AdminInquiries() {
                 ? '이 문의를 삭제하시겠습니까? 이 작업은 되돌릴 수 없습니다.'
                 : `문의 상태를 변경하시겠습니까?`
               }
-            </div>
+              </div>
             <div className="flex justify-end space-x-3">
               <button
                 onClick={() => setConfirmModal({ isOpen: false, inquiry: null, type: 'status' })}
@@ -602,56 +602,56 @@ function InquiryDetailModal({ inquiry }: { inquiry: InquiryAdmin }) {
             <label className="block text-sm font-medium text-gray-500">제목</label>
             <p className="mt-1 text-sm text-gray-900">{inquiry.title}</p>
           </div>
-          <div>
+              <div>
             <label className="block text-sm font-medium text-gray-500">유형</label>
             <p className="mt-1 text-sm text-gray-900">{inquiry.type}</p>
-          </div>
+              </div>
           <div>
             <label className="block text-sm font-medium text-gray-500">우선순위</label>
             <p className="mt-1 text-sm text-gray-900">{inquiry.priority}</p>
-          </div>
+            </div>
           <div>
             <label className="block text-sm font-medium text-gray-500">상태</label>
             <p className="mt-1 text-sm text-gray-900">{inquiry.status}</p>
           </div>
-          <div>
+              <div>
             <label className="block text-sm font-medium text-gray-500">등록일</label>
             <p className="mt-1 text-sm text-gray-900">
               {new Date(inquiry.createdAt).toLocaleString('ko-KR')}
-            </p>
-          </div>
+                </p>
+              </div>
           <div>
             <label className="block text-sm font-medium text-gray-500">최종 수정일</label>
             <p className="mt-1 text-sm text-gray-900">
               {new Date(inquiry.updatedAt).toLocaleString('ko-KR')}
             </p>
           </div>
-        </div>
-      </div>
-
+              </div>
+            </div>
+            
       {/* 문의자 정보 */}
       <div>
         <h3 className="text-lg font-medium text-gray-900 mb-4">문의자 정보</h3>
         <div className="grid grid-cols-2 gap-4">
-          <div>
+            <div>
             <label className="block text-sm font-medium text-gray-500">이름</label>
             <p className="mt-1 text-sm text-gray-900">{inquiry.user.name}</p>
-          </div>
-          <div>
+            </div>
+            <div>
             <label className="block text-sm font-medium text-gray-500">이메일</label>
             <p className="mt-1 text-sm text-gray-900">{inquiry.user.email}</p>
           </div>
         </div>
-      </div>
-
+          </div>
+          
       {/* 문의 내용 */}
       <div>
         <h3 className="text-lg font-medium text-gray-900 mb-4">문의 내용</h3>
         <div className="bg-gray-50 rounded-lg p-4">
           <p className="text-sm text-gray-900 whitespace-pre-line">{inquiry.content}</p>
-        </div>
-      </div>
-
+                    </div>
+                  </div>
+                  
       {/* 첨부파일 */}
       {inquiry.attachments && inquiry.attachments.length > 0 && (
         <div>

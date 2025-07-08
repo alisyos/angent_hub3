@@ -224,7 +224,7 @@ export default function AdminUsers() {
     if (!config) return null;
     
     const Icon = config.icon;
-    
+
     return (
       <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${config.bg} ${config.text}`}>
         <Icon className="w-3 h-3 mr-1" />
@@ -245,12 +245,12 @@ export default function AdminUsers() {
     
     const Icon = config.icon;
     
-    return (
+      return (
       <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${config.bg} ${config.text}`}>
         <Icon className="w-3 h-3 mr-1" />
         {config.label}
-      </span>
-    );
+        </span>
+      );
   };
 
   const handleFilterChange = (key: string, value: any) => {
@@ -422,9 +422,9 @@ function UserDetailModal({ user }: { user: AdminUser }) {
               {new Date(user.lastLoginAt).toLocaleDateString('ko-KR')}
             </p>
           </div>
-        </div>
-      </div>
-
+              </div>
+            </div>
+            
       {/* 회사 정보 */}
       {user.companyInfo && (
         <div>
@@ -461,13 +461,13 @@ function UserDetailModal({ user }: { user: AdminUser }) {
           <div className="text-center p-4 bg-green-50 rounded-lg">
             <div className="text-2xl font-bold text-green-600">{user.totalCreditsUsed.toLocaleString()}</div>
             <div className="text-sm text-green-600">사용한 크레딧</div>
-          </div>
+            </div>
           <div className="text-center p-4 bg-purple-50 rounded-lg">
             <div className="text-2xl font-bold text-purple-600">{(user.totalSpent / 1000).toFixed(0)}K원</div>
             <div className="text-sm text-purple-600">총 사용액</div>
           </div>
-        </div>
-      </div>
+                          </div>
+                        </div>
 
       {/* 최근 활동 */}
       <div>
@@ -481,8 +481,8 @@ function UserDetailModal({ user }: { user: AdminUser }) {
                 <p className="text-xs text-gray-500">
                   {new Date(log.timestamp).toLocaleString('ko-KR')} · {log.ipAddress}
                 </p>
-              </div>
-            </div>
+                        </div>
+                      </div>
           ))}
         </div>
       </div>
