@@ -74,6 +74,8 @@ export default function Profile() {
     phone: '010-1234-5678',
     accountType: 'individual',
     company: '',
+    department: '',
+    role: '',
     joinDate: '2024-01-15',
     credits: 0
   });
@@ -103,7 +105,31 @@ export default function Profile() {
     { id: 22, type: 'usage', amount: -70, description: '동영상 스크립트 AI', date: '2023-12-29', balance: 40 },
     { id: 23, type: 'usage', amount: -35, description: '제품 설명 AI', date: '2023-12-28', balance: 110 },
     { id: 24, type: 'usage', amount: -45, description: '이벤트 기획 AI', date: '2023-12-27', balance: 145 },
-    { id: 25, type: 'purchase', amount: 400, description: '에센셜 패키지', date: '2023-12-26', balance: 190 }
+    { id: 25, type: 'usage', amount: -400, description: '에센셜 패키지', date: '2023-12-26', balance: 190 }
+  ];
+
+  // 회사 계정 전용 사용 내역 (충전 내역 제외)
+  const companyUsageHistory = [
+    { id: 1, type: 'usage', amount: -50, description: '회의록 자동화 AI', date: '2024-01-20', cumulativeUsage: 910 },
+    { id: 2, type: 'usage', amount: -30, description: '이메일 자동 작성 AI', date: '2024-01-19', cumulativeUsage: 860 },
+    { id: 3, type: 'usage', amount: -80, description: 'PPT 슬라이드 생성기', date: '2024-01-18', cumulativeUsage: 830 },
+    { id: 4, type: 'usage', amount: -25, description: '데이터 분석 AI', date: '2024-01-17', cumulativeUsage: 750 },
+    { id: 5, type: 'usage', amount: -40, description: '소셜 미디어 콘텐츠 AI', date: '2024-01-16', cumulativeUsage: 725 },
+    { id: 6, type: 'usage', amount: -60, description: '카드뉴스 생성 AI', date: '2024-01-15', cumulativeUsage: 685 },
+    { id: 7, type: 'usage', amount: -35, description: '광고 문구 생성 AI', date: '2024-01-14', cumulativeUsage: 625 },
+    { id: 8, type: 'usage', amount: -45, description: '블로그 글 작성 AI', date: '2024-01-13', cumulativeUsage: 590 },
+    { id: 9, type: 'usage', amount: -55, description: '프레젠테이션 생성기', date: '2024-01-12', cumulativeUsage: 545 },
+    { id: 10, type: 'usage', amount: -20, description: '번역 AI', date: '2024-01-11', cumulativeUsage: 490 },
+    { id: 11, type: 'usage', amount: -30, description: '요약 AI', date: '2024-01-10', cumulativeUsage: 470 },
+    { id: 12, type: 'usage', amount: -65, description: '인포그래픽 생성 AI', date: '2024-01-09', cumulativeUsage: 440 },
+    { id: 13, type: 'usage', amount: -40, description: '마케팅 전략 AI', date: '2024-01-08', cumulativeUsage: 375 },
+    { id: 14, type: 'usage', amount: -25, description: '키워드 분석 AI', date: '2024-01-07', cumulativeUsage: 335 },
+    { id: 15, type: 'usage', amount: -70, description: '동영상 스크립트 AI', date: '2024-01-06', cumulativeUsage: 310 },
+    { id: 16, type: 'usage', amount: -35, description: '제품 설명 AI', date: '2024-01-05', cumulativeUsage: 240 },
+    { id: 17, type: 'usage', amount: -45, description: '이벤트 기획 AI', date: '2024-01-04', cumulativeUsage: 205 },
+    { id: 18, type: 'usage', amount: -50, description: '회의록 자동화 AI', date: '2024-01-03', cumulativeUsage: 160 },
+    { id: 19, type: 'usage', amount: -30, description: '이메일 자동 작성 AI', date: '2024-01-02', cumulativeUsage: 110 },
+    { id: 20, type: 'usage', amount: -80, description: 'PPT 슬라이드 생성기', date: '2024-01-01', cumulativeUsage: 80 }
   ];
 
   const usageStats = [
@@ -151,6 +177,8 @@ export default function Profile() {
             phone: '010-1234-5678',
             accountType: (parsed.role === '회사관리자' || parsed.role === '회사일반사용자') ? 'company' : 'individual',
             company: (parsed.role === '회사관리자' || parsed.role === '회사일반사용자') ? '테스트 회사' : '',
+            department: parsed.role === '회사일반사용자' ? '개발팀' : '',
+            role: parsed.role,
             joinDate: '2024-01-15',
             credits: parsed.credits
           });
@@ -252,10 +280,12 @@ export default function Profile() {
 
   // 크레딧 내역 필터링 및 페이지네이션
   const getFilteredCreditHistory = () => {
-    let filtered = [...creditHistory];
+    // 회사 계정인 경우 사용 내역만 사용
+    const isCompanyAccount = userInfo.accountType === 'company';
+    let filtered = [...(isCompanyAccount ? companyUsageHistory : creditHistory)];
 
-    // 유형 필터링
-    if (creditFilter.type !== 'all') {
+    // 유형 필터링 (회사 계정은 사용 내역만 있으므로 필터링 불필요)
+    if (creditFilter.type !== 'all' && !isCompanyAccount) {
       filtered = filtered.filter(item => item.type === creditFilter.type);
     }
 
@@ -300,15 +330,26 @@ export default function Profile() {
 
   // 필터링된 데이터의 합계 계산
   const getFilteredSummary = () => {
-    const totalPurchase = filteredHistory
-      .filter(item => item.type === 'purchase')
-      .reduce((sum, item) => sum + item.amount, 0);
+    const isCompanyAccount = userInfo.accountType === 'company';
     
-    const totalUsage = filteredHistory
-      .filter(item => item.type === 'usage')
-      .reduce((sum, item) => sum + Math.abs(item.amount), 0);
+    if (isCompanyAccount) {
+      // 회사 계정은 사용량만 계산
+      const totalUsage = filteredHistory
+        .reduce((sum, item) => sum + Math.abs(item.amount), 0);
+      
+      return { totalPurchase: 0, totalUsage };
+    } else {
+      // 일반 사용자는 충전과 사용 모두 계산
+      const totalPurchase = filteredHistory
+        .filter(item => item.type === 'purchase')
+        .reduce((sum, item) => sum + item.amount, 0);
+      
+      const totalUsage = filteredHistory
+        .filter(item => item.type === 'usage')
+        .reduce((sum, item) => sum + Math.abs(item.amount), 0);
 
-    return { totalPurchase, totalUsage };
+      return { totalPurchase, totalUsage };
+    }
   };
 
   const { totalPurchase, totalUsage } = getFilteredSummary();
@@ -591,6 +632,38 @@ export default function Profile() {
                         </span>
                       </div>
                     </div>
+
+                    {/* 회사 정보 표시 (회사 계정만) */}
+                    {userInfo.accountType === 'company' && (
+                      <>
+                        <div>
+                          <label className="block text-sm font-medium text-gray-700 mb-2">회사명</label>
+                          <div className="flex items-center space-x-3 p-3 bg-gray-50 rounded-md">
+                            <Building2 className="w-4 h-4 text-gray-400" />
+                            <span className="text-gray-900">{userInfo.company}</span>
+                          </div>
+                          <p className="text-xs text-gray-500 mt-1">회사명은 변경할 수 없습니다</p>
+                        </div>
+
+                        <div>
+                          <label className="block text-sm font-medium text-gray-700 mb-2">
+                            {userInfo.role === '회사관리자' ? '관리자 등급' : '소속 부서'}
+                          </label>
+                          <div className="flex items-center space-x-3 p-3 bg-gray-50 rounded-md">
+                            <User className="w-4 h-4 text-gray-400" />
+                            <span className="text-gray-900">
+                              {userInfo.role === '회사관리자' ? '대표 관리자' : userInfo.department}
+                            </span>
+                          </div>
+                          <p className="text-xs text-gray-500 mt-1">
+                            {userInfo.role === '회사관리자' 
+                              ? '관리자 등급은 변경할 수 없습니다'
+                              : '소속 부서는 회사 관리자가 지정합니다'
+                            }
+                          </p>
+                        </div>
+                      </>
+                    )}
                   </div>
 
                   {/* 비밀번호 변경 섹션 */}
@@ -733,21 +806,23 @@ export default function Profile() {
 
               {/* 필터 컨트롤 */}
               <div className="space-y-3 mb-6">
-                {/* 첫 번째 행: 유형 선택 */}
-                <div className="flex items-center space-x-4">
-                  <label className="text-sm font-medium text-gray-700 w-12">유형</label>
-                  <select
-                    value={creditFilter.type}
-                    onChange={(e) => handleFilterChange('type', e.target.value)}
-                    className="flex-1 max-w-xs px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                  >
-                    <option value="all">전체</option>
-                    <option value="purchase">충전</option>
-                    <option value="usage">사용</option>
-                  </select>
-                </div>
+                {/* 일반 사용자만 유형 선택 표시 */}
+                {userInfo.accountType !== 'company' && (
+                  <div className="flex items-center space-x-4">
+                    <label className="text-sm font-medium text-gray-700 w-12">유형</label>
+                    <select
+                      value={creditFilter.type}
+                      onChange={(e) => handleFilterChange('type', e.target.value)}
+                      className="flex-1 max-w-xs px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    >
+                      <option value="all">전체</option>
+                      <option value="purchase">충전</option>
+                      <option value="usage">사용</option>
+                    </select>
+                  </div>
+                )}
 
-                {/* 두 번째 행: 기간 선택 */}
+                {/* 기간 선택 */}
                 <div className="flex items-center space-x-4">
                   <label className="text-sm font-medium text-gray-700 w-12">기간</label>
                   <select
@@ -787,23 +862,25 @@ export default function Profile() {
                 )}
               </div>
 
-              {/* 합계 정보 */}
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4 p-4 bg-gray-50 rounded-lg">
-                <div className="text-center">
-                  <p className="text-sm text-gray-600">총 충전</p>
-                  <p className="text-xl font-bold text-green-600">+{totalPurchase.toLocaleString()}</p>
+              {/* 합계 정보 - 일반 사용자만 표시 */}
+              {userInfo.accountType !== 'company' && (
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4 p-4 bg-gray-50 rounded-lg">
+                  <div className="text-center">
+                    <p className="text-sm text-gray-600">총 충전</p>
+                    <p className="text-xl font-bold text-green-600">+{totalPurchase.toLocaleString()}</p>
+                  </div>
+                  <div className="text-center">
+                    <p className="text-sm text-gray-600">총 사용</p>
+                    <p className="text-xl font-bold text-red-600">-{totalUsage.toLocaleString()}</p>
+                  </div>
+                  <div className="text-center">
+                    <p className="text-sm text-gray-600">순 변동</p>
+                    <p className={`text-xl font-bold ${(totalPurchase - totalUsage) >= 0 ? 'text-green-600' : 'text-red-600'}`}>
+                      {(totalPurchase - totalUsage) >= 0 ? '+' : ''}{(totalPurchase - totalUsage).toLocaleString()}
+                    </p>
+                  </div>
                 </div>
-                <div className="text-center">
-                  <p className="text-sm text-gray-600">총 사용</p>
-                  <p className="text-xl font-bold text-red-600">-{totalUsage.toLocaleString()}</p>
-                </div>
-                <div className="text-center">
-                  <p className="text-sm text-gray-600">순 변동</p>
-                  <p className={`text-xl font-bold ${(totalPurchase - totalUsage) >= 0 ? 'text-green-600' : 'text-red-600'}`}>
-                    {(totalPurchase - totalUsage) >= 0 ? '+' : ''}{(totalPurchase - totalUsage).toLocaleString()}
-                  </p>
-                </div>
-              </div>
+              )}
             </div>
 
             {/* 내역 테이블 */}
@@ -829,7 +906,9 @@ export default function Profile() {
                       <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">유형</th>
                       <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">내용</th>
                       <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">변동량</th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">잔액</th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        {userInfo.accountType === 'company' ? '누적 사용량' : '잔여 크레딧'}
+                      </th>
                     </tr>
                   </thead>
                   <tbody className="bg-white divide-y divide-gray-200">
@@ -851,7 +930,10 @@ export default function Profile() {
                             </span>
                           </td>
                           <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                            {item.balance.toLocaleString()}
+                            {userInfo.accountType === 'company' 
+                              ? `${(item as any).cumulativeUsage.toLocaleString()}` 
+                              : (item as any).balance.toLocaleString()
+                            }
                           </td>
                         </tr>
                       ))

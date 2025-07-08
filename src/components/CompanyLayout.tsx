@@ -1,6 +1,6 @@
 'use client';
 
-import { ReactNode, useState } from 'react';
+import { ReactNode, useState, useEffect } from 'react';
 import Header from '@/components/Header';
 import Footer from '@/components/Footer';
 import CompanyNavigation from '@/components/CompanyNavigation';
@@ -25,6 +25,23 @@ export default function CompanyLayout({
   onTimePeriodChange 
 }: CompanyLayoutProps) {
   const [internalSelectedPeriod, setInternalSelectedPeriod] = useState('최근 7일');
+  
+  // 권한 체크 - 회사 일반 사용자는 회사 관리 페이지에 접근 불가
+  useEffect(() => {
+    const savedUserInfo = localStorage.getItem('userInfo');
+    if (savedUserInfo) {
+      try {
+        const userInfo = JSON.parse(savedUserInfo);
+        if (userInfo.isLoggedIn && userInfo.role === '회사일반사용자') {
+          // 회사 일반 사용자는 회사 관리 페이지에 접근 불가
+          window.location.href = '/';
+          return;
+        }
+      } catch (error) {
+        console.error('Failed to parse user info:', error);
+      }
+    }
+  }, []);
   
   const currentPeriod = timePeriod || internalSelectedPeriod;
   const handlePeriodChange = (period: string) => {

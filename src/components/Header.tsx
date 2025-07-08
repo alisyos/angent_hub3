@@ -69,10 +69,8 @@ export default function Header() {
           { name: '회사 관리', href: '/company' },
         ];
       case '회사일반사용자':
-        return [
-          ...baseNav,
-          { name: '회사 현황', href: '/company' },
-        ];
+        // 회사 일반 사용자는 기본 메뉴만 사용
+        return baseNav;
       default:
         return baseNav;
     }
