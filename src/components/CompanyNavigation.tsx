@@ -5,7 +5,6 @@ import { usePathname } from 'next/navigation';
 import { 
   BarChart,
   Users, 
-  Shield,
   CreditCard,
   TrendingUp,
   Settings,
@@ -15,8 +14,7 @@ import {
 const navigationItems = [
   { id: 'dashboard', name: '대시보드', href: '/company', icon: BarChart },
   { id: 'employees', name: '직원/부서 관리', href: '/company/employees', icon: Users },
-  { id: 'company-code', name: '회사 코드', href: '/company/code', icon: Shield },
-  { id: 'credits', name: '크레딧 관리', href: '/company/credits', icon: CreditCard },
+  { id: 'credits', name: '크레딧 충전내역', href: '/company/credits', icon: CreditCard },
   { id: 'analytics', name: '분석 및 리포트', href: '/company/analytics', icon: TrendingUp },
   { id: 'settings', name: '설정', href: '/company/settings', icon: Settings }
 ];

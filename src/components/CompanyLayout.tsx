@@ -11,10 +11,29 @@ interface CompanyLayoutProps {
   description?: string;
   actions?: ReactNode;
   hideTimePeriod?: boolean;
+  timePeriod?: string;
+  onTimePeriodChange?: (period: string) => void;
 }
 
-export default function CompanyLayout({ children, title, description, actions, hideTimePeriod = false }: CompanyLayoutProps) {
-  const [selectedPeriod, setSelectedPeriod] = useState('7d');
+export default function CompanyLayout({ 
+  children, 
+  title, 
+  description, 
+  actions, 
+  hideTimePeriod = false, 
+  timePeriod = '최근 7일',
+  onTimePeriodChange 
+}: CompanyLayoutProps) {
+  const [internalSelectedPeriod, setInternalSelectedPeriod] = useState('최근 7일');
+  
+  const currentPeriod = timePeriod || internalSelectedPeriod;
+  const handlePeriodChange = (period: string) => {
+    if (onTimePeriodChange) {
+      onTimePeriodChange(period);
+    } else {
+      setInternalSelectedPeriod(period);
+    }
+  };
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -38,14 +57,14 @@ export default function CompanyLayout({ children, title, description, actions, h
               <div className="flex items-center space-x-3">
                 {!hideTimePeriod && (
                   <select
-                    value={selectedPeriod}
-                    onChange={(e) => setSelectedPeriod(e.target.value)}
+                    value={currentPeriod}
+                    onChange={(e) => handlePeriodChange(e.target.value)}
                     className="px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                   >
-                    <option value="1d">최근 1일</option>
-                    <option value="7d">최근 7일</option>
-                    <option value="30d">최근 30일</option>
-                    <option value="90d">최근 90일</option>
+                    <option value="최근 1일">최근 1일</option>
+                    <option value="최근 7일">최근 7일</option>
+                    <option value="최근 30일">최근 30일</option>
+                    <option value="최근 90일">최근 90일</option>
                   </select>
                 )}
                 {actions}

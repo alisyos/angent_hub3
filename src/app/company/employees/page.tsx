@@ -3,6 +3,7 @@
 import { useState, useMemo, useEffect } from 'react';
 import CompanyLayout from '@/components/CompanyLayout';
 import { aiAgents } from '@/data/agents';
+import { extendedEmployeeData, departmentData } from '@/data/company';
 import { 
   Settings,
   ChevronLeft,
@@ -46,48 +47,11 @@ export default function CompanyEmployees() {
   const itemsPerPage = 20;
   const departmentItemsPerPage = 10;
 
-  // 직원 데이터 (실제로는 더 많은 데이터)
-  const allEmployees = [
-    { id: 1, name: '김철수', department: '개발팀', mostUsedAgent: '회의록 자동화 AI', lastActive: '2024-01-20', email: 'kim@company.com', status: 'active', joinDate: '2023-03-15', phone: '010-1234-5678' },
-    { id: 2, name: '이영희', department: '마케팅팀', mostUsedAgent: 'SNS 이벤트 기획 AI', lastActive: '2024-01-20', email: 'lee@company.com', status: 'active', joinDate: '2023-05-22', phone: '010-2345-6789' },
-    { id: 3, name: '박민수', department: '기획팀', mostUsedAgent: 'PPT 슬라이드 생성기', lastActive: '2024-01-19', email: 'park@company.com', status: 'active', joinDate: '2023-07-10', phone: '010-3456-7890' },
-    { id: 4, name: '정수진', department: '디자인팀', mostUsedAgent: '카드뉴스 생성 AI', lastActive: '2024-01-19', email: 'jung@company.com', status: 'active', joinDate: '2023-09-05', phone: '010-4567-8901' },
-    { id: 5, name: '최동현', department: '영업팀', mostUsedAgent: '이메일 자동 작성 AI', lastActive: '2024-01-18', email: 'choi@company.com', status: 'inactive', joinDate: '2023-11-12', phone: '010-5678-9012' },
-    // 부서 미정인 직원들
-    { id: 6, name: '강미정', department: '부서 미정', mostUsedAgent: '-', lastActive: '-', email: 'kang@company.com', status: 'inactive', joinDate: '2024-01-15', phone: '010-6789-0123' },
-    { id: 7, name: '윤성호', department: '부서 미정', mostUsedAgent: '-', lastActive: '-', email: 'yoon@company.com', status: 'inactive', joinDate: '2024-01-18', phone: '010-7890-1234' },
-    { id: 8, name: '조현우', department: '부서 미정', mostUsedAgent: '-', lastActive: '-', email: 'cho@company.com', status: 'inactive', joinDate: '2024-01-20', phone: '010-8901-2345' },
-    // 더 많은 직원 데이터...
-    ...Array.from({ length: 27 }, (_, i) => ({
-      id: i + 9,
-      name: `${['김', '이', '박', '정', '최', '신', '윤', '장', '임', '한'][i % 10]}직원${i + 9}`,
-      department: i % 7 === 0 ? '부서 미정' : ['개발팀', '마케팅팀', '기획팀', '디자인팀', '영업팀'][i % 5],
-      mostUsedAgent: i % 7 === 0 ? '-' : '회의록 자동화 AI',
-      lastActive: i % 7 === 0 ? '-' : '2024-01-20',
-      email: `employee${i + 9}@company.com`,
-      status: i % 7 === 0 ? 'inactive' : (Math.random() > 0.2 ? 'active' : 'inactive'),
-      joinDate: `2023-${String(Math.floor(Math.random() * 12) + 1).padStart(2, '0')}-${String(Math.floor(Math.random() * 28) + 1).padStart(2, '0')}`,
-      phone: `010-${String(Math.floor(Math.random() * 9000) + 1000)}-${String(Math.floor(Math.random() * 9000) + 1000)}`
-    }))
-  ];
+  // 직원 데이터 (공통 데이터 사용)
+  const allEmployees = extendedEmployeeData;
 
-  // 부서 데이터
-  const allDepartments = [
-    { id: 1, name: '개발팀', members: 12, headCount: 15, manager: '김개발', credits: 450 },
-    { id: 2, name: '마케팅팀', members: 8, headCount: 10, manager: '이마케팅', credits: 380 },
-    { id: 3, name: '기획팀', members: 6, headCount: 8, manager: '박기획', credits: 320 },
-    { id: 4, name: '디자인팀', members: 5, headCount: 6, manager: '정디자인', credits: 290 },
-    { id: 5, name: '영업팀', members: 9, headCount: 12, manager: '최영업', credits: 250 },
-    // 더 많은 부서 데이터...
-    ...Array.from({ length: 18 }, (_, i) => ({
-      id: i + 6,
-      name: `부서${i + 6}`,
-      members: Math.floor(Math.random() * 15) + 3,
-      headCount: Math.floor(Math.random() * 20) + 5,
-      manager: `관리자${i + 6}`,
-      credits: Math.floor(Math.random() * 400) + 100
-    }))
-  ];
+  // 부서 데이터 (공통 데이터 사용)
+  const allDepartments = departmentData;
 
   // AI 에이전트 데이터 (실제 데이터 사용)
   const allAgents = aiAgents.map(agent => ({
@@ -186,19 +150,47 @@ export default function CompanyEmployees() {
     return filtered;
   }, [employees, employeeSearchTerm, departmentFilter, statusFilter, sortField, sortDirection]);
 
-  // 부서별 설정 상태 (권한 + 크레딧)
+  // 부서별 설정 상태 (권한 + 크레딧) - 공통 데이터 기반
   const [departmentSettings, setDepartmentSettings] = useState<Record<string, { 
     type: 'full' | 'partial' | 'none'; 
     agents: string[]; 
     credits: number | 'unlimited';
-  }>>({
-    '개발팀': { type: 'partial', agents: ['회의록 자동화 AI', '이메일 작성 AI'], credits: 5000 },
-    '마케팅팀': { type: 'partial', agents: ['SNS 이벤트 기획 AI', '리뷰 분석 AI', '키워드 분석 AI'], credits: 3000 },
-    '기획팀': { type: 'full', agents: [], credits: 'unlimited' },
-    '디자인팀': { type: 'partial', agents: ['AI 카드뉴스 생성기', 'AI 블로그 생성기'], credits: 2500 },
-    '영업팀': { type: 'partial', agents: ['이메일 작성 AI', 'PPT 슬라이드 생성기'], credits: 4000 },
-    '부서 미정': { type: 'none', agents: [], credits: 0 }
-  });
+  }>>(
+    departmentData.reduce((acc, dept) => {
+      let type: 'full' | 'partial' | 'none';
+      let agents: string[];
+      let credits: number | 'unlimited';
+      
+      // 부서 상태에 따라 설정 매핑
+      if (dept.status === '전체 허용') {
+        type = 'full';
+        agents = [];
+        credits = dept.allocatedCredits;
+      } else if (dept.status === '일부 허용') {
+        type = 'partial';
+        // 기본 에이전트 설정
+        if (dept.name === '개발팀') {
+          agents = ['회의록 자동화 AI', '이메일 작성 AI'];
+        } else if (dept.name === '마케팅팀') {
+          agents = ['SNS 이벤트 기획 AI', '리뷰 분석 AI', '키워드 분석 AI'];
+        } else if (dept.name === '디자인팀') {
+          agents = ['AI 카드뉴스 생성기', 'AI 블로그 생성기'];
+        } else if (dept.name === '영업팀') {
+          agents = ['이메일 작성 AI', 'PPT 슬라이드 생성기'];
+        } else {
+          agents = ['회의록 자동화 AI', '이메일 작성 AI'];
+        }
+        credits = dept.allocatedCredits;
+      } else {
+        type = 'none';
+        agents = [];
+        credits = 0;
+      }
+      
+      acc[dept.name] = { type, agents, credits };
+      return acc;
+    }, {} as Record<string, { type: 'full' | 'partial' | 'none'; agents: string[]; credits: number | 'unlimited' }>)
+  );
 
   // 현재 페이지 데이터 계산
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
