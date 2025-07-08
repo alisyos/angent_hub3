@@ -1,13 +1,13 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, Suspense } from 'react';
 import { useSearchParams } from 'next/navigation';
 import CompanyLayout from '@/components/CompanyLayout';
 import { 
   Building,
   CreditCard,
   Save,
-  Upload,
+
   Shield,
   Copy,
   Eye,
@@ -18,7 +18,7 @@ import {
   X
 } from 'lucide-react';
 
-export default function CompanySettings() {
+function CompanySettingsContent() {
   const searchParams = useSearchParams();
   const [activeTab, setActiveTab] = useState('company');
   const [companyInfo, setCompanyInfo] = useState({
@@ -623,4 +623,12 @@ export default function CompanySettings() {
       )}
     </CompanyLayout>
   );
-} 
+}
+
+export default function CompanySettings() {
+  return (
+    <Suspense fallback={<div>Loading...</div>}>
+      <CompanySettingsContent />
+    </Suspense>
+  );
+}

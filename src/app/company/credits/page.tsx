@@ -1,7 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
-import { useSearchParams } from 'next/navigation';
+import { useState } from 'react';
 import CompanyLayout from '@/components/CompanyLayout';
 import { 
   Filter,
@@ -47,7 +46,7 @@ export default function CompanyCredits() {
     // 기간 필터링
     if (creditFilter.period !== 'all') {
       const now = new Date();
-      let startDate = new Date();
+      const startDate = new Date();
 
       if (creditFilter.period === 'week') {
         startDate.setDate(now.getDate() - 7);

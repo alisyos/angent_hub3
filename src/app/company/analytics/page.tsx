@@ -1,653 +1,469 @@
 'use client';
 
-import { useState, useMemo, useEffect } from 'react';
+import { useState, useEffect, Suspense } from 'react';
 import { useSearchParams } from 'next/navigation';
 import CompanyLayout from '@/components/CompanyLayout';
 import { 
-  Search,
-  Filter,
-  ArrowUpDown,
-  ChevronLeft,
-  ChevronRight,
-  Calendar,
-  User,
   Users,
-  Bot,
   Building,
-  BarChart3,
-  TrendingUp,
-  TrendingDown,
-  Calendar as CalendarIcon
+  Activity,
+  Clock,
+  ChevronLeft,
+  ChevronRight
 } from 'lucide-react';
-import { employeeData, departmentData, agentUsageData } from '@/data/company';
 
-export default function CompanyAnalytics() {
+interface AnalyticsData {
+  // 직원별 분석 데이터
+  employeeStats: {
+    name: string;
+    department: string;
+    totalCredits: number;
+    avgCreditsPerDay: number;
+    mostUsedAgent: string;
+    activeHours: string;
+    efficiency: number;
+    lastActivity: string;
+  }[];
+  
+  // 부서별 분석 데이터
+  departmentStats: {
+    name: string;
+    totalCredits: number;
+    employeeCount: number;
+    avgCreditsPerEmployee: number;
+    mostUsedAgent: string;
+    efficiency: number;
+    growth: number;
+  }[];
+  
+  // 에이전트별 분석 데이터
+  agentStats: {
+    name: string;
+    category: string;
+    totalUsage: number;
+    uniqueUsers: number;
+    avgSessionTime: string;
+    popularityScore: number;
+    rating: number;
+  }[];
+}
+
+function CompanyAnalyticsContent() {
   const searchParams = useSearchParams();
-  const [activeTab, setActiveTab] = useState<'employee' | 'team' | 'agent'>('employee');
-
-  // URL 파라미터에서 탭 정보 읽기
-  useEffect(() => {
-    const tab = searchParams.get('tab');
-    if (tab === 'employee' || tab === 'department' || tab === 'team') {
-      setActiveTab(tab === 'department' ? 'team' : tab as 'employee' | 'team');
-    } else if (tab === 'agent') {
-      setActiveTab('agent');
-    }
-  }, [searchParams]);
-  const [dateRange, setDateRange] = useState<'7d' | '30d' | 'custom'>('7d');
-  const [showDatePicker, setShowDatePicker] = useState(false);
-  const [customStartDate, setCustomStartDate] = useState('');
-  const [customEndDate, setCustomEndDate] = useState('');
-  
-  // 검색 및 필터 상태
-  const [searchTerm, setSearchTerm] = useState('');
-  const [statusFilter, setStatusFilter] = useState('all');
-  const [departmentFilter, setDepartmentFilter] = useState('all');
-  const [categoryFilter, setCategoryFilter] = useState('all');
-  const [sortBy, setSortBy] = useState('name');
-  const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('asc');
-  
-  // 페이지네이션 상태
+  const [activeTab, setActiveTab] = useState('employee');
   const [currentPage, setCurrentPage] = useState(1);
+  const [timePeriod, setTimePeriod] = useState('최근 7일');
+  
   const itemsPerPage = 10;
 
-  // 부서 목록
-  const departments = ['개발팀', '마케팅팀', '기획팀', '디자인팀', '영업팀', '인사팀', '재무팀', '법무팀', '운영팀', '구매팀', '품질팀'];
-  
-  // 카테고리 목록
-  const categories = ['일반사무', '마케팅/광고', '콘텐츠 제작'];
-
-  // 데이터 필터링 및 정렬
-  const getFilteredData = () => {
-    let data: any[] = [];
-    
-    if (activeTab === 'employee') {
-      data = employeeData.filter(item => {
-        const matchesSearch = item.name.toLowerCase().includes(searchTerm.toLowerCase()) || 
-                            item.email.toLowerCase().includes(searchTerm.toLowerCase());
-        const matchesStatus = statusFilter === 'all' || item.status === statusFilter;
-        const matchesDepartment = departmentFilter === 'all' || item.department === departmentFilter;
-        return matchesSearch && matchesStatus && matchesDepartment;
-      });
-    } else if (activeTab === 'team') {
-      data = departmentData.filter(item => {
-        const matchesSearch = item.name.toLowerCase().includes(searchTerm.toLowerCase());
-        const matchesStatus = statusFilter === 'all' || item.status === statusFilter;
-        return matchesSearch && matchesStatus;
-      });
-    } else if (activeTab === 'agent') {
-      data = agentUsageData.filter(item => {
-        const matchesSearch = item.name.toLowerCase().includes(searchTerm.toLowerCase());
-        const matchesCategory = categoryFilter === 'all' || item.category === categoryFilter;
-        return matchesSearch && matchesCategory;
-      });
-    }
-
-    // 정렬
-    data.sort((a, b) => {
-      let aValue = a[sortBy];
-      let bValue = b[sortBy];
-      
-      if (typeof aValue === 'string') {
-        aValue = aValue.toLowerCase();
-        bValue = bValue.toLowerCase();
-      }
-      
-      if (sortOrder === 'asc') {
-        return aValue > bValue ? 1 : -1;
-      } else {
-        return aValue < bValue ? 1 : -1;
-      }
-    });
-
-    return data;
+  const mockData: AnalyticsData = {
+    employeeStats: [
+      { name: '김철수', department: '개발팀', totalCredits: 2500, avgCreditsPerDay: 125, mostUsedAgent: 'ChatGPT', activeHours: '09:00-18:00', efficiency: 92, lastActivity: '2024-01-15' },
+      { name: '이영희', department: '마케팅팀', totalCredits: 2200, avgCreditsPerDay: 110, mostUsedAgent: 'Claude', activeHours: '10:00-19:00', efficiency: 88, lastActivity: '2024-01-14' },
+      { name: '박민수', department: '디자인팀', totalCredits: 1800, avgCreditsPerDay: 90, mostUsedAgent: 'Midjourney', activeHours: '09:30-18:30', efficiency: 85, lastActivity: '2024-01-13' },
+      { name: '최수진', department: '개발팀', totalCredits: 2100, avgCreditsPerDay: 105, mostUsedAgent: 'GitHub Copilot', activeHours: '08:00-17:00', efficiency: 94, lastActivity: '2024-01-15' },
+      { name: '정호영', department: '기획팀', totalCredits: 1600, avgCreditsPerDay: 80, mostUsedAgent: 'Notion AI', activeHours: '10:00-19:00', efficiency: 82, lastActivity: '2024-01-12' },
+      { name: '윤서연', department: '마케팅팀', totalCredits: 1900, avgCreditsPerDay: 95, mostUsedAgent: 'Canva AI', activeHours: '09:00-18:00', efficiency: 89, lastActivity: '2024-01-14' },
+      { name: '강동혁', department: '영업팀', totalCredits: 1500, avgCreditsPerDay: 75, mostUsedAgent: 'Salesforce AI', activeHours: '09:00-18:00', efficiency: 78, lastActivity: '2024-01-11' },
+      { name: '송미래', department: '디자인팀', totalCredits: 1700, avgCreditsPerDay: 85, mostUsedAgent: 'Figma AI', activeHours: '10:00-19:00', efficiency: 87, lastActivity: '2024-01-13' },
+      { name: '임진우', department: '개발팀', totalCredits: 2300, avgCreditsPerDay: 115, mostUsedAgent: 'CodeT5', activeHours: '08:30-17:30', efficiency: 91, lastActivity: '2024-01-15' },
+      { name: '한소영', department: '기획팀', totalCredits: 1400, avgCreditsPerDay: 70, mostUsedAgent: 'Miro AI', activeHours: '09:30-18:30', efficiency: 80, lastActivity: '2024-01-12' },
+      { name: '장현석', department: '영업팀', totalCredits: 1300, avgCreditsPerDay: 65, mostUsedAgent: 'HubSpot AI', activeHours: '08:00-17:00', efficiency: 75, lastActivity: '2024-01-11' },
+      { name: '오혜진', department: '마케팅팀', totalCredits: 2000, avgCreditsPerDay: 100, mostUsedAgent: 'Buffer AI', activeHours: '10:00-19:00', efficiency: 86, lastActivity: '2024-01-14' },
+    ],
+    departmentStats: [
+      { name: '개발팀', totalCredits: 6900, employeeCount: 3, avgCreditsPerEmployee: 2300, mostUsedAgent: 'ChatGPT', efficiency: 92, growth: 15 },
+      { name: '마케팅팀', totalCredits: 6100, employeeCount: 3, avgCreditsPerEmployee: 2033, mostUsedAgent: 'Claude', efficiency: 88, growth: 12 },
+      { name: '디자인팀', totalCredits: 3500, employeeCount: 2, avgCreditsPerEmployee: 1750, mostUsedAgent: 'Midjourney', efficiency: 86, growth: 8 },
+      { name: '기획팀', totalCredits: 3000, employeeCount: 2, avgCreditsPerEmployee: 1500, mostUsedAgent: 'Notion AI', efficiency: 81, growth: 5 },
+      { name: '영업팀', totalCredits: 2800, employeeCount: 2, avgCreditsPerEmployee: 1400, mostUsedAgent: 'Salesforce AI', efficiency: 77, growth: 3 },
+    ],
+    agentStats: [
+      { name: 'ChatGPT', category: '텍스트 AI', totalUsage: 8500, uniqueUsers: 45, avgSessionTime: '12분', popularityScore: 95, rating: 4.8 },
+      { name: 'Claude', category: '텍스트 AI', totalUsage: 7200, uniqueUsers: 38, avgSessionTime: '15분', popularityScore: 88, rating: 4.7 },
+      { name: 'Midjourney', category: '이미지 AI', totalUsage: 4500, uniqueUsers: 25, avgSessionTime: '8분', popularityScore: 78, rating: 4.6 },
+      { name: 'GitHub Copilot', category: '코드 AI', totalUsage: 3800, uniqueUsers: 18, avgSessionTime: '20분', popularityScore: 82, rating: 4.9 },
+      { name: 'Notion AI', category: '생산성 AI', totalUsage: 3200, uniqueUsers: 32, avgSessionTime: '10분', popularityScore: 72, rating: 4.5 },
+      { name: 'Canva AI', category: '디자인 AI', totalUsage: 2800, uniqueUsers: 22, avgSessionTime: '18분', popularityScore: 68, rating: 4.4 },
+      { name: 'Salesforce AI', category: '비즈니스 AI', totalUsage: 2400, uniqueUsers: 15, avgSessionTime: '14분', popularityScore: 65, rating: 4.3 },
+      { name: 'Figma AI', category: '디자인 AI', totalUsage: 2200, uniqueUsers: 12, avgSessionTime: '16분', popularityScore: 62, rating: 4.2 },
+      { name: 'CodeT5', category: '코드 AI', totalUsage: 1800, uniqueUsers: 8, avgSessionTime: '25분', popularityScore: 58, rating: 4.1 },
+      { name: 'Miro AI', category: '협업 AI', totalUsage: 1600, uniqueUsers: 10, avgSessionTime: '11분', popularityScore: 55, rating: 4.0 },
+    ]
   };
 
-  const filteredData = getFilteredData();
-  const totalPages = Math.ceil(filteredData.length / itemsPerPage);
-  const paginatedData = filteredData.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage);
+  const tabs = [
+    { id: 'employee', name: '직원별 분석', icon: Users },
+    { id: 'team', name: '부서별 분석', icon: Building },
+    { id: 'agent', name: '에이전트별 분석', icon: Activity },
+  ];
 
-  const handleSort = (field: string) => {
-    if (sortBy === field) {
-      setSortOrder(sortOrder === 'asc' ? 'desc' : 'asc');
-    } else {
-      setSortBy(field);
-      setSortOrder('asc');
+  // URL 파라미터에서 탭 확인
+  useEffect(() => {
+    const tab = searchParams.get('tab');
+    if (tab && ['employee', 'team', 'agent'].includes(tab)) {
+      setActiveTab(tab);
     }
+  }, [searchParams]);
+
+  // 페이지네이션 관련 함수
+  const getCurrentData = () => {
+    if (activeTab === 'employee') return mockData.employeeStats;
+    if (activeTab === 'team') return mockData.departmentStats;
+    if (activeTab === 'agent') return mockData.agentStats;
+    return [];
   };
 
+  const totalPages = Math.ceil(getCurrentData().length / itemsPerPage);
+  const currentData = getCurrentData().slice(
+    (currentPage - 1) * itemsPerPage,
+    currentPage * itemsPerPage
+  );
 
-
-  const handleDateRangeChange = (range: '7d' | '30d' | 'custom') => {
-    setDateRange(range);
-    if (range !== 'custom') {
-      setShowDatePicker(false);
-    } else {
-      setShowDatePicker(true);
-    }
+  const handlePageChange = (page: number) => {
+    setCurrentPage(page);
   };
 
-  const getDateRangeText = () => {
-    if (dateRange === '7d') return '최근 7일';
-    if (dateRange === '30d') return '최근 30일';
-    if (dateRange === 'custom' && customStartDate && customEndDate) {
-      return `${customStartDate} ~ ${customEndDate}`;
-    }
-    return '직접 입력';
+  const handleTimePeriodChange = (period: string) => {
+    setTimePeriod(period);
+    // 여기서 실제 데이터를 다시 불러와야 함
   };
 
   return (
     <CompanyLayout 
       title="분석 및 리포트"
-      description="AI 에이전트 사용량과 성과를 분석하고 리포트를 확인해보세요"
-      hideTimePeriod={true}
+      description="회사의 AI 사용 현황을 분석하고 리포트를 생성하세요"
+      timePeriod={timePeriod}
+      onTimePeriodChange={handleTimePeriodChange}
     >
       <div className="space-y-6">
-        {/* 기간 선택 */}
-        <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
-          <div className="flex items-center justify-between mb-4">
-            <h3 className="text-lg font-semibold text-gray-900">분석 기간</h3>
-            <div className="flex items-center space-x-2">
-              <CalendarIcon className="w-4 h-4 text-gray-500" />
-              <span className="text-sm text-gray-600">{getDateRangeText()}</span>
-            </div>
-          </div>
-          
-          <div className="flex items-center space-x-4">
-            <button
-              onClick={() => handleDateRangeChange('7d')}
-              className={`px-4 py-2 rounded-md text-sm font-medium transition-colors ${
-                dateRange === '7d' 
-                  ? 'bg-blue-600 text-white' 
-                  : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-              }`}
-            >
-              최근 7일
-            </button>
-            <button
-              onClick={() => handleDateRangeChange('30d')}
-              className={`px-4 py-2 rounded-md text-sm font-medium transition-colors ${
-                dateRange === '30d' 
-                  ? 'bg-blue-600 text-white' 
-                  : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-              }`}
-            >
-              최근 30일
-            </button>
-            <button
-              onClick={() => handleDateRangeChange('custom')}
-              className={`px-4 py-2 rounded-md text-sm font-medium transition-colors ${
-                dateRange === 'custom' 
-                  ? 'bg-blue-600 text-white' 
-                  : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-              }`}
-            >
-              직접 입력
-            </button>
-          </div>
-          
-          {showDatePicker && (
-            <div className="mt-4 flex items-center space-x-4">
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">시작일</label>
-                <input
-                  type="date"
-                  value={customStartDate}
-                  onChange={(e) => setCustomStartDate(e.target.value)}
-                  className="px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                />
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">종료일</label>
-                <input
-                  type="date"
-                  value={customEndDate}
-                  onChange={(e) => setCustomEndDate(e.target.value)}
-                  className="px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                />
-              </div>
-            </div>
-          )}
-        </div>
-
         {/* 탭 메뉴 */}
-        <div className="bg-white rounded-xl shadow-sm border border-gray-200">
-          <div className="border-b border-gray-200">
-            <nav className="flex space-x-8 px-6" aria-label="Tabs">
-              <button
-                onClick={() => setActiveTab('employee')}
-                className={`py-4 px-1 border-b-2 font-medium text-sm ${
-                  activeTab === 'employee'
-                    ? 'border-blue-500 text-blue-600'
-                    : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
-                }`}
-              >
-                <div className="flex items-center space-x-2">
-                  <User className="w-4 h-4" />
-                  <span>직원별 분석</span>
-                </div>
-              </button>
-              <button
-                onClick={() => setActiveTab('team')}
-                className={`py-4 px-1 border-b-2 font-medium text-sm ${
-                  activeTab === 'team'
-                    ? 'border-blue-500 text-blue-600'
-                    : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
-                }`}
-              >
-                <div className="flex items-center space-x-2">
-                  <Users className="w-4 h-4" />
-                  <span>부서별 분석</span>
-                </div>
-              </button>
-              <button
-                onClick={() => setActiveTab('agent')}
-                className={`py-4 px-1 border-b-2 font-medium text-sm ${
-                  activeTab === 'agent'
-                    ? 'border-blue-500 text-blue-600'
-                    : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
-                }`}
-              >
-                <div className="flex items-center space-x-2">
-                  <Bot className="w-4 h-4" />
-                  <span>에이전트별 분석</span>
-                </div>
-              </button>
-            </nav>
-          </div>
-
-          {/* 검색 및 필터 섹션 */}
-          <div className="p-6 border-b border-gray-200">
-            <div className="flex flex-wrap items-center gap-4">
-              {/* 검색 */}
-              <div className="flex-1 min-w-64">
-                <div className="relative">
-                  <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
-                  <input
-                    type="text"
-                    placeholder={
-                      activeTab === 'employee' ? '직원명 또는 이메일 검색' :
-                      activeTab === 'team' ? '부서명 검색' :
-                      '에이전트명 검색'
-                    }
-                    value={searchTerm}
-                    onChange={(e) => setSearchTerm(e.target.value)}
-                    className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                  />
-                </div>
-              </div>
-
-              {/* 필터 */}
-              <div className="flex items-center space-x-2">
-                {(activeTab === 'employee' || activeTab === 'team') && (
-                  <select
-                    value={statusFilter}
-                    onChange={(e) => setStatusFilter(e.target.value)}
-                    className="px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                  >
-                    <option value="all">모든 상태</option>
-                    {activeTab === 'team' ? (
-                      <>
-                        <option value="전체 허용">전체 허용</option>
-                        <option value="일부 허용">일부 허용</option>
-                        <option value="사용 금지">사용 금지</option>
-                      </>
-                    ) : (
-                      <>
-                        <option value="active">활성</option>
-                        <option value="inactive">비활성</option>
-                      </>
-                    )}
-                  </select>
-                )}
-
-                {activeTab === 'employee' && (
-                  <select
-                    value={departmentFilter}
-                    onChange={(e) => setDepartmentFilter(e.target.value)}
-                    className="px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                  >
-                    <option value="all">모든 부서</option>
-                    {departments.map(dept => (
-                      <option key={dept} value={dept}>{dept}</option>
-                    ))}
-                  </select>
-                )}
-
-                {activeTab === 'agent' && (
-                  <select
-                    value={categoryFilter}
-                    onChange={(e) => setCategoryFilter(e.target.value)}
-                    className="px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                  >
-                    <option value="all">모든 카테고리</option>
-                    {categories.map(cat => (
-                      <option key={cat} value={cat}>{cat}</option>
-                    ))}
-                  </select>
-                )}
-
-
-              </div>
-            </div>
-          </div>
-
-          {/* 데이터 테이블 */}
-          <div className="overflow-x-auto">
-            <table className="w-full">
-              <thead className="bg-gray-50">
-                <tr>
-                  {activeTab === 'employee' && (
-                    <>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                        <button
-                          onClick={() => handleSort('name')}
-                          className="flex items-center space-x-1 hover:text-gray-700"
-                        >
-                          <span>이름</span>
-                          <ArrowUpDown className="w-3 h-3" />
-                        </button>
-                      </th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                        <button
-                          onClick={() => handleSort('department')}
-                          className="flex items-center space-x-1 hover:text-gray-700"
-                        >
-                          <span>부서</span>
-                          <ArrowUpDown className="w-3 h-3" />
-                        </button>
-                      </th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                        <button
-                          onClick={() => handleSort('status')}
-                          className="flex items-center space-x-1 hover:text-gray-700"
-                        >
-                          <span>상태</span>
-                          <ArrowUpDown className="w-3 h-3" />
-                        </button>
-                      </th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                        <button
-                          onClick={() => handleSort('usageCount')}
-                          className="flex items-center space-x-1 hover:text-gray-700"
-                        >
-                          <span>사용 횟수</span>
-                          <ArrowUpDown className="w-3 h-3" />
-                        </button>
-                      </th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                        <button
-                          onClick={() => handleSort('creditsUsed')}
-                          className="flex items-center space-x-1 hover:text-gray-700"
-                        >
-                          <span>사용 크레딧</span>
-                          <ArrowUpDown className="w-3 h-3" />
-                        </button>
-                      </th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                        최다 사용 에이전트
-                      </th>
-                    </>
-                  )}
-                  {activeTab === 'team' && (
-                    <>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                        <button
-                          onClick={() => handleSort('name')}
-                          className="flex items-center space-x-1 hover:text-gray-700"
-                        >
-                          <span>부서명</span>
-                          <ArrowUpDown className="w-3 h-3" />
-                        </button>
-                      </th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                        <button
-                          onClick={() => handleSort('allocatedCredits')}
-                          className="flex items-center space-x-1 hover:text-gray-700"
-                        >
-                          <span>할당 크레딧</span>
-                          <ArrowUpDown className="w-3 h-3" />
-                        </button>
-                      </th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                        <button
-                          onClick={() => handleSort('status')}
-                          className="flex items-center space-x-1 hover:text-gray-700"
-                        >
-                          <span>상태</span>
-                          <ArrowUpDown className="w-3 h-3" />
-                        </button>
-                      </th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                        <button
-                          onClick={() => handleSort('usageCount')}
-                          className="flex items-center space-x-1 hover:text-gray-700"
-                        >
-                          <span>사용 횟수</span>
-                          <ArrowUpDown className="w-3 h-3" />
-                        </button>
-                      </th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                        <button
-                          onClick={() => handleSort('creditsUsed')}
-                          className="flex items-center space-x-1 hover:text-gray-700"
-                        >
-                          <span>사용 크레딧</span>
-                          <ArrowUpDown className="w-3 h-3" />
-                        </button>
-                      </th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                        최다 사용 에이전트
-                      </th>
-                    </>
-                  )}
-                  {activeTab === 'agent' && (
-                    <>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                        <button
-                          onClick={() => handleSort('name')}
-                          className="flex items-center space-x-1 hover:text-gray-700"
-                        >
-                          <span>에이전트명</span>
-                          <ArrowUpDown className="w-3 h-3" />
-                        </button>
-                      </th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                        <button
-                          onClick={() => handleSort('category')}
-                          className="flex items-center space-x-1 hover:text-gray-700"
-                        >
-                          <span>카테고리</span>
-                          <ArrowUpDown className="w-3 h-3" />
-                        </button>
-                      </th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                        <button
-                          onClick={() => handleSort('usageCount')}
-                          className="flex items-center space-x-1 hover:text-gray-700"
-                        >
-                          <span>사용 횟수</span>
-                          <ArrowUpDown className="w-3 h-3" />
-                        </button>
-                      </th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                        <button
-                          onClick={() => handleSort('creditsUsed')}
-                          className="flex items-center space-x-1 hover:text-gray-700"
-                        >
-                          <span>사용 크레딧</span>
-                          <ArrowUpDown className="w-3 h-3" />
-                        </button>
-                      </th>
-                    </>
-                  )}
-                </tr>
-              </thead>
-              <tbody className="bg-white divide-y divide-gray-200">
-                {paginatedData.map((item, index) => (
-                  <tr key={item.id} className="hover:bg-gray-50">
-                    {activeTab === 'employee' && (
-                      <>
-                        <td className="px-6 py-4 whitespace-nowrap">
-                          <div className="flex items-center">
-                            <div className="flex-shrink-0 h-10 w-10">
-                              <div className="h-10 w-10 bg-blue-100 rounded-full flex items-center justify-center">
-                                <span className="text-sm font-medium text-blue-600">
-                                  {item.name.charAt(0)}
-                                </span>
-                              </div>
-                            </div>
-                            <div className="ml-4">
-                              <div className="text-sm font-medium text-gray-900">{item.name}</div>
-                              <div className="text-sm text-gray-500">{item.email}</div>
-                            </div>
-                          </div>
-                        </td>
-                        <td className="px-6 py-4 whitespace-nowrap">
-                          <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
-                            {item.department}
-                          </span>
-                        </td>
-                        <td className="px-6 py-4 whitespace-nowrap">
-                          <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
-                            item.status === 'active' 
-                              ? 'bg-green-100 text-green-800' 
-                              : 'bg-red-100 text-red-800'
-                          }`}>
-                            {item.status === 'active' ? '활성' : '비활성'}
-                          </span>
-                        </td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                          {item.usageCount}회
-                        </td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                          {item.creditsUsed.toLocaleString()}
-                        </td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                          {item.topAgent}
-                        </td>
-                      </>
-                    )}
-                    {activeTab === 'team' && (
-                      <>
-                        <td className="px-6 py-4 whitespace-nowrap">
-                          <div className="flex items-center">
-                            <div className="flex-shrink-0 h-10 w-10">
-                              <div className="h-10 w-10 bg-purple-100 rounded-full flex items-center justify-center">
-                                <Building className="w-5 h-5 text-purple-600" />
-                              </div>
-                            </div>
-                            <div className="ml-4">
-                              <div className="text-sm font-medium text-gray-900">{item.name}</div>
-                            </div>
-                          </div>
-                        </td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                          {item.allocatedCredits.toLocaleString()}
-                        </td>
-                        <td className="px-6 py-4 whitespace-nowrap">
-                          <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
-                            item.status === '전체 허용' 
-                              ? 'bg-green-100 text-green-800' 
-                              : item.status === '일부 허용'
-                              ? 'bg-yellow-100 text-yellow-800'
-                              : 'bg-red-100 text-red-800'
-                          }`}>
-                            {item.status}
-                          </span>
-                        </td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                          {item.usageCount}회
-                        </td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                          {item.creditsUsed.toLocaleString()}
-                        </td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                          {item.topAgent}
-                        </td>
-                      </>
-                    )}
-                    {activeTab === 'agent' && (
-                      <>
-                        <td className="px-6 py-4 whitespace-nowrap">
-                          <div className="flex items-center">
-                            <div className="flex-shrink-0 h-10 w-10">
-                              <div className="h-10 w-10 bg-green-100 rounded-full flex items-center justify-center">
-                                <Bot className="w-5 h-5 text-green-600" />
-                              </div>
-                            </div>
-                            <div className="ml-4">
-                              <div className="text-sm font-medium text-gray-900">{item.name}</div>
-                            </div>
-                          </div>
-                        </td>
-                        <td className="px-6 py-4 whitespace-nowrap">
-                          <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
-                            item.category === '일반사무' ? 'bg-blue-100 text-blue-800' :
-                            item.category === '마케팅/광고' ? 'bg-green-100 text-green-800' :
-                            'bg-purple-100 text-purple-800'
-                          }`}>
-                            {item.category}
-                          </span>
-                        </td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                          {item.usageCount}회
-                        </td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                          {item.creditsUsed.toLocaleString()}
-                        </td>
-                      </>
-                    )}
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-
-          {/* 페이지네이션 */}
-          {totalPages > 1 && (
-            <div className="px-6 py-4 border-t border-gray-200">
-              <div className="flex items-center justify-between">
-                <div className="text-sm text-gray-700">
-                  전체 {filteredData.length}개 중 {((currentPage - 1) * itemsPerPage) + 1}-{Math.min(currentPage * itemsPerPage, filteredData.length)}개 표시
-                </div>
-                <div className="flex items-center space-x-2">
-                  <button
-                    onClick={() => setCurrentPage(Math.max(1, currentPage - 1))}
-                    disabled={currentPage === 1}
-                    className="px-3 py-1 border border-gray-300 rounded-md text-sm font-medium text-gray-700 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
-                  >
-                    <ChevronLeft className="w-4 h-4" />
-                  </button>
-                  {Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
-                    const page = i + 1;
-                    return (
-                      <button
-                        key={page}
-                        onClick={() => setCurrentPage(page)}
-                        className={`px-3 py-1 rounded-md text-sm font-medium ${
-                          currentPage === page
-                            ? 'bg-blue-600 text-white'
-                            : 'text-gray-700 hover:bg-gray-50'
-                        }`}
-                      >
-                        {page}
-                      </button>
-                    );
-                  })}
-                  <button
-                    onClick={() => setCurrentPage(Math.min(totalPages, currentPage + 1))}
-                    disabled={currentPage === totalPages}
-                    className="px-3 py-1 border border-gray-300 rounded-md text-sm font-medium text-gray-700 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
-                  >
-                    <ChevronRight className="w-4 h-4" />
-                  </button>
-                </div>
-              </div>
-            </div>
-          )}
+        <div className="border-b border-gray-200">
+          <nav className="flex space-x-8">
+            {tabs.map((tab) => {
+              const Icon = tab.icon;
+              return (
+                <button
+                  key={tab.id}
+                  onClick={() => {
+                    setActiveTab(tab.id);
+                    setCurrentPage(1);
+                  }}
+                  className={`flex items-center space-x-2 py-4 px-1 border-b-2 font-medium text-sm ${
+                    activeTab === tab.id
+                      ? 'border-blue-500 text-blue-600'
+                      : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                  }`}
+                >
+                  <Icon className="w-4 h-4" />
+                  <span>{tab.name}</span>
+                </button>
+              );
+            })}
+          </nav>
         </div>
+
+        {/* 직원별 분석 */}
+        {activeTab === 'employee' && (
+          <div className="bg-white rounded-xl shadow-sm border border-gray-200">
+            <div className="p-6 border-b border-gray-200">
+              <h3 className="text-lg font-semibold text-gray-900">직원별 AI 사용 분석</h3>
+              <p className="text-sm text-gray-600 mt-1">
+                직원들의 AI 사용 패턴과 효율성을 분석합니다.
+              </p>
+            </div>
+            
+            <div className="overflow-x-auto">
+              <table className="w-full">
+                <thead className="bg-gray-50">
+                  <tr>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      직원 정보
+                    </th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      사용 크레딧
+                    </th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      주요 AI
+                    </th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      활동 시간
+                    </th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      효율성
+                    </th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      최근 활동
+                    </th>
+                  </tr>
+                </thead>
+                <tbody className="bg-white divide-y divide-gray-200">
+                  {(currentData as AnalyticsData['employeeStats']).map((employee, index) => (
+                    <tr key={index} className="hover:bg-gray-50">
+                      <td className="px-6 py-4 whitespace-nowrap">
+                        <div className="flex items-center">
+                          <div className="w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center">
+                            <span className="text-sm font-medium text-blue-600">
+                              {employee.name.charAt(0)}
+                            </span>
+                          </div>
+                          <div className="ml-4">
+                            <div className="text-sm font-medium text-gray-900">{employee.name}</div>
+                            <div className="text-sm text-gray-500">{employee.department}</div>
+                          </div>
+                        </div>
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap">
+                        <div className="text-sm text-gray-900">
+                          {employee.totalCredits.toLocaleString()}
+                        </div>
+                        <div className="text-sm text-gray-500">
+                          일평균 {employee.avgCreditsPerDay}
+                        </div>
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                        {employee.mostUsedAgent}
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                        <div className="flex items-center">
+                          <Clock className="w-4 h-4 mr-1" />
+                          {employee.activeHours}
+                        </div>
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap">
+                        <div className="flex items-center">
+                          <div className="w-16 bg-gray-200 rounded-full h-2">
+                            <div
+                              className="bg-blue-600 h-2 rounded-full"
+                              style={{ width: `${employee.efficiency}%` }}
+                            ></div>
+                          </div>
+                          <span className="ml-2 text-sm text-gray-900">{employee.efficiency}%</span>
+                        </div>
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                        {employee.lastActivity}
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        )}
+
+        {/* 부서별 분석 */}
+        {activeTab === 'team' && (
+          <div className="bg-white rounded-xl shadow-sm border border-gray-200">
+            <div className="p-6 border-b border-gray-200">
+              <h3 className="text-lg font-semibold text-gray-900">부서별 AI 사용 분석</h3>
+              <p className="text-sm text-gray-600 mt-1">
+                부서별 AI 사용 현황과 성과를 분석합니다.
+              </p>
+            </div>
+            
+            <div className="overflow-x-auto">
+              <table className="w-full">
+                <thead className="bg-gray-50">
+                  <tr>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      부서명
+                    </th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      총 크레딧
+                    </th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      직원 수
+                    </th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      평균 사용량
+                    </th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      주요 AI
+                    </th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      효율성
+                    </th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      성장률
+                    </th>
+                  </tr>
+                </thead>
+                <tbody className="bg-white divide-y divide-gray-200">
+                  {(currentData as AnalyticsData['departmentStats']).map((department, index) => (
+                    <tr key={index} className="hover:bg-gray-50">
+                      <td className="px-6 py-4 whitespace-nowrap">
+                        <div className="flex items-center">
+                          <div className="w-10 h-10 bg-purple-100 rounded-full flex items-center justify-center">
+                            <span className="text-sm font-medium text-purple-600">
+                              {department.name.charAt(0)}
+                            </span>
+                          </div>
+                          <div className="ml-4">
+                            <div className="text-sm font-medium text-gray-900">{department.name}</div>
+                          </div>
+                        </div>
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                        {department.totalCredits.toLocaleString()}
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                        {department.employeeCount}명
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                        {department.avgCreditsPerEmployee.toLocaleString()}
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                        {department.mostUsedAgent}
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap">
+                        <div className="flex items-center">
+                          <div className="w-16 bg-gray-200 rounded-full h-2">
+                            <div
+                              className="bg-green-600 h-2 rounded-full"
+                              style={{ width: `${department.efficiency}%` }}
+                            ></div>
+                          </div>
+                          <span className="ml-2 text-sm text-gray-900">{department.efficiency}%</span>
+                        </div>
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap">
+                        <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${
+                          department.growth > 10 
+                            ? 'bg-green-100 text-green-800' 
+                            : department.growth > 5 
+                            ? 'bg-yellow-100 text-yellow-800'
+                            : 'bg-red-100 text-red-800'
+                        }`}>
+                          +{department.growth}%
+                        </span>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        )}
+
+        {/* 에이전트별 분석 */}
+        {activeTab === 'agent' && (
+          <div className="bg-white rounded-xl shadow-sm border border-gray-200">
+            <div className="p-6 border-b border-gray-200">
+              <h3 className="text-lg font-semibold text-gray-900">AI 에이전트별 사용 분석</h3>
+              <p className="text-sm text-gray-600 mt-1">
+                각 AI 에이전트의 사용 현황과 인기도를 분석합니다.
+              </p>
+            </div>
+            
+            <div className="overflow-x-auto">
+              <table className="w-full">
+                <thead className="bg-gray-50">
+                  <tr>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      AI 에이전트
+                    </th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      총 사용량
+                    </th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      사용자 수
+                    </th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      평균 세션 시간
+                    </th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      인기도
+                    </th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      평점
+                    </th>
+                  </tr>
+                </thead>
+                <tbody className="bg-white divide-y divide-gray-200">
+                  {(currentData as AnalyticsData['agentStats']).map((agent, index) => (
+                    <tr key={index} className="hover:bg-gray-50">
+                      <td className="px-6 py-4 whitespace-nowrap">
+                        <div className="flex items-center">
+                          <div className="w-10 h-10 bg-indigo-100 rounded-full flex items-center justify-center">
+                            <Activity className="w-5 h-5 text-indigo-600" />
+                          </div>
+                          <div className="ml-4">
+                            <div className="text-sm font-medium text-gray-900">{agent.name}</div>
+                            <div className="text-sm text-gray-500">{agent.category}</div>
+                          </div>
+                        </div>
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                        {agent.totalUsage.toLocaleString()}
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                        {agent.uniqueUsers}명
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                        {agent.avgSessionTime}
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap">
+                        <div className="flex items-center">
+                          <div className="w-16 bg-gray-200 rounded-full h-2">
+                            <div
+                              className="bg-indigo-600 h-2 rounded-full"
+                              style={{ width: `${agent.popularityScore}%` }}
+                            ></div>
+                          </div>
+                          <span className="ml-2 text-sm text-gray-900">{agent.popularityScore}%</span>
+                        </div>
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap">
+                        <div className="flex items-center">
+                          <span className="text-sm text-yellow-400">★</span>
+                          <span className="ml-1 text-sm text-gray-900">{agent.rating}</span>
+                        </div>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        )}
+
+        {/* 페이지네이션 */}
+        {totalPages > 1 && (
+          <div className="flex items-center justify-between px-6 py-4 bg-white border-t border-gray-200">
+            <div className="text-sm text-gray-700">
+              {(currentPage - 1) * itemsPerPage + 1}-{Math.min(currentPage * itemsPerPage, getCurrentData().length)} / {getCurrentData().length}
+            </div>
+            <div className="flex items-center space-x-2">
+              <button
+                onClick={() => handlePageChange(currentPage - 1)}
+                disabled={currentPage === 1}
+                className="p-2 rounded-md border border-gray-300 disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-50"
+              >
+                <ChevronLeft className="w-4 h-4" />
+              </button>
+              <span className="px-4 py-2 text-sm font-medium">
+                {currentPage} / {totalPages}
+              </span>
+              <button
+                onClick={() => handlePageChange(currentPage + 1)}
+                disabled={currentPage === totalPages}
+                className="p-2 rounded-md border border-gray-300 disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-50"
+              >
+                <ChevronRight className="w-4 h-4" />
+              </button>
+            </div>
+          </div>
+        )}
       </div>
     </CompanyLayout>
   );
-} 
+}
+
+export default function CompanyAnalytics() {
+  return (
+    <Suspense fallback={<div>Loading...</div>}>
+      <CompanyAnalyticsContent />
+    </Suspense>
+  );
+}

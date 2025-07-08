@@ -1,26 +1,25 @@
 'use client';
 
+import { useState } from 'react';
 import CompanyLayout from '@/components/CompanyLayout';
 import { 
-  Users, 
-  Bot, 
-  CreditCard, 
+  Users,
+  Bot,
+  CreditCard,
+  PlusCircle,
   ArrowRight,
-  Calendar,
-  TrendingUp,
-  PlusCircle
+  TrendingUp
 } from 'lucide-react';
 import { employeeData, departmentData, companyStats, agentUsageData } from '@/data/company';
-import { useState } from 'react';
 import { 
-  LineChart, 
-  Line, 
-  XAxis, 
-  YAxis, 
-  CartesianGrid, 
-  Tooltip, 
-  ResponsiveContainer,
-  Legend
+  LineChart,
+  Line,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  Tooltip,
+  Legend,
+  ResponsiveContainer
 } from 'recharts';
 
 export default function CompanyDashboard() {
@@ -400,7 +399,7 @@ export default function CompanyDashboard() {
           </div>
           
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-4">
-            {topAgents.map((agent, index) => (
+            {topAgents.map((agent) => (
               <div key={agent.id} className="bg-gray-50 rounded-lg p-4 hover:bg-gray-100 transition-colors">
                 <div className="flex items-center justify-between mb-2">
                   <div className="w-8 h-8 bg-blue-100 rounded-lg flex items-center justify-center">
