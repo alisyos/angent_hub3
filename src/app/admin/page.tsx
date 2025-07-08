@@ -1,8 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import Header from '@/components/Header';
-import Footer from '@/components/Footer';
+import AdminLayout from '@/components/AdminLayout';
 import { 
   Users, 
   Bot, 
@@ -72,33 +71,19 @@ export default function AdminDashboard() {
   );
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      <Header />
-      
-      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        {/* Header */}
-        <div className="mb-8">
-          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between">
-            <div>
-              <h1 className="text-2xl font-bold text-gray-900">관리자 대시보드</h1>
-              <p className="mt-2 text-sm text-gray-600">
-                플랫폼 전체 현황을 한눈에 확인하세요
-              </p>
-            </div>
-            <div className="mt-4 sm:mt-0">
-              <select
-                value={dateRange}
-                onChange={(e) => setDateRange(e.target.value)}
-                className="block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500"
-              >
-                <option value="1d">최근 1일</option>
-                <option value="7d">최근 7일</option>
-                <option value="30d">최근 30일</option>
-                <option value="90d">최근 90일</option>
-              </select>
-            </div>
-          </div>
-        </div>
+    <AdminLayout
+      title="관리자 대시보드"
+      description="플랫폼 전체 현황을 한눈에 확인하세요"
+      timePeriod={dateRange === '1d' ? '최근 1일' : 
+                  dateRange === '7d' ? '최근 7일' :
+                  dateRange === '30d' ? '최근 30일' : '최근 90일'}
+      onTimePeriodChange={(period) => {
+        if (period === '최근 1일') setDateRange('1d');
+        else if (period === '최근 7일') setDateRange('7d');
+        else if (period === '최근 30일') setDateRange('30d');
+        else if (period === '최근 90일') setDateRange('90d');
+      }}
+    >
 
         {/* Stats Grid */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
@@ -269,9 +254,6 @@ export default function AdminDashboard() {
             </div>
           </div>
         </div>
-      </main>
-      
-      <Footer />
-    </div>
+    </AdminLayout>
   );
 } 

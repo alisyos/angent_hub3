@@ -33,11 +33,30 @@ export default function Header() {
     }
   }, []);
 
+  // 모바일 메뉴 외부 클릭 시 닫기
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      const target = event.target as HTMLElement;
+      
+      // 모바일 메뉴 외부 클릭 시 닫기
+      if (isMenuOpen && !target.closest('.mobile-menu') && !target.closest('.mobile-menu-button')) {
+        setIsMenuOpen(false);
+      }
+    };
+
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, [isMenuOpen]);
+
   const handleLogout = () => {
     localStorage.removeItem('userInfo');
     setUserInfo(null);
     window.location.href = '/login';
   };
+
+
 
   const getNavigation = () => {
     if (!userInfo) {
@@ -100,6 +119,7 @@ export default function Header() {
                 {item.name}
               </a>
             ))}
+
           </nav>
 
           {/* User Section */}
@@ -160,7 +180,7 @@ export default function Header() {
           <div className="md:hidden">
             <button
               onClick={() => setIsMenuOpen(!isMenuOpen)}
-              className="text-gray-600 hover:text-gray-900 p-2"
+              className="mobile-menu-button text-gray-600 hover:text-gray-900 p-2"
             >
               {isMenuOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
             </button>
@@ -170,7 +190,7 @@ export default function Header() {
 
       {/* Mobile menu */}
       {isMenuOpen && (
-        <div className="md:hidden bg-white border-t border-gray-200">
+        <div className="mobile-menu md:hidden bg-white border-t border-gray-200">
           <div className="px-2 pt-2 pb-3 space-y-1">
             {navigation.map((item) => (
               <a
@@ -181,6 +201,8 @@ export default function Header() {
                 {item.name}
               </a>
             ))}
+            
+
             
             {userInfo ? (
               <div className="border-t border-gray-200 pt-4 mt-4">
