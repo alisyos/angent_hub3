@@ -74,16 +74,7 @@ export default function CompanyNavigation({ className = '' }: CompanyNavigationP
         </ul>
       </nav>
 
-      {/* 추가 정보 섹션 */}
-      <div className="mt-8 p-4">
-        <div className="bg-blue-50 rounded-lg p-4">
-          <div className="flex items-center space-x-2 mb-2">
-            <div className="w-2 h-2 bg-green-500 rounded-full"></div>
-            <span className="text-sm font-medium text-blue-900">시스템 상태</span>
-          </div>
-          <p className="text-xs text-blue-700">모든 시스템이 정상 작동중입니다</p>
-        </div>
-      </div>
+
     </aside>
   );
 } 

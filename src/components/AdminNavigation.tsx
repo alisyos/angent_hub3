@@ -77,16 +77,7 @@ export default function AdminNavigation({ className = '' }: AdminNavigationProps
         </ul>
       </nav>
 
-      {/* 관리자 정보 섹션 */}
-      <div className="mt-8 p-4">
-        <div className="bg-red-50 rounded-lg p-4">
-          <div className="flex items-center space-x-2 mb-2">
-            <div className="w-2 h-2 bg-green-500 rounded-full"></div>
-            <span className="text-sm font-medium text-red-900">시스템 상태</span>
-          </div>
-          <p className="text-xs text-red-700">모든 시스템이 정상 작동중입니다</p>
-        </div>
-      </div>
+
 
       {/* 빠른 통계 */}
       <div className="p-4">

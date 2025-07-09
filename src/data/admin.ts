@@ -1,4 +1,4 @@
-import { User, Payment, FAQ, Inquiry, AgentAdmin } from '@/types/admin';
+import { User, PaymentAdmin, FAQAdmin, InquiryAdmin, AgentAdmin, UserActivityLog } from '@/types/admin';
 
 // === 사용자 관리 Mock 데이터 ===
 export const mockUsers: User[] = [
@@ -110,7 +110,7 @@ export const mockUsers: User[] = [
 ];
 
 // === 문의 관리 Mock 데이터 ===
-export const mockInquiries: Inquiry[] = [
+export const mockInquiries: InquiryAdmin[] = [
   {
     id: '1',
     type: 'billing',
@@ -124,7 +124,6 @@ export const mockInquiries: Inquiry[] = [
       type: 'individual'
     },
     status: 'pending',
-    priority: 'high',
     assignedTo: undefined,
     responses: [],
     createdAt: '2024-01-20T14:30:00Z',
@@ -145,8 +144,7 @@ export const mockInquiries: Inquiry[] = [
       email: 'lee.yh@techstartup.com',
       type: 'company'
     },
-    status: 'in_progress',
-    priority: 'high',
+    status: 'pending',
     assignedTo: 'admin-001',
     responses: [
       {
@@ -181,8 +179,7 @@ export const mockInquiries: Inquiry[] = [
       email: 'choi.dh@freelancer.com',
       type: 'individual'
     },
-    status: 'resolved',
-    priority: 'medium',
+    status: 'completed',
     assignedTo: 'admin-002',
     responses: [
       {
@@ -205,11 +202,467 @@ export const mockInquiries: Inquiry[] = [
     tags: ['계정', '전환'],
     category: 'account',
     isInternal: false
+  },
+  {
+    id: '4',
+    type: 'service',
+    title: 'AI 에이전트 사용법 문의',
+    content: 'PPT 슬라이드 생성기 사용 방법을 알고 싶습니다. 어떤 형식으로 입력해야 하나요?',
+    attachments: [
+      {
+        id: 'att1',
+        filename: 'sample-presentation.pptx',
+        originalName: 'sample-presentation.pptx',
+        size: 1024000,
+        mimeType: 'application/vnd.openxmlformats-officedocument.presentationml.presentation',
+        uploadedAt: '2024-01-19T10:00:00Z',
+        downloadUrl: '/attachments/att1'
+      }
+    ],
+    user: {
+      id: '6',
+      name: '김영수',
+      email: 'kim.ys@example.com',
+      type: 'individual'
+    },
+    status: 'pending',
+    assignedTo: undefined,
+    responses: [],
+    createdAt: '2024-01-19T10:00:00Z',
+    updatedAt: '2024-01-19T10:00:00Z',
+    tags: ['사용법', 'PPT'],
+    category: 'service',
+    isInternal: false
+  },
+  {
+    id: '5',
+    type: 'technical',
+    title: '파일 업로드 오류 발생',
+    content: '음성파일 기반 문서 자동화 AI에서 파일 업로드 시 "파일 형식 오류"가 발생합니다. 지원되는 파일 형식을 확인해 주세요.',
+    attachments: [
+      {
+        id: 'att2',
+        filename: 'error-screenshot.png',
+        originalName: '오류 스크린샷.png',
+        size: 256000,
+        mimeType: 'image/png',
+        uploadedAt: '2024-01-19T14:30:00Z',
+        downloadUrl: '/attachments/att2'
+      },
+      {
+        id: 'att3',
+        filename: 'audio-file.mp3',
+        originalName: '회의 녹음.mp3',
+        size: 8192000,
+        mimeType: 'audio/mpeg',
+        uploadedAt: '2024-01-19T14:32:00Z',
+        downloadUrl: '/attachments/att3'
+      }
+    ],
+    user: {
+      id: '7',
+      name: '박지현',
+      email: 'park.jh@company.com',
+      type: 'company'
+    },
+    status: 'pending',
+    assignedTo: 'admin-001',
+    responses: [
+      {
+        id: 'resp3',
+        inquiryId: '5',
+        content: '제공해주신 파일을 확인했습니다. 현재 MP3 파일 형식은 지원하지만, 파일 크기 제한이 있습니다. 5MB 이하로 압축해서 다시 시도해 주세요.',
+        attachments: [],
+        author: {
+          id: 'admin-001',
+          name: '기술지원팀',
+          role: 'admin'
+        },
+        isInternal: false,
+        createdAt: '2024-01-19T16:00:00Z'
+      }
+    ],
+    createdAt: '2024-01-19T14:30:00Z',
+    updatedAt: '2024-01-19T16:00:00Z',
+    tags: ['파일업로드', '기술오류'],
+    category: 'technical',
+    isInternal: false
+  },
+  {
+    id: '6',
+    type: 'billing',
+    title: '환불 요청 - 미사용 크레딧',
+    content: '실수로 1000 크레딧을 구매했는데 사용하지 않았습니다. 환불 가능한가요?',
+    attachments: [
+      {
+        id: 'att4',
+        filename: 'receipt.pdf',
+        originalName: '결제영수증.pdf',
+        size: 128000,
+        mimeType: 'application/pdf',
+        uploadedAt: '2024-01-18T20:00:00Z',
+        downloadUrl: '/attachments/att4'
+      }
+    ],
+    user: {
+      id: '8',
+      name: '이수민',
+      email: 'lee.sm@gmail.com',
+      type: 'individual'
+    },
+    status: 'completed',
+    assignedTo: 'admin-002',
+    responses: [
+      {
+        id: 'resp4',
+        inquiryId: '6',
+        content: '환불 요청이 승인되었습니다. 영업일 기준 3-5일 내로 환불 처리됩니다.',
+        attachments: [],
+        author: {
+          id: 'admin-002',
+          name: '결제지원팀',
+          role: 'admin'
+        },
+        isInternal: false,
+        createdAt: '2024-01-19T09:00:00Z'
+      }
+    ],
+    createdAt: '2024-01-18T20:00:00Z',
+    updatedAt: '2024-01-19T09:00:00Z',
+    resolvedAt: '2024-01-19T09:00:00Z',
+    tags: ['환불', '크레딧'],
+    category: 'billing',
+    isInternal: false
+  },
+  {
+    id: '7',
+    type: 'account',
+    title: '비밀번호 변경 요청',
+    content: '계정 보안을 위해 비밀번호를 변경하려고 하는데 이메일 인증이 오지 않습니다.',
+    attachments: [],
+    user: {
+      id: '9',
+      name: '정민호',
+      email: 'jung.mh@startup.co.kr',
+      type: 'company'
+    },
+    status: 'pending',
+    assignedTo: undefined,
+    responses: [],
+    createdAt: '2024-01-19T16:20:00Z',
+    updatedAt: '2024-01-19T16:20:00Z',
+    tags: ['비밀번호', '이메일인증'],
+    category: 'account',
+    isInternal: false
+  },
+  {
+    id: '8',
+    type: 'technical',
+    title: '리뷰 분석 AI 결과 오류',
+    content: '리뷰 분석 AI 사용 시 결과가 이상하게 나옵니다. 입력한 리뷰와 전혀 다른 분석 결과가 나와서 문의드립니다.',
+    attachments: [
+      {
+        id: 'att5',
+        filename: 'review-data.xlsx',
+        originalName: '리뷰 데이터.xlsx',
+        size: 512000,
+        mimeType: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+        uploadedAt: '2024-01-19T11:45:00Z',
+        downloadUrl: '/attachments/att5'
+      },
+      {
+        id: 'att6',
+        filename: 'analysis-result.pdf',
+        originalName: '분석 결과.pdf',
+        size: 300000,
+        mimeType: 'application/pdf',
+        uploadedAt: '2024-01-19T11:47:00Z',
+        downloadUrl: '/attachments/att6'
+      }
+    ],
+    user: {
+      id: '10',
+      name: '한상우',
+      email: 'han.sw@marketing.com',
+      type: 'company'
+    },
+    status: 'pending',
+    assignedTo: 'admin-003',
+    responses: [
+      {
+        id: 'resp5',
+        inquiryId: '8',
+        content: '제공해주신 데이터를 확인 중입니다. 분석 결과 이상에 대해 내부 검토 진행 중이며, 24시간 내로 답변드리겠습니다.',
+        attachments: [],
+        author: {
+          id: 'admin-003',
+          name: 'AI 전문팀',
+          role: 'admin'
+        },
+        isInternal: false,
+        createdAt: '2024-01-19T12:30:00Z'
+      }
+    ],
+    createdAt: '2024-01-19T11:45:00Z',
+    updatedAt: '2024-01-19T12:30:00Z',
+    tags: ['리뷰분석', 'AI오류'],
+    category: 'technical',
+    isInternal: false
+  },
+  {
+    id: '9',
+    type: 'service',
+    title: '신규 AI 에이전트 기능 제안',
+    content: '번역 AI 에이전트 추가를 제안드립니다. 많은 사용자들이 필요로 할 것 같습니다.',
+    attachments: [
+      {
+        id: 'att7',
+        filename: 'proposal.docx',
+        originalName: '기능 제안서.docx',
+        size: 450000,
+        mimeType: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+        uploadedAt: '2024-01-19T08:15:00Z',
+        downloadUrl: '/attachments/att7'
+      }
+    ],
+    user: {
+      id: '11',
+      name: '윤지영',
+      email: 'yoon.jy@translation.co.kr',
+      type: 'company'
+    },
+    status: 'pending',
+    assignedTo: undefined,
+    responses: [],
+    createdAt: '2024-01-19T08:15:00Z',
+    updatedAt: '2024-01-19T08:15:00Z',
+    tags: ['기능제안', '번역AI'],
+    category: 'service',
+    isInternal: false
+  },
+  {
+    id: '10',
+    type: 'billing',
+    title: '법인카드 결제 불가 문제',
+    content: '법인카드로 크레딧 결제 시 승인 거부가 계속 됩니다. 개인카드로는 결제가 됩니다.',
+    attachments: [
+      {
+        id: 'att8',
+        filename: 'card-info.jpg',
+        originalName: '법인카드 정보.jpg',
+        size: 180000,
+        mimeType: 'image/jpeg',
+        uploadedAt: '2024-01-18T15:30:00Z',
+        downloadUrl: '/attachments/att8'
+      }
+    ],
+    user: {
+      id: '12',
+      name: '서동희',
+      email: 'seo.dh@enterprise.com',
+      type: 'company'
+    },
+    status: 'completed',
+    assignedTo: 'admin-002',
+    responses: [
+      {
+        id: 'resp6',
+        inquiryId: '10',
+        content: '법인카드의 경우 결제 한도 및 온라인 결제 설정을 확인해 주세요. 필요시 카드사에 문의하여 온라인 결제 승인 설정을 변경해 주시기 바랍니다.',
+        attachments: [],
+        author: {
+          id: 'admin-002',
+          name: '결제지원팀',
+          role: 'admin'
+        },
+        isInternal: false,
+        createdAt: '2024-01-18T16:45:00Z'
+      }
+    ],
+    createdAt: '2024-01-18T15:30:00Z',
+    updatedAt: '2024-01-18T16:45:00Z',
+    resolvedAt: '2024-01-18T16:45:00Z',
+    tags: ['법인카드', '결제승인'],
+    category: 'billing',
+    isInternal: false
+  },
+  {
+    id: '11',
+    type: 'other',
+    title: '회사 소개 및 파트너십 문의',
+    content: '저희 회사와 파트너십을 체결하고 싶어서 문의드립니다. 담당자와 연결해 주실 수 있나요?',
+    attachments: [
+      {
+        id: 'att9',
+        filename: 'company-profile.pdf',
+        originalName: '회사 소개서.pdf',
+        size: 2048000,
+        mimeType: 'application/pdf',
+        uploadedAt: '2024-01-19T13:00:00Z',
+        downloadUrl: '/attachments/att9'
+      },
+      {
+        id: 'att10',
+        filename: 'partnership-proposal.pptx',
+        originalName: '파트너십 제안서.pptx',
+        size: 1536000,
+        mimeType: 'application/vnd.openxmlformats-officedocument.presentationml.presentation',
+        uploadedAt: '2024-01-19T13:02:00Z',
+        downloadUrl: '/attachments/att10'
+      }
+    ],
+    user: {
+      id: '13',
+      name: '김대표',
+      email: 'ceo@partner.co.kr',
+      type: 'company'
+    },
+    status: 'pending',
+    assignedTo: undefined,
+    responses: [],
+    createdAt: '2024-01-19T13:00:00Z',
+    updatedAt: '2024-01-19T13:00:00Z',
+    tags: ['파트너십', '비즈니스'],
+    category: 'other',
+    isInternal: false
+  },
+  {
+    id: '12',
+    type: 'technical',
+    title: '모바일 앱 출시 예정일 문의',
+    content: '모바일 앱은 언제 출시될 예정인가요? 모바일에서 사용하기 불편합니다.',
+    attachments: [],
+    user: {
+      id: '14',
+      name: '조현아',
+      email: 'cho.ha@mobile.com',
+      type: 'individual'
+    },
+    status: 'pending',
+    assignedTo: undefined,
+    responses: [],
+    createdAt: '2024-01-19T17:30:00Z',
+    updatedAt: '2024-01-19T17:30:00Z',
+    tags: ['모바일앱', '출시일정'],
+    category: 'service',
+    isInternal: false
+  },
+  {
+    id: '13',
+    type: 'service',
+    title: '대량 처리 방법 문의',
+    content: '한번에 100개 이상의 파일을 처리할 수 있는 방법이 있나요? 배치 처리 기능이 필요합니다.',
+    attachments: [
+      {
+        id: 'att11',
+        filename: 'file-list.txt',
+        originalName: '처리할 파일 목록.txt',
+        size: 15000,
+        mimeType: 'text/plain',
+        uploadedAt: '2024-01-19T09:45:00Z',
+        downloadUrl: '/attachments/att11'
+      }
+    ],
+    user: {
+      id: '15',
+      name: '오성진',
+      email: 'oh.sj@batch.com',
+      type: 'company'
+    },
+    status: 'pending',
+    assignedTo: 'admin-001',
+    responses: [
+      {
+        id: 'resp7',
+        inquiryId: '13',
+        content: '현재 배치 처리 기능은 엔터프라이즈 플랜에서 제공됩니다. 상세한 내용은 영업팀에서 연락드리겠습니다.',
+        attachments: [],
+        author: {
+          id: 'admin-001',
+          name: '기술지원팀',
+          role: 'admin'
+        },
+        isInternal: false,
+        createdAt: '2024-01-19T10:30:00Z'
+      }
+    ],
+    createdAt: '2024-01-19T09:45:00Z',
+    updatedAt: '2024-01-19T10:30:00Z',
+    tags: ['배치처리', '엔터프라이즈'],
+    category: 'service',
+    isInternal: false
+  },
+  {
+    id: '14',
+    type: 'account',
+    title: '계정 삭제 요청',
+    content: '서비스를 더 이상 사용하지 않아서 계정을 삭제하고 싶습니다. 개인정보도 모두 삭제해 주세요.',
+    attachments: [],
+    user: {
+      id: '16',
+      name: '임채원',
+      email: 'lim.cw@delete.com',
+      type: 'individual'
+    },
+    status: 'pending',
+    assignedTo: undefined,
+    responses: [],
+    createdAt: '2024-01-19T18:00:00Z',
+    updatedAt: '2024-01-19T18:00:00Z',
+    tags: ['계정삭제', '개인정보'],
+    category: 'account',
+    isInternal: false
+  },
+  {
+    id: '15',
+    type: 'billing',
+    title: '정기 결제 설정 문의',
+    content: '매월 자동으로 크레딧을 충전하는 정기 결제 설정이 가능한가요?',
+    attachments: [
+      {
+        id: 'att12',
+        filename: 'subscription-plan.pdf',
+        originalName: '구독 플랜 비교표.pdf',
+        size: 750000,
+        mimeType: 'application/pdf',
+        uploadedAt: '2024-01-19T12:15:00Z',
+        downloadUrl: '/attachments/att12'
+      }
+    ],
+    user: {
+      id: '17',
+      name: '신우철',
+      email: 'shin.wc@subscription.com',
+      type: 'company'
+    },
+    status: 'completed',
+    assignedTo: 'admin-002',
+    responses: [
+      {
+        id: 'resp8',
+        inquiryId: '15',
+        content: '정기 결제 기능은 현재 개발 중이며, 다음 달 출시 예정입니다. 출시 시 이메일로 안내해 드리겠습니다.',
+        attachments: [],
+        author: {
+          id: 'admin-002',
+          name: '결제지원팀',
+          role: 'admin'
+        },
+        isInternal: false,
+        createdAt: '2024-01-19T14:00:00Z'
+      }
+    ],
+    createdAt: '2024-01-19T12:15:00Z',
+    updatedAt: '2024-01-19T14:00:00Z',
+    resolvedAt: '2024-01-19T14:00:00Z',
+    tags: ['정기결제', '구독'],
+    category: 'billing',
+    isInternal: false
   }
 ];
 
 // === 결제 관리 Mock 데이터 ===
-export const mockPayments: Payment[] = [
+export const mockPayments: PaymentAdmin[] = [
   {
     id: 'pay001',
     user: {
@@ -274,7 +727,7 @@ export const mockPayments: Payment[] = [
 ];
 
 // === FAQ 관리 Mock 데이터 ===
-export const mockFAQs: FAQ[] = [
+export const mockFAQs: FAQAdmin[] = [
   {
     id: 'faq001',
     category: 'general',

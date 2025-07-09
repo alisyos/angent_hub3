@@ -1,6 +1,17 @@
-import { AIAgent, User, CompanyInfo } from './agent';
+import { AIAgent, User as BaseUser, CompanyInfo } from './agent';
 
 // === 사용자 관리 관련 타입 ===
+export interface User extends BaseUser {
+  lastLoginAt: string;
+  totalCreditsUsed: number;
+  totalSpent: number;
+  status: 'active' | 'suspended' | 'inactive';
+  registeredAt: string;
+  companyInfo?: CompanyDetails;
+  employees?: User[]; // 회사 관리자인 경우
+  activityLogs: UserActivityLog[];
+}
+
 export interface AdminUser extends User {
   lastLoginAt: string;
   totalCreditsUsed: number;
@@ -108,8 +119,7 @@ export interface InquiryAdmin {
     email: string;
     type: 'individual' | 'company' | 'admin';
   };
-  status: 'pending' | 'in_progress' | 'resolved' | 'closed';
-  priority: 'low' | 'medium' | 'high' | 'urgent';
+  status: 'pending' | 'completed';
   assignedTo?: string; // 담당자 ID
   responses: InquiryResponse[];
   createdAt: string;
