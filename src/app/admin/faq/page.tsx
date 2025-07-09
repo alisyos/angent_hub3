@@ -17,15 +17,13 @@ import {
   Trash2,
   ChevronUp,
   ChevronDown,
-  BarChart3,
-  Users,
-  ThumbsUp,
-  ThumbsDown,
   Calendar,
   Tag,
   Save,
   X,
-  Check
+  Check,
+  ArrowUp,
+  ArrowDown
 } from 'lucide-react';
 
 export default function AdminFAQ() {
@@ -33,7 +31,6 @@ export default function AdminFAQ() {
   const [filteredFaqs, setFilteredFaqs] = useState<FAQAdmin[]>(mockFAQs);
   const [selectedFaq, setSelectedFaq] = useState<FAQAdmin | null>(null);
   const [showDetailModal, setShowDetailModal] = useState(false);
-  const [showEditModal, setShowEditModal] = useState(false);
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage, setItemsPerPage] = useState(10);
@@ -44,26 +41,17 @@ export default function AdminFAQ() {
     question: '',
     answer: '',
     isPublished: true,
-    priority: 1,
+    order: 1,
     tags: []
   });
-  const [confirmModal, setConfirmModal] = useState<{
-    isOpen: boolean;
-    faq: FAQAdmin | null;
-    type: 'delete' | 'publish' | 'unpublish';
-  }>({
-    isOpen: false,
-    faq: null,
-    type: 'delete'
-  });
 
-  // 카테고리 목록
+  // 카테고리 목록 (실제 FAQ 페이지와 동기화)
   const categories = [
     { value: 'general', label: '일반' },
-    { value: 'payment', label: '결제' },
-    { value: 'technical', label: '기술' },
-    { value: 'account', label: '계정' },
-    { value: 'service', label: '서비스' }
+    { value: 'credits', label: '크레딧' },
+    { value: 'agents', label: 'AI 에이전트' },
+    { value: 'security', label: '보안' },
+    { value: 'account', label: '계정' }
   ];
 
   // 필터 정의
@@ -81,18 +69,6 @@ export default function AdminFAQ() {
       options: [
         { value: 'true', label: '게시됨' },
         { value: 'false', label: '비공개' }
-      ]
-    },
-    {
-      key: 'priority',
-      label: '우선순위',
-      type: 'select' as const,
-      options: [
-        { value: '1', label: '1순위' },
-        { value: '2', label: '2순위' },
-        { value: '3', label: '3순위' },
-        { value: '4', label: '4순위' },
-        { value: '5', label: '5순위' }
       ]
     }
   ];
@@ -118,14 +94,9 @@ export default function AdminFAQ() {
               <p className="text-sm font-medium text-gray-900 truncate">
                 {faq?.question || '질문 없음'}
               </p>
-              <p className="text-sm text-gray-500 truncate">
-                {faq?.answer && faq.answer.length > 80 
-                  ? `${faq.answer.substring(0, 80)}...` 
-                  : (faq?.answer || '답변 없음')}
-              </p>
               <div className="flex items-center mt-1 space-x-2">
                 <span className="text-xs text-gray-400">
-                  우선순위: {faq?.priority || 0}
+                  순서: {faq?.order || 0}
                 </span>
                 {(faq.tags || []).map((tag, index) => (
                   <span
@@ -152,40 +123,25 @@ export default function AdminFAQ() {
       render: (faq: FAQAdmin) => getStatusBadge(faq?.isPublished ?? false)
     },
     {
-      key: 'stats',
-      label: '통계',
-      render: (faq: FAQAdmin) => (
-        <div className="text-sm">
-          <div className="flex items-center space-x-3">
-            <div className="flex items-center space-x-1">
-              <Eye className="w-4 h-4 text-gray-400" />
-              <span className="text-gray-600">{faq?.viewCount || 0}</span>
-            </div>
-            <div className="flex items-center space-x-1">
-              <ThumbsUp className="w-4 h-4 text-green-500" />
-              <span className="text-green-600">{faq?.helpful || 0}</span>
-            </div>
-            <div className="flex items-center space-x-1">
-              <ThumbsDown className="w-4 h-4 text-red-500" />
-              <span className="text-red-600">{faq?.notHelpful || 0}</span>
-            </div>
-          </div>
-        </div>
-      )
-    },
-    {
       key: 'createdAt',
-      label: '등록일',
-      render: (faq: FAQAdmin) => (
-        <div>
-          <p className="text-sm text-gray-900">
-            {faq?.createdAt ? new Date(faq.createdAt).toLocaleDateString('ko-KR') : '날짜 없음'}
-          </p>
-          <p className="text-xs text-gray-500">
-            {faq?.createdBy || '작성자 없음'}
-          </p>
-        </div>
-      )
+      label: '날짜',
+      render: (faq: FAQAdmin) => {
+        // 수정일이 등록일과 다르면 수정일을 표시, 같으면 등록일을 표시
+        const hasBeenUpdated = faq?.updatedAt && faq.updatedAt !== faq.createdAt;
+        const displayDate = hasBeenUpdated ? faq.updatedAt : faq.createdAt;
+        const dateLabel = hasBeenUpdated ? '수정' : '등록';
+        
+        return (
+          <div>
+            <p className="text-sm text-gray-900">
+              {displayDate ? new Date(displayDate).toLocaleDateString('ko-KR') : '날짜 없음'}
+            </p>
+            <p className="text-xs text-gray-500">
+              {dateLabel}일
+            </p>
+          </div>
+        );
+      }
     },
     {
       key: 'actions',
@@ -195,54 +151,26 @@ export default function AdminFAQ() {
           <button
             onClick={() => faq && handleViewFaq(faq)}
             className="p-1 text-blue-600 hover:text-blue-900 hover:bg-blue-50 rounded"
-            title="상세 보기"
+            title="상세 보기 및 편집"
             disabled={!faq}
           >
             <Eye className="w-4 h-4" />
           </button>
           <button
-            onClick={() => faq && handleEditFaq(faq)}
-            className="p-1 text-green-600 hover:text-green-900 hover:bg-green-50 rounded"
-            title="수정"
-            disabled={!faq}
-          >
-            <Edit className="w-4 h-4" />
-          </button>
-          <button
-            onClick={() => faq && handlePriorityChange(faq, 'up')}
+            onClick={() => faq && handleOrderChange(faq, 'up')}
             className="p-1 text-purple-600 hover:text-purple-900 hover:bg-purple-50 rounded"
-            title="우선순위 올리기"
+            title="순서 올리기"
             disabled={!faq}
           >
-            <ChevronUp className="w-4 h-4" />
+            <ArrowUp className="w-4 h-4" />
           </button>
           <button
-            onClick={() => faq && handlePriorityChange(faq, 'down')}
+            onClick={() => faq && handleOrderChange(faq, 'down')}
             className="p-1 text-purple-600 hover:text-purple-900 hover:bg-purple-50 rounded"
-            title="우선순위 내리기"
+            title="순서 내리기"
             disabled={!faq}
           >
-            <ChevronDown className="w-4 h-4" />
-          </button>
-          <button
-            onClick={() => faq && handleTogglePublish(faq)}
-            className={`p-1 hover:bg-opacity-50 rounded ${
-              faq?.isPublished
-                ? 'text-yellow-600 hover:bg-yellow-50'
-                : 'text-green-600 hover:bg-green-50'
-            }`}
-            title={faq?.isPublished ? '비공개' : '게시'}
-            disabled={!faq}
-          >
-            {faq?.isPublished ? <X className="w-4 h-4" /> : <Check className="w-4 h-4" />}
-          </button>
-          <button
-            onClick={() => faq && handleDeleteFaq(faq)}
-            className="p-1 text-red-600 hover:text-red-900 hover:bg-red-50 rounded"
-            title="삭제"
-            disabled={!faq}
-          >
-            <Trash2 className="w-4 h-4" />
+            <ArrowDown className="w-4 h-4" />
           </button>
         </div>
       )
@@ -253,18 +181,18 @@ export default function AdminFAQ() {
   const getCategoryBadge = (category: string) => {
     const styles = {
       general: { bg: 'bg-gray-100', text: 'text-gray-800' },
-      payment: { bg: 'bg-green-100', text: 'text-green-800' },
-      technical: { bg: 'bg-blue-100', text: 'text-blue-800' },
-      account: { bg: 'bg-purple-100', text: 'text-purple-800' },
-      service: { bg: 'bg-orange-100', text: 'text-orange-800' }
+      credits: { bg: 'bg-green-100', text: 'text-green-800' },
+      agents: { bg: 'bg-blue-100', text: 'text-blue-800' },
+      security: { bg: 'bg-purple-100', text: 'text-purple-800' },
+      account: { bg: 'bg-orange-100', text: 'text-orange-800' }
     };
 
     const labels = {
       general: '일반',
-      payment: '결제',
-      technical: '기술',
-      account: '계정',
-      service: '서비스'
+      credits: '크레딧',
+      agents: 'AI 에이전트',
+      security: '보안',
+      account: '계정'
     };
 
     const style = styles[category as keyof typeof styles] || styles.general;
@@ -307,8 +235,6 @@ export default function AdminFAQ() {
       if (value && value !== 'all') {
         if (key === 'isPublished') {
           filtered = filtered.filter(faq => (faq?.isPublished ?? false) === (value === 'true'));
-        } else if (key === 'priority') {
-          filtered = filtered.filter(faq => (faq?.priority ?? 0) === parseInt(value));
         } else {
           filtered = filtered.filter(faq => {
             const faqValue = faq?.[key as keyof FAQAdmin];
@@ -319,7 +245,7 @@ export default function AdminFAQ() {
     });
 
     // 우선순위순 정렬
-    filtered.sort((a, b) => (a?.priority ?? 0) - (b?.priority ?? 0));
+    filtered.sort((a, b) => (a?.order ?? 0) - (b?.order ?? 0));
 
     setFilteredFaqs(filtered);
     setCurrentPage(1);
@@ -347,7 +273,7 @@ export default function AdminFAQ() {
       ...faq,
       tags: [...faq.tags]
     });
-    setShowEditModal(true);
+    setShowCreateModal(true);
   };
 
   const handleCreateFaq = () => {
@@ -356,103 +282,73 @@ export default function AdminFAQ() {
       question: '',
       answer: '',
       isPublished: true,
-      priority: 1,
+      order: 1,
       tags: []
     });
     setShowCreateModal(true);
   };
 
-  const handlePriorityChange = (faq: FAQAdmin, direction: 'up' | 'down') => {
-    const newPriority = direction === 'up' ? Math.max(1, faq.priority - 1) : faq.priority + 1;
+  const handleOrderChange = (faq: FAQAdmin, direction: 'up' | 'down') => {
+    const newOrder = direction === 'up' ? Math.max(1, faq.order - 1) : faq.order + 1;
     
     setFaqs(prev => prev.map(f =>
-      f.id === faq.id ? { ...f, priority: newPriority, updatedAt: new Date().toISOString() } : f
+      f.id === faq.id ? { ...f, order: newOrder, updatedAt: new Date().toISOString() } : f
     ));
   };
 
   const handleTogglePublish = (faq: FAQAdmin) => {
-    setConfirmModal({
-      isOpen: true,
-      faq,
-      type: faq.isPublished ? 'unpublish' : 'publish'
-    });
+    setFaqs(prev => prev.map(f =>
+      f.id === faq.id
+        ? { ...f, isPublished: !f.isPublished, updatedAt: new Date().toISOString() }
+        : f
+    ));
   };
 
   const handleDeleteFaq = (faq: FAQAdmin) => {
-    setConfirmModal({
-      isOpen: true,
-      faq,
-      type: 'delete'
-    });
+    setFaqs(prev => prev.filter(f => f.id !== faq.id));
+    alert('FAQ가 삭제되었습니다.');
   };
 
-  const handleSaveFaq = () => {
-    if (!editingFaq.question || !editingFaq.answer || !editingFaq.category) {
-      alert('필수 항목을 모두 입력해주세요.');
-      return;
-    }
-
-    if (showCreateModal) {
+  const handleSaveFaq = (updatedFaq?: FAQAdmin) => {
+    if (updatedFaq) {
+      // 기존 FAQ 업데이트
+      setFaqs(prev => prev.map(f => 
+        f.id === updatedFaq.id 
+          ? { ...updatedFaq, updatedAt: new Date().toISOString() }
+          : f
+      ));
+      setShowDetailModal(false);
+    } else {
       // 새 FAQ 생성
+      if (!editingFaq.category || !editingFaq.question || !editingFaq.answer) {
+        alert('카테고리, 질문, 답변을 모두 입력해주세요.');
+        return;
+      }
+
       const newFaq: FAQAdmin = {
-        id: Date.now().toString(),
+        id: `faq_${Date.now()}`,
         category: editingFaq.category!,
         question: editingFaq.question!,
         answer: editingFaq.answer!,
         isPublished: editingFaq.isPublished!,
-        priority: editingFaq.priority!,
+        order: editingFaq.order!,
         createdAt: new Date().toISOString(),
         updatedAt: new Date().toISOString(),
-        viewCount: 0,
-        helpful: 0,
-        notHelpful: 0,
         createdBy: '관리자',
         tags: editingFaq.tags || []
       };
 
       setFaqs(prev => [...prev, newFaq]);
       setShowCreateModal(false);
-    } else {
-      // 기존 FAQ 수정
-      setFaqs(prev => prev.map(faq =>
-        faq.id === editingFaq.id
-          ? {
-              ...faq,
-              ...editingFaq,
-              updatedAt: new Date().toISOString(),
-              updatedBy: '관리자'
-            }
-          : faq
-      ));
-      setShowEditModal(false);
+      setEditingFaq({
+        category: '',
+        question: '',
+        answer: '',
+        isPublished: true,
+        order: 1,
+        tags: []
+      });
     }
-
-    alert(showCreateModal ? 'FAQ가 생성되었습니다.' : 'FAQ가 수정되었습니다.');
-  };
-
-  const handleConfirmAction = () => {
-    if (!confirmModal.faq) return;
-
-    if (confirmModal.type === 'delete') {
-      setFaqs(prev => prev.filter(faq => faq.id !== confirmModal.faq!.id));
-      alert('FAQ가 삭제되었습니다.');
-    } else if (confirmModal.type === 'publish') {
-      setFaqs(prev => prev.map(faq =>
-        faq.id === confirmModal.faq!.id
-          ? { ...faq, isPublished: true, updatedAt: new Date().toISOString() }
-          : faq
-      ));
-      alert('FAQ가 게시되었습니다.');
-    } else if (confirmModal.type === 'unpublish') {
-      setFaqs(prev => prev.map(faq =>
-        faq.id === confirmModal.faq!.id
-          ? { ...faq, isPublished: false, updatedAt: new Date().toISOString() }
-          : faq
-      ));
-      alert('FAQ가 비공개되었습니다.');
-    }
-
-    setConfirmModal({ isOpen: false, faq: null, type: 'delete' });
   };
 
   const handleTagAdd = (tag: string) => {
@@ -497,37 +393,18 @@ export default function AdminFAQ() {
     >
 
         {/* 통계 */}
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
           <AdminStats
             title="전체 FAQ"
             value={faqs.length}
             icon={HelpCircle}
             color="blue"
-            change={{ value: 8, type: 'positive' }}
           />
           <AdminStats
             title="게시된 FAQ"
             value={faqs.filter(f => f.isPublished).length}
             icon={Check}
             color="green"
-            change={{ value: 12, type: 'positive' }}
-          />
-          <AdminStats
-            title="총 조회수"
-            value={faqs.reduce((sum, f) => sum + f.viewCount, 0)}
-            icon={Eye}
-            color="purple"
-            change={{ value: 25, type: 'positive' }}
-          />
-          <AdminStats
-            title="평균 만족도"
-            value={`${Math.round(
-              (faqs.reduce((sum, f) => sum + f.helpful, 0) / 
-               Math.max(faqs.reduce((sum, f) => sum + f.helpful + f.notHelpful, 0), 1)) * 100
-            )}%`}
-            icon={ThumbsUp}
-            color="yellow"
-            change={{ value: 5, type: 'positive' }}
           />
         </div>
 
@@ -568,17 +445,22 @@ export default function AdminFAQ() {
           title="FAQ 상세 정보"
           size="lg"
         >
-          {selectedFaq && <FaqDetailModal faq={selectedFaq} />}
+          {selectedFaq && (
+            <FaqDetailModal
+              faq={selectedFaq}
+              onSave={handleSaveFaq}
+              onDelete={handleDeleteFaq}
+              onTogglePublish={handleTogglePublish}
+              categories={categories}
+            />
+          )}
         </AdminModal>
 
         {/* FAQ 편집 모달 */}
         <AdminModal
-          isOpen={showEditModal || showCreateModal}
-          onClose={() => {
-            setShowEditModal(false);
-            setShowCreateModal(false);
-          }}
-          title={showCreateModal ? 'FAQ 추가' : 'FAQ 수정'}
+          isOpen={showCreateModal}
+          onClose={() => setShowCreateModal(false)}
+          title="FAQ 추가"
           size="lg"
         >
           <FaqEditModal
@@ -586,146 +468,251 @@ export default function AdminFAQ() {
             onChange={setEditingFaq}
             categories={categories}
             onSave={handleSaveFaq}
-            onCancel={() => {
-              setShowEditModal(false);
-              setShowCreateModal(false);
-            }}
+            onCancel={() => setShowCreateModal(false)}
             onTagAdd={handleTagAdd}
             onTagRemove={handleTagRemove}
           />
-        </AdminModal>
-
-        {/* 확인 모달 */}
-        <AdminModal
-          isOpen={confirmModal.isOpen}
-          onClose={() => setConfirmModal({ isOpen: false, faq: null, type: 'delete' })}
-          title={
-            confirmModal.type === 'delete' ? 'FAQ 삭제' :
-            confirmModal.type === 'publish' ? 'FAQ 게시' : 'FAQ 비공개'
-          }
-          size="sm"
-        >
-          <div className="space-y-4">
-            <div className="text-sm text-gray-600">
-              {confirmModal.type === 'delete' && '이 FAQ를 삭제하시겠습니까? 이 작업은 되돌릴 수 없습니다.'}
-              {confirmModal.type === 'publish' && 'FAQ를 게시하시겠습니까?'}
-              {confirmModal.type === 'unpublish' && 'FAQ를 비공개로 설정하시겠습니까?'}
-            </div>
-            <div className="flex justify-end space-x-3">
-              <button
-                onClick={() => setConfirmModal({ isOpen: false, faq: null, type: 'delete' })}
-                className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50"
-              >
-                취소
-              </button>
-              <button
-                onClick={handleConfirmAction}
-                className={`px-4 py-2 text-sm font-medium text-white border border-transparent rounded-md ${
-                  confirmModal.type === 'delete' 
-                    ? 'bg-red-600 hover:bg-red-700' 
-                    : 'bg-blue-600 hover:bg-blue-700'
-                }`}
-              >
-                {confirmModal.type === 'delete' ? '삭제' : '확인'}
-              </button>
-            </div>
-          </div>
         </AdminModal>
     </AdminLayout>
   );
 }
 
 // FAQ 상세 정보 모달 컴포넌트
-function FaqDetailModal({ faq }: { faq: FAQAdmin }) {
+function FaqDetailModal({ faq, onSave, onDelete, onTogglePublish, categories }: { 
+  faq: FAQAdmin; 
+  onSave: (updatedFaq: FAQAdmin) => void;
+  onDelete: (faq: FAQAdmin) => void;
+  onTogglePublish: (faq: FAQAdmin) => void;
+  categories: { value: string; label: string }[];
+}) {
+  const [editingFaq, setEditingFaq] = useState<FAQAdmin>(faq);
+  const [newTag, setNewTag] = useState('');
+  const [isEditing, setIsEditing] = useState(false);
+
+  const handleSave = () => {
+    onSave(editingFaq);
+    setIsEditing(false);
+  };
+
+  const handleCancel = () => {
+    setEditingFaq(faq);
+    setIsEditing(false);
+  };
+
+  const handleAddTag = () => {
+    if (newTag.trim()) {
+      setEditingFaq(prev => ({
+        ...prev,
+        tags: [...(prev.tags || []), newTag.trim()]
+      }));
+      setNewTag('');
+    }
+  };
+
+  const handleRemoveTag = (index: number) => {
+    setEditingFaq(prev => ({
+      ...prev,
+      tags: prev.tags?.filter((_, i) => i !== index) || []
+    }));
+  };
+
   return (
     <div className="space-y-6">
+      {/* 상단 액션 버튼 */}
+      <div className="flex justify-between items-center">
+        <div className="flex space-x-3">
+          <button
+            onClick={() => setIsEditing(!isEditing)}
+            className="px-4 py-2 text-sm font-medium text-white bg-blue-600 border border-transparent rounded-md hover:bg-blue-700 flex items-center"
+          >
+            <Edit className="w-4 h-4 mr-2" />
+            {isEditing ? '편집 취소' : '편집하기'}
+          </button>
+          <button
+            onClick={() => onTogglePublish(editingFaq)}
+            className={`px-4 py-2 text-sm font-medium border rounded-md flex items-center ${
+              editingFaq.isPublished
+                ? 'text-yellow-700 bg-yellow-50 border-yellow-200 hover:bg-yellow-100'
+                : 'text-green-700 bg-green-50 border-green-200 hover:bg-green-100'
+            }`}
+          >
+            {editingFaq.isPublished ? <X className="w-4 h-4 mr-2" /> : <Check className="w-4 h-4 mr-2" />}
+            {editingFaq.isPublished ? '비공개로 변경' : '게시하기'}
+          </button>
+        </div>
+        <button
+          onClick={() => onDelete(editingFaq)}
+          className="px-4 py-2 text-sm font-medium text-white bg-red-600 border border-transparent rounded-md hover:bg-red-700 flex items-center"
+        >
+          <Trash2 className="w-4 h-4 mr-2" />
+          삭제
+        </button>
+      </div>
+
       {/* 기본 정보 */}
       <div>
         <h3 className="text-lg font-medium text-gray-900 mb-4">FAQ 정보</h3>
         <div className="grid grid-cols-2 gap-4">
           <div>
-            <label className="block text-sm font-medium text-gray-500">카테고리</label>
-            <p className="mt-1 text-sm text-gray-900">{faq.category}</p>
+            <label className="block text-sm font-medium text-gray-500 mb-2">카테고리</label>
+            {isEditing ? (
+              <select
+                value={editingFaq.category}
+                onChange={(e) => setEditingFaq(prev => ({ ...prev, category: e.target.value }))}
+                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              >
+                {categories.map((category) => (
+                  <option key={category.value} value={category.value}>
+                    {category.label}
+                  </option>
+                ))}
+              </select>
+            ) : (
+              <p className="mt-1 text-sm text-gray-900">
+                {categories.find(c => c.value === editingFaq.category)?.label || editingFaq.category}
+              </p>
+            )}
           </div>
           <div>
-            <label className="block text-sm font-medium text-gray-500">우선순위</label>
-            <p className="mt-1 text-sm text-gray-900">{faq.priority}</p>
+            <label className="block text-sm font-medium text-gray-500 mb-2">순서</label>
+            {isEditing ? (
+              <input
+                type="number"
+                min="1"
+                value={editingFaq.order}
+                onChange={(e) => setEditingFaq(prev => ({ ...prev, order: parseInt(e.target.value) || 1 }))}
+                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              />
+            ) : (
+              <p className="mt-1 text-sm text-gray-900">{editingFaq.order}</p>
+            )}
           </div>
           <div>
             <label className="block text-sm font-medium text-gray-500">상태</label>
             <p className="mt-1 text-sm text-gray-900">
-              {faq.isPublished ? '게시됨' : '비공개'}
+              {editingFaq.isPublished ? '게시됨' : '비공개'}
             </p>
-          </div>
-          <div>
-            <label className="block text-sm font-medium text-gray-500">조회수</label>
-            <p className="mt-1 text-sm text-gray-900">{faq.viewCount.toLocaleString()}</p>
           </div>
           <div>
             <label className="block text-sm font-medium text-gray-500">등록일</label>
             <p className="mt-1 text-sm text-gray-900">
-              {new Date(faq.createdAt).toLocaleString('ko-KR')}
+              {new Date(editingFaq.createdAt).toLocaleString('ko-KR')}
             </p>
           </div>
           <div>
             <label className="block text-sm font-medium text-gray-500">수정일</label>
             <p className="mt-1 text-sm text-gray-900">
-              {new Date(faq.updatedAt).toLocaleString('ko-KR')}
+              {new Date(editingFaq.updatedAt).toLocaleString('ko-KR')}
             </p>
+          </div>
+          <div>
+            <label className="block text-sm font-medium text-gray-500">작성자</label>
+            <p className="mt-1 text-sm text-gray-900">{editingFaq.createdBy}</p>
           </div>
         </div>
       </div>
 
-      {/* 질문과 답변 */}
+      {/* 질문 */}
       <div>
         <h3 className="text-lg font-medium text-gray-900 mb-4">질문</h3>
-        <div className="bg-gray-50 rounded-lg p-4">
-          <p className="text-sm text-gray-900">{faq.question}</p>
-        </div>
+        {isEditing ? (
+          <input
+            type="text"
+            value={editingFaq.question}
+            onChange={(e) => setEditingFaq(prev => ({ ...prev, question: e.target.value }))}
+            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+            placeholder="자주 묻는 질문을 입력하세요"
+          />
+        ) : (
+          <div className="bg-gray-50 rounded-lg p-4">
+            <p className="text-sm text-gray-900">{editingFaq.question}</p>
+          </div>
+        )}
       </div>
 
+      {/* 답변 */}
       <div>
         <h3 className="text-lg font-medium text-gray-900 mb-4">답변</h3>
-        <div className="bg-gray-50 rounded-lg p-4">
-          <p className="text-sm text-gray-900 whitespace-pre-line">{faq.answer}</p>
-        </div>
+        {isEditing ? (
+          <textarea
+            value={editingFaq.answer}
+            onChange={(e) => setEditingFaq(prev => ({ ...prev, answer: e.target.value }))}
+            rows={6}
+            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+            placeholder="답변을 입력하세요"
+          />
+        ) : (
+          <div className="bg-gray-50 rounded-lg p-4">
+            <p className="text-sm text-gray-900 whitespace-pre-line">{editingFaq.answer}</p>
+          </div>
+        )}
       </div>
 
       {/* 태그 */}
-      {faq.tags.length > 0 && (
-        <div>
-          <h3 className="text-lg font-medium text-gray-900 mb-4">태그</h3>
+      <div>
+        <h3 className="text-lg font-medium text-gray-900 mb-4">태그</h3>
+        {isEditing && (
+          <div className="flex space-x-2 mb-3">
+            <input
+              type="text"
+              value={newTag}
+              onChange={(e) => setNewTag(e.target.value)}
+              onKeyPress={(e) => e.key === 'Enter' && handleAddTag()}
+              className="flex-1 px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              placeholder="태그 입력 후 엔터"
+            />
+            <button
+              type="button"
+              onClick={handleAddTag}
+              className="px-4 py-2 text-sm font-medium text-blue-600 border border-blue-600 rounded-md hover:bg-blue-50"
+            >
+              추가
+            </button>
+          </div>
+        )}
+        {editingFaq.tags && editingFaq.tags.length > 0 ? (
           <div className="flex flex-wrap gap-2">
-            {faq.tags.map((tag, index) => (
+            {editingFaq.tags.map((tag, index) => (
               <span
                 key={index}
                 className="inline-flex items-center px-3 py-1 rounded-full text-sm bg-blue-100 text-blue-800"
               >
                 {tag}
+                {isEditing && (
+                  <button
+                    type="button"
+                    onClick={() => handleRemoveTag(index)}
+                    className="ml-2 text-blue-600 hover:text-blue-800"
+                  >
+                    <X className="w-3 h-3" />
+                  </button>
+                )}
               </span>
             ))}
           </div>
+        ) : (
+          <p className="text-sm text-gray-500">태그가 없습니다</p>
+        )}
+      </div>
+
+      {/* 편집 모드일 때 저장/취소 버튼 */}
+      {isEditing && (
+        <div className="flex justify-end space-x-3 pt-4 border-t">
+          <button
+            onClick={handleCancel}
+            className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50"
+          >
+            취소
+          </button>
+          <button
+            onClick={handleSave}
+            className="px-4 py-2 text-sm font-medium text-white bg-blue-600 border border-transparent rounded-md hover:bg-blue-700 flex items-center"
+          >
+            <Save className="w-4 h-4 mr-2" />
+            저장
+          </button>
         </div>
       )}
-
-      {/* 통계 */}
-      <div>
-        <h3 className="text-lg font-medium text-gray-900 mb-4">피드백 통계</h3>
-        <div className="grid grid-cols-3 gap-4">
-          <div className="text-center p-4 bg-blue-50 rounded-lg">
-            <div className="text-2xl font-bold text-blue-600">{faq.viewCount}</div>
-            <div className="text-sm text-blue-600">조회수</div>
-          </div>
-          <div className="text-center p-4 bg-green-50 rounded-lg">
-            <div className="text-2xl font-bold text-green-600">{faq.helpful}</div>
-            <div className="text-sm text-green-600">도움됨</div>
-          </div>
-          <div className="text-center p-4 bg-red-50 rounded-lg">
-            <div className="text-2xl font-bold text-red-600">{faq.notHelpful}</div>
-            <div className="text-sm text-red-600">도움안됨</div>
-          </div>
-        </div>
-      </div>
     </div>
   );
 }
@@ -780,13 +767,13 @@ function FaqEditModal({
         
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-2">
-            우선순위
+            순서
           </label>
           <input
             type="number"
             min="1"
-            value={faq.priority || 1}
-            onChange={(e) => onChange({ ...faq, priority: parseInt(e.target.value) || 1 })}
+            value={faq.order || 1}
+            onChange={(e) => onChange({ ...faq, order: parseInt(e.target.value) || 1 })}
             className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent"
           />
         </div>

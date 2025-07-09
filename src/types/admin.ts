@@ -86,12 +86,9 @@ export interface FAQAdmin {
   question: string;
   answer: string;
   isPublished: boolean;
-  priority: number; // 표시 순서
+  order: number; // 표시 순서
   createdAt: string;
   updatedAt: string;
-  viewCount: number;
-  helpful: number; // 도움이 됨 카운트
-  notHelpful: number; // 도움이 안됨 카운트
   createdBy: string; // 작성자
   updatedBy?: string;
   tags: string[];
