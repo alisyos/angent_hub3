@@ -6,7 +6,7 @@ export const mockUsers: User[] = [
     id: '1',
     email: 'kim.cs@example.com',
     name: '김철수',
-    type: 'individual',
+    type: 'general_user',
     credits: 1250,
     profileImage: '',
     status: 'active',
@@ -27,8 +27,48 @@ export const mockUsers: User[] = [
         id: 'log2',
         userId: '1',
         action: 'agent_use',
-        details: '회의록 자동화 AI 사용 (50 크레딧)',
+        details: '회의록 자동화 AI 사용 (10 크레딧)',
         timestamp: '2024-01-20T15:00:00Z',
+        ipAddress: '192.168.1.100'
+      },
+      {
+        id: 'log3',
+        userId: '1',
+        action: 'agent_use',
+        details: '이메일 작성 AI 사용 (8 크레딧)',
+        timestamp: '2024-01-19T11:20:00Z',
+        ipAddress: '192.168.1.100'
+      },
+      {
+        id: 'log1-4',
+        userId: '1',
+        action: 'agent_use',
+        details: 'AI PPT 슬라이드 생성기 사용 (25 크레딧)',
+        timestamp: '2024-01-18T10:30:00Z',
+        ipAddress: '192.168.1.100'
+      },
+      {
+        id: 'log1-5',
+        userId: '1',
+        action: 'agent_use',
+        details: '키워드 분석 AI 사용 (12 크레딧)',
+        timestamp: '2024-01-15T14:20:00Z',
+        ipAddress: '192.168.1.100'
+      },
+      {
+        id: 'log1-6',
+        userId: '1',
+        action: 'agent_use',
+        details: '리뷰 분석 AI 사용 (15 크레딧)',
+        timestamp: '2024-01-10T09:15:00Z',
+        ipAddress: '192.168.1.100'
+      },
+      {
+        id: 'log1-7',
+        userId: '1',
+        action: 'agent_use',
+        details: 'AI 블로그 생성기 사용 (15 크레딧)',
+        timestamp: '2024-01-05T16:45:00Z',
         ipAddress: '192.168.1.100'
       }
     ]
@@ -37,7 +77,7 @@ export const mockUsers: User[] = [
     id: '2',
     email: 'lee.yh@techstartup.com',
     name: '이영희',
-    type: 'company',
+    type: 'company_admin',
     credits: 5000,
     profileImage: '',
     status: 'active',
@@ -54,7 +94,56 @@ export const mockUsers: User[] = [
       subscriptionPlan: 'Enterprise',
       totalEmployees: []
     },
-    activityLogs: []
+    activityLogs: [
+      {
+        id: 'log4',
+        userId: '2',
+        action: 'credit_purchase',
+        details: '5000 크레딧 충전',
+        timestamp: '2024-01-19T09:00:00Z',
+        ipAddress: '192.168.1.200'
+      },
+      {
+        id: 'log5',
+        userId: '2',
+        action: 'agent_use',
+        details: 'AI PPT 슬라이드 생성기 사용 (25 크레딧)',
+        timestamp: '2024-01-19T16:30:00Z',
+        ipAddress: '192.168.1.200'
+      },
+      {
+        id: 'log2-3',
+        userId: '2',
+        action: 'agent_use',
+        details: '음성파일 기반 문서 자동화 AI 사용 (30 크레딧)',
+        timestamp: '2024-01-18T13:15:00Z',
+        ipAddress: '192.168.1.200'
+      },
+      {
+        id: 'log2-4',
+        userId: '2',
+        action: 'agent_use',
+        details: '광고 문구 분석 및 제안 AI 사용 (20 크레딧)',
+        timestamp: '2024-01-17T11:20:00Z',
+        ipAddress: '192.168.1.200'
+      },
+      {
+        id: 'log2-5',
+        userId: '2',
+        action: 'agent_use',
+        details: 'SNS 이벤트 기획 AI 사용 (18 크레딧)',
+        timestamp: '2024-01-12T09:30:00Z',
+        ipAddress: '192.168.1.200'
+      },
+      {
+        id: 'log2-6',
+        userId: '2',
+        action: 'agent_use',
+        details: 'AI 카드뉴스 생성기 사용 (20 크레딧)',
+        timestamp: '2024-01-08T15:45:00Z',
+        ipAddress: '192.168.1.200'
+      }
+    ]
   },
   {
     id: '3',
@@ -74,7 +163,7 @@ export const mockUsers: User[] = [
     id: '4',
     email: 'jung.sj@marketing.co.kr',
     name: '정수진',
-    type: 'company',
+    type: 'company_admin',
     credits: 200,
     profileImage: '',
     status: 'inactive',
@@ -91,13 +180,46 @@ export const mockUsers: User[] = [
       subscriptionPlan: 'Professional',
       totalEmployees: []
     },
-    activityLogs: []
+    activityLogs: [
+      {
+        id: 'log6',
+        userId: '4',
+        action: 'agent_use',
+        details: '키워드 분석 AI 사용 (12 크레딧)',
+        timestamp: '2024-01-12T10:15:00Z',
+        ipAddress: '192.168.1.300'
+      },
+      {
+        id: 'log4-2',
+        userId: '4',
+        action: 'agent_use',
+        details: '리뷰 분석 AI 사용 (15 크레딧)',
+        timestamp: '2024-01-11T14:30:00Z',
+        ipAddress: '192.168.1.300'
+      },
+      {
+        id: 'log4-3',
+        userId: '4',
+        action: 'agent_use',
+        details: 'SNS 이벤트 기획 AI 사용 (18 크레딧)',
+        timestamp: '2024-01-09T16:20:00Z',
+        ipAddress: '192.168.1.300'
+      },
+      {
+        id: 'log4-4',
+        userId: '4',
+        action: 'agent_use',
+        details: '광고 문구 분석 및 제안 AI 사용 (20 크레딧)',
+        timestamp: '2024-01-05T12:45:00Z',
+        ipAddress: '192.168.1.300'
+      }
+    ]
   },
   {
     id: '5',
     email: 'choi.dh@freelancer.com',
     name: '최동현',
-    type: 'individual',
+    type: 'general_user',
     credits: 750,
     profileImage: '',
     status: 'suspended',
@@ -105,7 +227,176 @@ export const mockUsers: User[] = [
     lastLoginAt: '2024-01-18T10:30:00Z',
     totalCreditsUsed: 1250,
     totalSpent: 125000,
-    activityLogs: []
+    activityLogs: [
+      {
+        id: 'log7',
+        userId: '5',
+        action: 'agent_use',
+        details: 'AI 블로그 생성기 사용 (15 크레딧)',
+        timestamp: '2024-01-18T10:15:00Z',
+        ipAddress: '192.168.1.400'
+      },
+      {
+        id: 'log5-2',
+        userId: '5',
+        action: 'agent_use',
+        details: '이메일 작성 AI 사용 (8 크레딧)',
+        timestamp: '2024-01-16T09:20:00Z',
+        ipAddress: '192.168.1.400'
+      },
+      {
+        id: 'log5-3',
+        userId: '5',
+        action: 'agent_use',
+        details: '회의록 자동화 AI 사용 (10 크레딧)',
+        timestamp: '2024-01-14T11:30:00Z',
+        ipAddress: '192.168.1.400'
+      },
+      {
+        id: 'log5-4',
+        userId: '5',
+        action: 'agent_use',
+        details: 'AI 카드뉴스 생성기 사용 (20 크레딧)',
+        timestamp: '2024-01-10T15:45:00Z',
+        ipAddress: '192.168.1.400'
+      }
+    ]
+  },
+  {
+    id: '6',
+    email: 'han.js@techstartup.com',
+    name: '한지수',
+    type: 'company_employee',
+    credits: 300,
+    profileImage: '',
+    status: 'active',
+    registeredAt: '2024-01-12T14:00:00Z',
+    lastLoginAt: '2024-01-20T13:45:00Z',
+    totalCreditsUsed: 700,
+    totalSpent: 0, // 회사에서 지급받은 크레딧 사용
+    companyInfo: {
+      name: '테크스타트업',
+      businessNumber: '123-45-67890',
+      address: '서울시 강남구 테헤란로 123',
+      phone: '02-1234-5678',
+      employeeCount: 15,
+      subscriptionPlan: 'Enterprise',
+      totalEmployees: []
+    },
+    activityLogs: [
+      {
+        id: 'log8',
+        userId: '6',
+        action: 'agent_use',
+        details: '회의록 자동화 AI 사용 (10 크레딧)',
+        timestamp: '2024-01-20T13:30:00Z',
+        ipAddress: '192.168.1.201'
+      },
+      {
+        id: 'log9',
+        userId: '6',
+        action: 'agent_use',
+        details: '이메일 작성 AI 사용 (8 크레딧)',
+        timestamp: '2024-01-20T10:20:00Z',
+        ipAddress: '192.168.1.201'
+      },
+      {
+        id: 'log6-3',
+        userId: '6',
+        action: 'agent_use',
+        details: 'AI PPT 슬라이드 생성기 사용 (25 크레딧)',
+        timestamp: '2024-01-18T14:15:00Z',
+        ipAddress: '192.168.1.201'
+      },
+      {
+        id: 'log6-4',
+        userId: '6',
+        action: 'agent_use',
+        details: '키워드 분석 AI 사용 (12 크레딧)',
+        timestamp: '2024-01-15T11:45:00Z',
+        ipAddress: '192.168.1.201'
+      },
+      {
+        id: 'log6-5',
+        userId: '6',
+        action: 'agent_use',
+        details: '리뷰 분석 AI 사용 (15 크레딧)',
+        timestamp: '2024-01-12T16:30:00Z',
+        ipAddress: '192.168.1.201'
+      },
+      {
+        id: 'log6-6',
+        userId: '6',
+        action: 'agent_use',
+        details: 'AI 블로그 생성기 사용 (15 크레딧)',
+        timestamp: '2024-01-08T10:20:00Z',
+        ipAddress: '192.168.1.201'
+      }
+    ]
+  },
+  {
+    id: '7',
+    email: 'song.mh@marketing.co.kr',
+    name: '송민호',
+    type: 'company_employee',
+    credits: 150,
+    profileImage: '',
+    status: 'inactive',
+    registeredAt: '2024-01-10T16:30:00Z',
+    lastLoginAt: '2024-01-15T09:20:00Z',
+    totalCreditsUsed: 850,
+    totalSpent: 0, // 회사에서 지급받은 크레딧 사용
+    companyInfo: {
+      name: '디지털마케팅',
+      businessNumber: '987-65-43210',
+      address: '서울시 서초구 서초대로 456',
+      phone: '02-9876-5432',
+      employeeCount: 8,
+      subscriptionPlan: 'Professional',
+      totalEmployees: []
+    },
+    activityLogs: [
+      {
+        id: 'log10',
+        userId: '7',
+        action: 'agent_use',
+        details: 'SNS 이벤트 기획 AI 사용 (18 크레딧)',
+        timestamp: '2024-01-15T09:00:00Z',
+        ipAddress: '192.168.1.301'
+      },
+      {
+        id: 'log7-2',
+        userId: '7',
+        action: 'agent_use',
+        details: '광고 문구 분석 및 제안 AI 사용 (20 크레딧)',
+        timestamp: '2024-01-14T13:30:00Z',
+        ipAddress: '192.168.1.301'
+      },
+      {
+        id: 'log7-3',
+        userId: '7',
+        action: 'agent_use',
+        details: 'AI 카드뉴스 생성기 사용 (20 크레딧)',
+        timestamp: '2024-01-12T15:45:00Z',
+        ipAddress: '192.168.1.301'
+      },
+      {
+        id: 'log7-4',
+        userId: '7',
+        action: 'agent_use',
+        details: '키워드 분석 AI 사용 (12 크레딧)',
+        timestamp: '2024-01-09T10:15:00Z',
+        ipAddress: '192.168.1.301'
+      },
+      {
+        id: 'log7-5',
+        userId: '7',
+        action: 'agent_use',
+        details: '리뷰 분석 AI 사용 (15 크레딧)',
+        timestamp: '2024-01-06T14:20:00Z',
+        ipAddress: '192.168.1.301'
+      }
+    ]
   }
 ];
 
@@ -121,7 +412,7 @@ export const mockInquiries: InquiryAdmin[] = [
       id: '1',
       name: '김철수',
       email: 'kim.cs@example.com',
-      type: 'individual'
+      type: 'general_user'
     },
     status: 'pending',
     assignedTo: undefined,
@@ -142,7 +433,7 @@ export const mockInquiries: InquiryAdmin[] = [
       id: '2',
       name: '이영희',
       email: 'lee.yh@techstartup.com',
-      type: 'company'
+      type: 'company_admin'
     },
     status: 'pending',
     assignedTo: 'admin-001',
@@ -177,7 +468,7 @@ export const mockInquiries: InquiryAdmin[] = [
       id: '5',
       name: '최동현',
       email: 'choi.dh@freelancer.com',
-      type: 'individual'
+      type: 'general_user'
     },
     status: 'completed',
     assignedTo: 'admin-002',
@@ -223,7 +514,7 @@ export const mockInquiries: InquiryAdmin[] = [
       id: '6',
       name: '김영수',
       email: 'kim.ys@example.com',
-      type: 'individual'
+      type: 'general_user'
     },
     status: 'pending',
     assignedTo: undefined,
@@ -263,7 +554,7 @@ export const mockInquiries: InquiryAdmin[] = [
       id: '7',
       name: '박지현',
       email: 'park.jh@company.com',
-      type: 'company'
+      type: 'company_admin'
     },
     status: 'pending',
     assignedTo: 'admin-001',
@@ -308,7 +599,7 @@ export const mockInquiries: InquiryAdmin[] = [
       id: '8',
       name: '이수민',
       email: 'lee.sm@gmail.com',
-      type: 'individual'
+      type: 'general_user'
     },
     status: 'completed',
     assignedTo: 'admin-002',
@@ -344,7 +635,7 @@ export const mockInquiries: InquiryAdmin[] = [
       id: '9',
       name: '정민호',
       email: 'jung.mh@startup.co.kr',
-      type: 'company'
+      type: 'company_admin'
     },
     status: 'pending',
     assignedTo: undefined,
@@ -384,7 +675,7 @@ export const mockInquiries: InquiryAdmin[] = [
       id: '10',
       name: '한상우',
       email: 'han.sw@marketing.com',
-      type: 'company'
+      type: 'company_admin'
     },
     status: 'pending',
     assignedTo: 'admin-003',
@@ -427,235 +718,76 @@ export const mockInquiries: InquiryAdmin[] = [
     ],
     user: {
       id: '11',
-      name: '윤지영',
-      email: 'yoon.jy@translation.co.kr',
-      type: 'company'
+      name: '강미영',
+      email: 'kang.my@company.kr',
+      type: 'general_user'
     },
     status: 'pending',
-    assignedTo: undefined,
-    responses: [],
+    assignedTo: 'admin-004',
+    responses: [
+      {
+        id: 'resp6',
+        inquiryId: '9',
+        content: '소중한 제안 감사합니다. 개발팀과 검토 후 답변드리겠습니다.',
+        attachments: [],
+        author: {
+          id: 'admin-004',
+          name: '서비스기획팀',
+          role: 'admin'
+        },
+        isInternal: false,
+        createdAt: '2024-01-19T09:30:00Z'
+      }
+    ],
     createdAt: '2024-01-19T08:15:00Z',
-    updatedAt: '2024-01-19T08:15:00Z',
-    tags: ['기능제안', '번역AI'],
+    updatedAt: '2024-01-19T09:30:00Z',
+    tags: ['기능제안', '번역'],
     category: 'service',
     isInternal: false
   },
   {
     id: '10',
     type: 'billing',
-    title: '법인카드 결제 불가 문제',
-    content: '법인카드로 크레딧 결제 시 승인 거부가 계속 됩니다. 개인카드로는 결제가 됩니다.',
-    attachments: [
-      {
-        id: 'att8',
-        filename: 'card-info.jpg',
-        originalName: '법인카드 정보.jpg',
-        size: 180000,
-        mimeType: 'image/jpeg',
-        uploadedAt: '2024-01-18T15:30:00Z',
-        downloadUrl: '/attachments/att8'
-      }
-    ],
+    title: '회사 계정 크레딧 분배 문의',
+    content: '회사에서 구매한 크레딧을 직원들에게 어떻게 분배하나요? 직원별로 사용량 제한을 둘 수 있나요?',
+    attachments: [],
     user: {
       id: '12',
-      name: '서동희',
-      email: 'seo.dh@enterprise.com',
-      type: 'company'
+      name: '윤태호',
+      email: 'yoon.th@enterprise.co.kr',
+      type: 'company_admin'
     },
     status: 'completed',
     assignedTo: 'admin-002',
-    responses: [
-      {
-        id: 'resp6',
-        inquiryId: '10',
-        content: '법인카드의 경우 결제 한도 및 온라인 결제 설정을 확인해 주세요. 필요시 카드사에 문의하여 온라인 결제 승인 설정을 변경해 주시기 바랍니다.',
-        attachments: [],
-        author: {
-          id: 'admin-002',
-          name: '결제지원팀',
-          role: 'admin'
-        },
-        isInternal: false,
-        createdAt: '2024-01-18T16:45:00Z'
-      }
-    ],
-    createdAt: '2024-01-18T15:30:00Z',
-    updatedAt: '2024-01-18T16:45:00Z',
-    resolvedAt: '2024-01-18T16:45:00Z',
-    tags: ['법인카드', '결제승인'],
-    category: 'billing',
-    isInternal: false
-  },
-  {
-    id: '11',
-    type: 'other',
-    title: '회사 소개 및 파트너십 문의',
-    content: '저희 회사와 파트너십을 체결하고 싶어서 문의드립니다. 담당자와 연결해 주실 수 있나요?',
-    attachments: [
-      {
-        id: 'att9',
-        filename: 'company-profile.pdf',
-        originalName: '회사 소개서.pdf',
-        size: 2048000,
-        mimeType: 'application/pdf',
-        uploadedAt: '2024-01-19T13:00:00Z',
-        downloadUrl: '/attachments/att9'
-      },
-      {
-        id: 'att10',
-        filename: 'partnership-proposal.pptx',
-        originalName: '파트너십 제안서.pptx',
-        size: 1536000,
-        mimeType: 'application/vnd.openxmlformats-officedocument.presentationml.presentation',
-        uploadedAt: '2024-01-19T13:02:00Z',
-        downloadUrl: '/attachments/att10'
-      }
-    ],
-    user: {
-      id: '13',
-      name: '김대표',
-      email: 'ceo@partner.co.kr',
-      type: 'company'
-    },
-    status: 'pending',
-    assignedTo: undefined,
-    responses: [],
-    createdAt: '2024-01-19T13:00:00Z',
-    updatedAt: '2024-01-19T13:00:00Z',
-    tags: ['파트너십', '비즈니스'],
-    category: 'other',
-    isInternal: false
-  },
-  {
-    id: '12',
-    type: 'technical',
-    title: '모바일 앱 출시 예정일 문의',
-    content: '모바일 앱은 언제 출시될 예정인가요? 모바일에서 사용하기 불편합니다.',
-    attachments: [],
-    user: {
-      id: '14',
-      name: '조현아',
-      email: 'cho.ha@mobile.com',
-      type: 'individual'
-    },
-    status: 'pending',
-    assignedTo: undefined,
-    responses: [],
-    createdAt: '2024-01-19T17:30:00Z',
-    updatedAt: '2024-01-19T17:30:00Z',
-    tags: ['모바일앱', '출시일정'],
-    category: 'service',
-    isInternal: false
-  },
-  {
-    id: '13',
-    type: 'service',
-    title: '대량 처리 방법 문의',
-    content: '한번에 100개 이상의 파일을 처리할 수 있는 방법이 있나요? 배치 처리 기능이 필요합니다.',
-    attachments: [
-      {
-        id: 'att11',
-        filename: 'file-list.txt',
-        originalName: '처리할 파일 목록.txt',
-        size: 15000,
-        mimeType: 'text/plain',
-        uploadedAt: '2024-01-19T09:45:00Z',
-        downloadUrl: '/attachments/att11'
-      }
-    ],
-    user: {
-      id: '15',
-      name: '오성진',
-      email: 'oh.sj@batch.com',
-      type: 'company'
-    },
-    status: 'pending',
-    assignedTo: 'admin-001',
     responses: [
       {
         id: 'resp7',
-        inquiryId: '13',
-        content: '현재 배치 처리 기능은 엔터프라이즈 플랜에서 제공됩니다. 상세한 내용은 영업팀에서 연락드리겠습니다.',
-        attachments: [],
-        author: {
-          id: 'admin-001',
-          name: '기술지원팀',
-          role: 'admin'
-        },
-        isInternal: false,
-        createdAt: '2024-01-19T10:30:00Z'
-      }
-    ],
-    createdAt: '2024-01-19T09:45:00Z',
-    updatedAt: '2024-01-19T10:30:00Z',
-    tags: ['배치처리', '엔터프라이즈'],
-    category: 'service',
-    isInternal: false
-  },
-  {
-    id: '14',
-    type: 'account',
-    title: '계정 삭제 요청',
-    content: '서비스를 더 이상 사용하지 않아서 계정을 삭제하고 싶습니다. 개인정보도 모두 삭제해 주세요.',
-    attachments: [],
-    user: {
-      id: '16',
-      name: '임채원',
-      email: 'lim.cw@delete.com',
-      type: 'individual'
-    },
-    status: 'pending',
-    assignedTo: undefined,
-    responses: [],
-    createdAt: '2024-01-19T18:00:00Z',
-    updatedAt: '2024-01-19T18:00:00Z',
-    tags: ['계정삭제', '개인정보'],
-    category: 'account',
-    isInternal: false
-  },
-  {
-    id: '15',
-    type: 'billing',
-    title: '정기 결제 설정 문의',
-    content: '매월 자동으로 크레딧을 충전하는 정기 결제 설정이 가능한가요?',
-    attachments: [
-      {
-        id: 'att12',
-        filename: 'subscription-plan.pdf',
-        originalName: '구독 플랜 비교표.pdf',
-        size: 750000,
-        mimeType: 'application/pdf',
-        uploadedAt: '2024-01-19T12:15:00Z',
-        downloadUrl: '/attachments/att12'
-      }
-    ],
-    user: {
-      id: '17',
-      name: '신우철',
-      email: 'shin.wc@subscription.com',
-      type: 'company'
-    },
-    status: 'completed',
-    assignedTo: 'admin-002',
-    responses: [
-      {
-        id: 'resp8',
-        inquiryId: '15',
-        content: '정기 결제 기능은 현재 개발 중이며, 다음 달 출시 예정입니다. 출시 시 이메일로 안내해 드리겠습니다.',
-        attachments: [],
+        inquiryId: '10',
+        content: '회사 관리자 페이지에서 직원별 크레딧 할당 및 제한 설정이 가능합니다. 상세 가이드를 첨부해드렸습니다.',
+        attachments: [
+          {
+            id: 'att8',
+            filename: 'company-credit-guide.pdf',
+            originalName: '회사 크레딧 관리 가이드.pdf',
+            size: 800000,
+            mimeType: 'application/pdf',
+            uploadedAt: '2024-01-18T15:00:00Z',
+            downloadUrl: '/attachments/att8'
+          }
+        ],
         author: {
           id: 'admin-002',
-          name: '결제지원팀',
+          name: '기업지원팀',
           role: 'admin'
         },
         isInternal: false,
-        createdAt: '2024-01-19T14:00:00Z'
+        createdAt: '2024-01-18T16:30:00Z'
       }
     ],
-    createdAt: '2024-01-19T12:15:00Z',
-    updatedAt: '2024-01-19T14:00:00Z',
-    resolvedAt: '2024-01-19T14:00:00Z',
-    tags: ['정기결제', '구독'],
+    createdAt: '2024-01-18T14:20:00Z',
+    updatedAt: '2024-01-18T16:30:00Z',
+    resolvedAt: '2024-01-18T16:30:00Z',
+    tags: ['회사계정', '크레딧분배'],
     category: 'billing',
     isInternal: false
   }

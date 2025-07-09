@@ -5,7 +5,7 @@ export interface User extends BaseUser {
   lastLoginAt: string;
   totalCreditsUsed: number;
   totalSpent: number;
-  status: 'active' | 'suspended' | 'inactive';
+  status: 'active' | 'inactive' | 'suspended';
   registeredAt: string;
   companyInfo?: CompanyDetails;
   employees?: User[]; // 회사 관리자인 경우
@@ -114,7 +114,7 @@ export interface InquiryAdmin {
     id: string;
     name: string;
     email: string;
-    type: 'individual' | 'company' | 'admin';
+    type: 'general_user' | 'company_admin' | 'company_employee' | 'admin';
   };
   status: 'pending' | 'completed';
   assignedTo?: string; // 담당자 ID
@@ -159,7 +159,7 @@ export interface PaymentAdmin {
     id: string;
     name: string;
     email: string;
-    type: 'individual' | 'company' | 'admin';
+    type: 'general_user' | 'company_admin' | 'company_employee' | 'admin';
   };
   type: 'credit_purchase' | 'subscription' | 'refund';
   amount: number;

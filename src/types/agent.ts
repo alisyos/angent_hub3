@@ -25,7 +25,7 @@ export interface User {
   id: string;
   email: string;
   name: string;
-  type: 'individual' | 'company' | 'admin';
+  type: 'general_user' | 'company_admin' | 'company_employee' | 'admin';
   credits: number;
   profileImage?: string;
   company?: CompanyInfo;

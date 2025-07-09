@@ -21,7 +21,9 @@ import {
   Trash2,
   Plus,
   Save,
-  X
+  X,
+  Users,
+  Calendar
 } from 'lucide-react';
 import AdminStats from '@/components/admin/AdminStats';
 import AdminTable from '@/components/admin/AdminTable';
@@ -44,6 +46,59 @@ export default function AdminUsers() {
     user: AdminUser | null;
   }>({ isOpen: false, type: null, user: null });
 
+  // 기간 선택 필터 상태
+  const [dateFilter, setDateFilter] = useState({
+    startDate: '',
+    endDate: '',
+    period: 'all' // 'all', 'week', 'month', 'custom'
+  });
+
+  // 기간별 크레딧 사용량 계산 함수
+  const calculatePeriodCredits = (user: AdminUser) => {
+    if (!user.activityLogs) return 0;
+
+    let startDate: Date | null = null;
+    let endDate: Date | null = null;
+
+    if (dateFilter.period === 'week') {
+      startDate = new Date();
+      startDate.setDate(startDate.getDate() - 7);
+    } else if (dateFilter.period === 'month') {
+      startDate = new Date();
+      startDate.setMonth(startDate.getMonth() - 1);
+    } else if (dateFilter.period === 'custom') {
+      if (dateFilter.startDate) startDate = new Date(dateFilter.startDate);
+      if (dateFilter.endDate) endDate = new Date(dateFilter.endDate);
+    }
+
+    // 전체 기간인 경우 모든 크레딧 사용량 반환
+    if (dateFilter.period === 'all') {
+      return user.totalCreditsUsed;
+    }
+
+    // 기간 내 크레딧 사용량 계산
+    let periodCredits = 0;
+    user.activityLogs.forEach(log => {
+      if (log.action === 'agent_use') {
+        const logDate = new Date(log.timestamp);
+        
+        // 시작일 체크
+        if (startDate && logDate < startDate) return;
+        
+        // 종료일 체크
+        if (endDate && logDate > endDate) return;
+        
+        // 크레딧 사용량 추출 (예: "회의록 자동화 AI 사용 (10 크레딧)" -> 10)
+        const creditMatch = log.details.match(/\((\d+)\s*크레딧\)/);
+        if (creditMatch) {
+          periodCredits += parseInt(creditMatch[1]);
+        }
+      }
+    });
+
+    return periodCredits;
+  };
+
   // 필터 설정
   const filterConfigs: FilterConfig[] = [
     {
@@ -51,8 +106,9 @@ export default function AdminUsers() {
       label: '계정 유형',
       type: 'select',
       options: [
-        { label: '개인', value: 'individual' },
-        { label: '회사', value: 'company' },
+        { label: '일반사용자', value: 'general_user' },
+        { label: '회사관리자', value: 'company_admin' },
+        { label: '회사일반사용자', value: 'company_employee' },
         { label: '관리자', value: 'admin' }
       ]
     },
@@ -65,37 +121,41 @@ export default function AdminUsers() {
         { label: '비활성', value: 'inactive' },
         { label: '정지', value: 'suspended' }
       ]
-    },
-    {
-      key: 'registeredDate',
-      label: '가입일',
-      type: 'daterange'
     }
   ];
 
-  // 데이터 필터링
-  const filteredUsers = mockUsers.filter(user => {
-    const matchesSearch = searchValue === '' || 
-      user.name.toLowerCase().includes(searchValue.toLowerCase()) ||
-      user.email.toLowerCase().includes(searchValue.toLowerCase()) ||
-      (user.companyInfo?.name && user.companyInfo.name.toLowerCase().includes(searchValue.toLowerCase()));
-    
-    const matchesType = !filterValues.type || user.type === filterValues.type;
-    const matchesStatus = !filterValues.status || user.status === filterValues.status;
-    
-    let matchesDate = true;
-    if (filterValues.registeredDate?.start || filterValues.registeredDate?.end) {
-      const userDate = new Date(user.registeredAt);
-      if (filterValues.registeredDate.start) {
-        matchesDate = matchesDate && userDate >= new Date(filterValues.registeredDate.start);
-      }
-      if (filterValues.registeredDate.end) {
-        matchesDate = matchesDate && userDate <= new Date(filterValues.registeredDate.end);
-      }
+  // 데이터 필터링 - 기간 선택은 크레딧 계산용이므로 등록일 필터링 제거
+  const getFilteredUsers = () => {
+    let filtered = [...mockUsers];
+
+    // 검색 필터링
+    if (searchValue) {
+      filtered = filtered.filter(user => {
+        const matchesSearch = 
+          user.name.toLowerCase().includes(searchValue.toLowerCase()) ||
+          user.email.toLowerCase().includes(searchValue.toLowerCase()) ||
+          (user.companyInfo?.name && user.companyInfo.name.toLowerCase().includes(searchValue.toLowerCase()));
+        return matchesSearch;
+      });
     }
-    
-    return matchesSearch && matchesType && matchesStatus && matchesDate;
-  });
+
+    // 타입 및 상태 필터링
+    if (filterValues.type) {
+      filtered = filtered.filter(user => user.type === filterValues.type);
+    }
+    if (filterValues.status) {
+      filtered = filtered.filter(user => user.status === filterValues.status);
+    }
+
+    return filtered.sort((a, b) => new Date(b.registeredAt).getTime() - new Date(a.registeredAt).getTime());
+  };
+
+  const filteredUsers = getFilteredUsers();
+
+  // 기간 필터 변경 핸들러
+  const handleDateFilterChange = (field: string, value: string) => {
+    setDateFilter(prev => ({ ...prev, [field]: value }));
+  };
 
   // 페이지네이션
   const totalPages = Math.ceil(filteredUsers.length / itemsPerPage);
@@ -106,7 +166,9 @@ export default function AdminUsers() {
   const stats = {
     total: mockUsers.length,
     active: mockUsers.filter(u => u.status === 'active').length,
-    company: mockUsers.filter(u => u.type === 'company').length,
+    generalUsers: mockUsers.filter(u => u.type === 'general_user').length,
+    companyAdmin: mockUsers.filter(u => u.type === 'company_admin').length,
+    companyEmployee: mockUsers.filter(u => u.type === 'company_employee').length,
     suspended: mockUsers.filter(u => u.status === 'suspended').length
   };
 
@@ -132,7 +194,7 @@ export default function AdminUsers() {
     {
       key: 'type',
       label: '유형',
-      render: (user: any) => getUserTypeBadge(user?.type)
+      render: (user: any) => getUserTypeBadge(user?.type, user?.companyInfo?.name)
     },
     {
       key: 'status',
@@ -150,9 +212,17 @@ export default function AdminUsers() {
       )
     },
     {
-      key: 'totalSpent',
-      label: '총 사용액',
-      render: (user: any) => `${((user?.totalSpent || 0) / 1000).toFixed(0)}K원`
+      key: 'periodCredits',
+      label: '사용 크레딧',
+      render: (user: any) => {
+        const periodCredits = calculatePeriodCredits(user);
+        return (
+          <div className="flex items-center">
+            <span className="font-medium text-purple-600">{periodCredits.toLocaleString()}</span>
+            <span className="text-xs text-gray-500 ml-1">크레딧</span>
+          </div>
+        );
+      }
     },
     {
       key: 'lastLoginAt',
@@ -178,7 +248,7 @@ export default function AdminUsers() {
         });
         setIsUserModalOpen(true);
       },
-      color: 'blue'
+      color: 'blue' as const
     },
     {
       label: '수정',
@@ -186,7 +256,7 @@ export default function AdminUsers() {
       onClick: (user: any) => {
         console.log('Edit user:', user);
       },
-      color: 'gray'
+      color: 'gray' as const
     },
     {
       label: '정지',
@@ -198,7 +268,7 @@ export default function AdminUsers() {
           user
         });
       },
-      color: 'yellow',
+      color: 'yellow' as const,
       show: (user: any) => user?.status === 'active'
     },
     {
@@ -211,17 +281,18 @@ export default function AdminUsers() {
           user
         });
       },
-      color: 'green',
+      color: 'green' as const,
       show: (user: any) => user?.status !== 'active'
     }
   ];
 
-  // Helper 함수들
-  const getUserTypeBadge = (type: string) => {
+  // Helper 함수들 - 회사명 포함
+  const getUserTypeBadge = (type: string, companyName?: string) => {
     const configs = {
-      individual: { bg: 'bg-blue-100', text: 'text-blue-800', label: '개인', icon: User },
-      company: { bg: 'bg-green-100', text: 'text-green-800', label: '회사', icon: Building2 },
-      admin: { bg: 'bg-purple-100', text: 'text-purple-800', label: '관리자', icon: Shield }
+      general_user: { bg: 'bg-blue-100', text: 'text-blue-800', label: '일반사용자', icon: User },
+      company_admin: { bg: 'bg-green-100', text: 'text-green-800', label: '회사관리자', icon: Building2 },
+      company_employee: { bg: 'bg-purple-100', text: 'text-purple-800', label: '회사일반사용자', icon: Users },
+      admin: { bg: 'bg-orange-100', text: 'text-orange-800', label: '관리자', icon: Shield }
     };
     
     const config = configs[type as keyof typeof configs];
@@ -229,19 +300,25 @@ export default function AdminUsers() {
     
     const Icon = config.icon;
 
+    // 회사관리자나 회사일반사용자인 경우 회사명 포함
+    const displayLabel = (type === 'company_admin' || type === 'company_employee') && companyName
+      ? `${config.label} (${companyName})`
+      : config.label;
+
     return (
       <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${config.bg} ${config.text}`}>
         <Icon className="w-3 h-3 mr-1" />
-        {config.label}
+        {displayLabel}
       </span>
     );
   };
 
+  // 상태 뱃지 함수
   const getStatusBadge = (status: string) => {
     const configs = {
-      active: { bg: 'bg-green-100', text: 'text-green-800', label: '활성', icon: CheckCircle },
-      inactive: { bg: 'bg-gray-100', text: 'text-gray-800', label: '비활성', icon: X },
-      suspended: { bg: 'bg-red-100', text: 'text-red-800', label: '정지', icon: Ban }
+      active: { bg: 'bg-green-100', text: 'text-green-800', label: '활성', icon: CheckCircle, description: '로그인 가능, 에이전트 사용 가능' },
+      inactive: { bg: 'bg-gray-100', text: 'text-gray-800', label: '비활성', icon: Clock, description: '로그인 가능, 에이전트 사용 불가능' },
+      suspended: { bg: 'bg-red-100', text: 'text-red-800', label: '정지', icon: Ban, description: '로그인 불가능' }
     };
     
     const config = configs[status as keyof typeof configs];
@@ -249,12 +326,15 @@ export default function AdminUsers() {
     
     const Icon = config.icon;
     
-      return (
-      <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${config.bg} ${config.text}`}>
+    return (
+      <span 
+        className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${config.bg} ${config.text}`}
+        title={config.description}
+      >
         <Icon className="w-3 h-3 mr-1" />
         {config.label}
-        </span>
-      );
+      </span>
+    );
   };
 
   const handleFilterChange = (key: string, value: string | string[]) => {
@@ -281,6 +361,16 @@ export default function AdminUsers() {
     </button>
   );
 
+  // 기간별 표시 텍스트
+  const getPeriodText = () => {
+    switch (dateFilter.period) {
+      case 'week': return '최근 1주일';
+      case 'month': return '최근 1개월';
+      case 'custom': return '선택 기간';
+      default: return '전체 기간';
+    }
+  };
+
   return (
     <AdminLayout
       title="사용자 관리"
@@ -288,106 +378,179 @@ export default function AdminUsers() {
       actions={newUserButton}
       hideTimePeriod={true}
     >
-
-        {/* 통계 카드 */}
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
-          <AdminStats
-            title="전체 사용자"
-            value={stats.total}
-            icon={User}
-            color="blue"
-          />
-          <AdminStats
-            title="활성 사용자"
-            value={stats.active}
-            icon={CheckCircle}
-            color="green"
-            change={{ value: 12.5, type: 'positive', label: '전월대비' }}
-          />
-          <AdminStats
-            title="회사 계정"
-            value={stats.company}
-            icon={Building2}
-            color="purple"
-          />
-          <AdminStats
-            title="정지된 계정"
-            value={stats.suspended}
-            icon={Ban}
-            color="red"
-          />
+      {/* 기간 선택 섹션 */}
+      <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6 mb-8">
+        <div className="flex items-center justify-between mb-4">
+          <h3 className="text-lg font-semibold text-gray-900">기간 선택</h3>
+          <div className="flex items-center space-x-2">
+            <Calendar className="w-5 h-5 text-gray-400" />
+            <span className="text-sm text-gray-600">현재: {getPeriodText()}</span>
+          </div>
         </div>
+        
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+          <div>
+            <select
+              value={dateFilter.period}
+              onChange={(e) => handleDateFilterChange('period', e.target.value)}
+              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+            >
+              <option value="all">전체</option>
+              <option value="week">최근 1주일</option>
+              <option value="month">최근 1개월</option>
+              <option value="custom">직접 선택</option>
+            </select>
+          </div>
+          
+          {dateFilter.period === 'custom' && (
+            <>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">시작일</label>
+                <input
+                  type="date"
+                  value={dateFilter.startDate}
+                  onChange={(e) => handleDateFilterChange('startDate', e.target.value)}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">종료일</label>
+                <input
+                  type="date"
+                  value={dateFilter.endDate}
+                  onChange={(e) => handleDateFilterChange('endDate', e.target.value)}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                />
+              </div>
+            </>
+          )}
+        </div>
+        
+        <div className="mt-4 p-3 bg-blue-50 rounded-lg">
+          <p className="text-sm text-blue-800">
+            💡 기간 선택은 리스트의 '사용 크레딧' 컬럼에 반영됩니다. 선택된 기간 내 크레딧 사용량을 확인할 수 있습니다.
+          </p>
+        </div>
+      </div>
 
-        {/* 필터 */}
-        <AdminFilter
-          searchValue={searchValue}
-          onSearchChange={setSearchValue}
-          searchPlaceholder="이름, 이메일, 회사명으로 검색..."
-          filters={filterConfigs}
-          filterValues={filterValues}
-          onFilterChange={handleFilterChange}
-          className="mb-6"
+      {/* 통계 카드 */}
+      <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
+        <AdminStats
+          title="전체 사용자"
+          value={stats.total}
+          icon={User}
+          color="blue"
         />
-
-        {/* 테이블 */}
-        <AdminTable
-          columns={columns}
-          data={currentUsers}
-          actions={actions}
-          emptyMessage="사용자가 없습니다."
-          className="mb-6"
+        <AdminStats
+          title="활성 사용자"
+          value={stats.active}
+          icon={CheckCircle}
+          color="green"
+          change={{ value: 12.5, type: 'positive', label: '전월대비' }}
         />
-
-        {/* 페이지네이션 */}
-        <AdminPagination
-          currentPage={currentPage}
-          totalPages={totalPages}
-          totalItems={filteredUsers.length}
-          itemsPerPage={itemsPerPage}
-          onPageChange={setCurrentPage}
-          onItemsPerPageChange={setItemsPerPage}
+        <AdminStats
+          title="회사 계정"
+          value={stats.companyAdmin + stats.companyEmployee}
+          icon={Building2}
+          color="purple"
         />
-
-        {/* 사용자 상세 모달 */}
-        {selectedUser && (
-          <AdminModal
-            isOpen={isUserModalOpen}
-            onClose={() => {
-              setIsUserModalOpen(false);
-              setSelectedUser(null);
-            }}
-            title={`${selectedUser.name} 상세 정보`}
-            size="lg"
-          >
-            <UserDetailModal user={selectedUser} />
-          </AdminModal>
-        )}
-
-        {/* 확인 모달 */}
-        <ConfirmModal
-          isOpen={confirmModal.isOpen}
-          onClose={() => setConfirmModal({ isOpen: false, type: null, user: null })}
-          onConfirm={handleConfirmAction}
-          title={
-            confirmModal.type === 'suspend' ? '사용자 정지' :
-            confirmModal.type === 'activate' ? '사용자 활성화' :
-            '사용자 삭제'
-          }
-          message={
-            confirmModal.type === 'suspend' 
-              ? `${confirmModal.user?.name}님의 계정을 정지하시겠습니까?`
-              : confirmModal.type === 'activate'
-              ? `${confirmModal.user?.name}님의 계정을 활성화하시겠습니까?`
-              : `${confirmModal.user?.name}님의 계정을 삭제하시겠습니까?`
-          }
-          type={confirmModal.type === 'suspend' ? 'warning' : confirmModal.type === 'activate' ? 'info' : 'error'}
+        <AdminStats
+          title="정지된 계정"
+          value={stats.suspended}
+          icon={Ban}
+          color="red"
         />
+      </div>
+
+      {/* 필터 */}
+      <AdminFilter
+        searchValue={searchValue}
+        onSearchChange={setSearchValue}
+        searchPlaceholder="이름, 이메일, 회사명으로 검색..."
+        filters={filterConfigs}
+        filterValues={filterValues}
+        onFilterChange={handleFilterChange}
+        className="mb-6"
+      />
+
+      {/* 테이블 */}
+      <AdminTable
+        columns={columns}
+        data={currentUsers}
+        actions={actions}
+        emptyMessage="사용자가 없습니다."
+        className="mb-6"
+      />
+
+      {/* 페이지네이션 */}
+      <AdminPagination
+        currentPage={currentPage}
+        totalPages={totalPages}
+        totalItems={filteredUsers.length}
+        itemsPerPage={itemsPerPage}
+        onPageChange={setCurrentPage}
+        onItemsPerPageChange={setItemsPerPage}
+      />
+
+      {/* 사용자 상세 모달 */}
+      {selectedUser && (
+        <AdminModal
+          isOpen={isUserModalOpen}
+          onClose={() => {
+            setIsUserModalOpen(false);
+            setSelectedUser(null);
+          }}
+          title={`${selectedUser.name} 상세 정보`}
+          size="lg"
+        >
+          <UserDetailModal user={selectedUser} />
+        </AdminModal>
+      )}
+
+      {/* 확인 모달 */}
+      <ConfirmModal
+        isOpen={confirmModal.isOpen}
+        onClose={() => setConfirmModal({ isOpen: false, type: null, user: null })}
+        onConfirm={handleConfirmAction}
+        title={
+          confirmModal.type === 'suspend' ? '사용자 정지' :
+          confirmModal.type === 'activate' ? '사용자 활성화' :
+          '사용자 삭제'
+        }
+        message={
+          confirmModal.type === 'suspend' 
+            ? `${confirmModal.user?.name}님의 계정을 정지하시겠습니까? 정지된 계정은 로그인할 수 없습니다.`
+            : confirmModal.type === 'activate'
+            ? `${confirmModal.user?.name}님의 계정을 활성화하시겠습니까?`
+            : `${confirmModal.user?.name}님의 계정을 삭제하시겠습니까?`
+        }
+        type={confirmModal.type === 'suspend' ? 'warning' : confirmModal.type === 'activate' ? 'info' : 'error'}
+      />
     </AdminLayout>
   );
 }
 
 // 사용자 상세 정보 모달 컴포넌트
 function UserDetailModal({ user }: { user: AdminUser }) {
+  const getUserTypeLabel = (type: string) => {
+    const labels = {
+      general_user: '일반사용자',
+      company_admin: '회사관리자',
+      company_employee: '회사일반사용자',
+      admin: '관리자'
+    };
+    return labels[type as keyof typeof labels] || type;
+  };
+
+  const getStatusLabel = (status: string) => {
+    const labels = {
+      active: '활성',
+      inactive: '비활성',
+      suspended: '정지'
+    };
+    return labels[status as keyof typeof labels] || status;
+  };
+
   return (
     <div className="space-y-6">
       {/* 기본 정보 */}
@@ -404,15 +567,11 @@ function UserDetailModal({ user }: { user: AdminUser }) {
           </div>
           <div>
             <label className="block text-sm font-medium text-gray-500">계정 유형</label>
-            <p className="mt-1 text-sm text-gray-900">
-              {user.type === 'individual' ? '개인' : user.type === 'company' ? '회사' : '관리자'}
-            </p>
+            <p className="mt-1 text-sm text-gray-900">{getUserTypeLabel(user.type)}</p>
           </div>
           <div>
             <label className="block text-sm font-medium text-gray-500">상태</label>
-            <p className="mt-1 text-sm text-gray-900">
-              {user.status === 'active' ? '활성' : user.status === 'inactive' ? '비활성' : '정지'}
-            </p>
+            <p className="mt-1 text-sm text-gray-900">{getStatusLabel(user.status)}</p>
           </div>
           <div>
             <label className="block text-sm font-medium text-gray-500">가입일</label>
@@ -426,9 +585,9 @@ function UserDetailModal({ user }: { user: AdminUser }) {
               {new Date(user.lastLoginAt).toLocaleDateString('ko-KR')}
             </p>
           </div>
-              </div>
-            </div>
-            
+        </div>
+      </div>
+      
       {/* 회사 정보 */}
       {user.companyInfo && (
         <div>
@@ -454,39 +613,38 @@ function UserDetailModal({ user }: { user: AdminUser }) {
         </div>
       )}
 
-      {/* 사용 통계 */}
+      {/* 크레딧 및 사용 정보 */}
       <div>
-        <h3 className="text-lg font-medium text-gray-900 mb-4">사용 통계</h3>
+        <h3 className="text-lg font-medium text-gray-900 mb-4">크레딧 및 사용 정보</h3>
         <div className="grid grid-cols-3 gap-4">
-          <div className="text-center p-4 bg-blue-50 rounded-lg">
-            <div className="text-2xl font-bold text-blue-600">{user.credits.toLocaleString()}</div>
-            <div className="text-sm text-blue-600">보유 크레딧</div>
+          <div>
+            <label className="block text-sm font-medium text-gray-500">보유 크레딧</label>
+            <p className="mt-1 text-lg font-semibold text-blue-600">{user.credits.toLocaleString()}</p>
           </div>
-          <div className="text-center p-4 bg-green-50 rounded-lg">
-            <div className="text-2xl font-bold text-green-600">{user.totalCreditsUsed.toLocaleString()}</div>
-            <div className="text-sm text-green-600">사용한 크레딧</div>
-            </div>
-          <div className="text-center p-4 bg-purple-50 rounded-lg">
-            <div className="text-2xl font-bold text-purple-600">{(user.totalSpent / 1000).toFixed(0)}K원</div>
-            <div className="text-sm text-purple-600">총 사용액</div>
+          <div>
+            <label className="block text-sm font-medium text-gray-500">총 사용 크레딧</label>
+            <p className="mt-1 text-lg font-semibold text-purple-600">{user.totalCreditsUsed.toLocaleString()}</p>
           </div>
-                          </div>
-                        </div>
+          <div>
+            <label className="block text-sm font-medium text-gray-500">총 사용액</label>
+            <p className="mt-1 text-lg font-semibold text-green-600">{user.totalSpent.toLocaleString()}원</p>
+          </div>
+        </div>
+      </div>
 
-      {/* 최근 활동 */}
+      {/* 활동 로그 */}
       <div>
         <h3 className="text-lg font-medium text-gray-900 mb-4">최근 활동</h3>
         <div className="space-y-3 max-h-64 overflow-y-auto">
-          {user.activityLogs.slice(0, 10).map((log) => (
-            <div key={log.id} className="flex items-center space-x-3 p-3 bg-gray-50 rounded-lg">
-              <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
+          {user.activityLogs?.map((log) => (
+            <div key={log.id} className="flex items-start space-x-3 p-3 bg-gray-50 rounded-lg">
               <div className="flex-1">
-                <p className="text-sm font-medium text-gray-900">{log.details}</p>
-                <p className="text-xs text-gray-500">
-                  {new Date(log.timestamp).toLocaleString('ko-KR')} · {log.ipAddress}
+                <p className="text-sm text-gray-900">{log.details}</p>
+                <p className="text-xs text-gray-500 mt-1">
+                  {new Date(log.timestamp).toLocaleString('ko-KR')} • {log.ipAddress}
                 </p>
-                        </div>
-                      </div>
+              </div>
+            </div>
           ))}
         </div>
       </div>
