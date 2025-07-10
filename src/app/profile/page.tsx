@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react';
 import Header from '@/components/Header';
 import Footer from '@/components/Footer';
+import AdminPagination from '@/components/admin/AdminPagination';
 import { 
   User, 
   Mail, 
@@ -20,9 +21,7 @@ import {
   EyeOff,
   Check,
   AlertCircle,
-  Filter,
-  ChevronLeft,
-  ChevronRight
+  Filter
 } from 'lucide-react';
 
 // interface UserInfo {
@@ -66,7 +65,7 @@ export default function Profile() {
 
   const [currentPage, setCurrentPage] = useState(1);
   const [usageCurrentPage, setUsageCurrentPage] = useState(1);
-  const itemsPerPage = 10;
+  const [itemsPerPage, setItemsPerPage] = useState(10);
   
   const [userInfo, setUserInfo] = useState({
     name: '',
@@ -960,51 +959,18 @@ export default function Profile() {
               </div>
 
               {/* 페이지네이션 */}
-              {filteredHistory.length > 0 && totalPages > 1 && (
-                <div className="px-6 py-4 border-t border-gray-200">
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center space-x-2">
-                      <button
-                        onClick={() => handlePageChange(currentPage - 1)}
-                        disabled={currentPage === 1}
-                        className="inline-flex items-center px-3 py-2 border border-gray-300 rounded-md text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
-                      >
-                        <ChevronLeft className="w-4 h-4 mr-1" />
-                        이전
-                      </button>
-                      
-                      <div className="flex items-center space-x-1">
-                        {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
-                          <button
-                            key={page}
-                            onClick={() => handlePageChange(page)}
-                            className={`px-3 py-2 text-sm font-medium rounded-md ${
-                              currentPage === page
-                                ? 'bg-blue-600 text-white'
-                                : 'text-gray-700 hover:bg-gray-50 border border-gray-300'
-                            }`}
-                          >
-                            {page}
-                          </button>
-                        ))}
-                      </div>
-
-                      <button
-                        onClick={() => handlePageChange(currentPage + 1)}
-                        disabled={currentPage === totalPages}
-                        className="inline-flex items-center px-3 py-2 border border-gray-300 rounded-md text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
-                      >
-                        다음
-                        <ChevronRight className="w-4 h-4 ml-1" />
-                      </button>
-                    </div>
-
-                    <div className="text-sm text-gray-500">
-                      페이지 {currentPage} / {totalPages}
-                    </div>
-                  </div>
-                </div>
-              )}
+              <AdminPagination
+                currentPage={currentPage}
+                totalPages={totalPages}
+                totalItems={filteredHistory.length}
+                itemsPerPage={itemsPerPage}
+                onPageChange={handlePageChange}
+                onItemsPerPageChange={(items) => {
+                  setItemsPerPage(items);
+                  setCurrentPage(1);
+                }}
+                className="px-6 py-4 border-t border-gray-200"
+              />
             </div>
           </div>
         )}
@@ -1159,52 +1125,19 @@ export default function Profile() {
                 )}
               </div>
 
-              {/* 페이지네이ション */}
-              {getFilteredUsageStats().length > 0 && getUsageTotalPages() > 1 && (
-                <div className="px-6 py-4 border-t border-gray-200">
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center space-x-2">
-                      <button
-                        onClick={() => handleUsagePageChange(usageCurrentPage - 1)}
-                        disabled={usageCurrentPage === 1}
-                        className="inline-flex items-center px-3 py-2 border border-gray-300 rounded-md text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
-                      >
-                        <ChevronLeft className="w-4 h-4 mr-1" />
-                        이전
-                      </button>
-                      
-                      <div className="flex items-center space-x-1">
-                        {Array.from({ length: getUsageTotalPages() }, (_, i) => i + 1).map((page) => (
-                          <button
-                            key={page}
-                            onClick={() => handleUsagePageChange(page)}
-                            className={`px-3 py-2 text-sm font-medium rounded-md ${
-                              usageCurrentPage === page
-                                ? 'bg-blue-600 text-white'
-                                : 'text-gray-700 hover:bg-gray-50 border border-gray-300'
-                            }`}
-                          >
-                            {page}
-                          </button>
-                        ))}
-                      </div>
-
-                      <button
-                        onClick={() => handleUsagePageChange(usageCurrentPage + 1)}
-                        disabled={usageCurrentPage === getUsageTotalPages()}
-                        className="inline-flex items-center px-3 py-2 border border-gray-300 rounded-md text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
-                      >
-                        다음
-                        <ChevronRight className="w-4 h-4 ml-1" />
-                      </button>
-                    </div>
-
-                    <div className="text-sm text-gray-500">
-                      페이지 {usageCurrentPage} / {getUsageTotalPages()}
-                    </div>
-                  </div>
-                </div>
-              )}
+              {/* 페이지네이션 */}
+              <AdminPagination
+                currentPage={usageCurrentPage}
+                totalPages={getUsageTotalPages()}
+                totalItems={getFilteredUsageStats().length}
+                itemsPerPage={itemsPerPage}
+                onPageChange={handleUsagePageChange}
+                onItemsPerPageChange={(items) => {
+                  setItemsPerPage(items);
+                  setUsageCurrentPage(1);
+                }}
+                className="px-6 py-4 border-t border-gray-200"
+              />
             </div>
           </div>
         )}

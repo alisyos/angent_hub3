@@ -2,11 +2,10 @@
 
 import { useState } from 'react';
 import CompanyLayout from '@/components/CompanyLayout';
+import AdminPagination from '@/components/admin/AdminPagination';
 import { 
   Filter,
-  Calendar,
-  ChevronLeft,
-  ChevronRight
+  Calendar
 } from 'lucide-react';
 
 export default function CompanyCredits() {
@@ -18,7 +17,7 @@ export default function CompanyCredits() {
   });
   
   const [currentPage, setCurrentPage] = useState(1);
-  const itemsPerPage = 10;
+  const [itemsPerPage, setItemsPerPage] = useState(10);
 
   // 회사 크레딧 충전 내역 (2025년 7월 8일 기준 최근 데이터)
   const creditPurchaseHistory = [
@@ -243,34 +242,18 @@ export default function CompanyCredits() {
           </div>
 
           {/* 페이지네이션 */}
-          {getTotalPages() > 1 && (
-            <div className="px-6 py-4 border-t border-gray-200">
-              <div className="flex items-center justify-between">
-                <div className="text-sm text-gray-700">
-                  {(currentPage - 1) * itemsPerPage + 1}-{Math.min(currentPage * itemsPerPage, getFilteredCreditHistory().length)} / {getFilteredCreditHistory().length}
-                </div>
-                <div className="flex items-center space-x-2">
-                  <button
-                    onClick={() => handlePageChange(currentPage - 1)}
-                    disabled={currentPage === 1}
-                    className="p-2 rounded-md border border-gray-300 disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-50"
-                  >
-                    <ChevronLeft className="w-4 h-4" />
-                  </button>
-                  <span className="px-4 py-2 text-sm font-medium">
-                    {currentPage} / {getTotalPages()}
-                  </span>
-                  <button
-                    onClick={() => handlePageChange(currentPage + 1)}
-                    disabled={currentPage === getTotalPages()}
-                    className="p-2 rounded-md border border-gray-300 disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-50"
-                  >
-                    <ChevronRight className="w-4 h-4" />
-                  </button>
-                </div>
-              </div>
-            </div>
-          )}
+          <AdminPagination
+            currentPage={currentPage}
+            totalPages={getTotalPages()}
+            totalItems={getFilteredCreditHistory().length}
+            itemsPerPage={itemsPerPage}
+            onPageChange={handlePageChange}
+            onItemsPerPageChange={(items) => {
+              setItemsPerPage(items);
+              setCurrentPage(1);
+            }}
+            className="px-6 py-4 border-t border-gray-200"
+          />
         </div>
       </div>
     </CompanyLayout>

@@ -9,6 +9,7 @@ export const dynamic = 'force-dynamic';
 import Header from '@/components/Header';
 import Footer from '@/components/Footer';
 import AgentCard from '@/components/AgentCard';
+import AdminPagination from '@/components/admin/AdminPagination';
 import { aiAgents } from '@/data/agents';
 import { AIAgent, AgentCategory } from '@/types/agent';
 import { Search, Briefcase, Megaphone, PenTool, Grid3X3, ChevronLeft, ChevronRight, ChevronDown, ChevronRight as ChevronRightSmall } from 'lucide-react';
@@ -21,7 +22,7 @@ export default function Dashboard() {
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
   const [expandedCategories, setExpandedCategories] = useState<Set<AgentCategory | 'agentList'>>(new Set(['agentList']));
   const [currentPage, setCurrentPage] = useState(1);
-  const itemsPerPage = 9;
+  const [itemsPerPage, setItemsPerPage] = useState(9);
 
   // Handle URL category parameter
   // useEffect(() => {
@@ -328,50 +329,18 @@ export default function Dashboard() {
               </div>
 
               {/* Pagination */}
-              {totalPages > 1 && (
-                <div className="flex items-center justify-center space-x-2 mt-8">
-                  <button
-                    onClick={() => handlePageChange(currentPage - 1)}
-                    disabled={currentPage === 1}
-                    className="inline-flex items-center px-3 py-2 border border-gray-300 rounded-md text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
-                  >
-                    <ChevronLeft className="w-4 h-4 mr-1" />
-                    이전
-                  </button>
-                  
-                  <div className="flex items-center space-x-1">
-                    {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
-                      <button
-                        key={page}
-                        onClick={() => handlePageChange(page)}
-                        className={`px-3 py-2 text-sm font-medium rounded-md transition-colors ${
-                          currentPage === page
-                            ? 'bg-blue-600 text-white'
-                            : 'text-gray-700 hover:bg-gray-50 border border-gray-300'
-                        }`}
-                      >
-                        {page}
-                      </button>
-                    ))}
-                  </div>
-
-                  <button
-                    onClick={() => handlePageChange(currentPage + 1)}
-                    disabled={currentPage === totalPages}
-                    className="inline-flex items-center px-3 py-2 border border-gray-300 rounded-md text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
-                  >
-                    다음
-                    <ChevronRight className="w-4 h-4 ml-1" />
-                  </button>
-                </div>
-              )}
-
-              {/* Page Info */}
-              {totalPages > 1 && (
-                <div className="text-center mt-4 text-sm text-gray-500">
-                  페이지 {currentPage} / {totalPages}
-                </div>
-              )}
+              <AdminPagination
+                currentPage={currentPage}
+                totalPages={totalPages}
+                totalItems={filteredAgents.length}
+                itemsPerPage={itemsPerPage}
+                onPageChange={handlePageChange}
+                onItemsPerPageChange={(items) => {
+                  setItemsPerPage(items);
+                  setCurrentPage(1);
+                }}
+                className="mt-8"
+              />
             </>
           ) : (
             <div className="text-center py-12">

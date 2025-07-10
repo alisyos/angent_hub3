@@ -2,12 +2,11 @@
 
 import { useState, useMemo, useEffect } from 'react';
 import CompanyLayout from '@/components/CompanyLayout';
+import AdminPagination from '@/components/admin/AdminPagination';
 import { aiAgents } from '@/data/agents';
 import { extendedEmployeeData, departmentData } from '@/data/company';
 import { 
   Settings,
-  ChevronLeft,
-  ChevronRight,
   Plus,
   Search,
   X,
@@ -44,8 +43,8 @@ export default function CompanyEmployees() {
   const [editingDepartment, setEditingDepartment] = useState<string | null>(null);
   const [isNewDepartment, setIsNewDepartment] = useState(false);
   
-  const itemsPerPage = 20;
-  const departmentItemsPerPage = 10;
+  const [itemsPerPage, setItemsPerPage] = useState(20);
+  const [departmentItemsPerPage, setDepartmentItemsPerPage] = useState(10);
 
   // 직원 데이터 (공통 데이터 사용)
   const allEmployees = extendedEmployeeData;
@@ -251,97 +250,7 @@ export default function CompanyEmployees() {
       <ChevronUp className="w-4 h-4 text-gray-600" />;
   };
 
-  // 페이지네이션 컴포넌트
-  const Pagination = ({ currentPage, totalPages, onPageChange }: { currentPage: number; totalPages: number; onPageChange: (page: number) => void }) => {
-    const getPageNumbers = () => {
-      const pages = [];
-      const maxVisible = 5;
-      
-      if (totalPages <= maxVisible) {
-        for (let i = 1; i <= totalPages; i++) {
-          pages.push(i);
-        }
-      } else {
-        if (currentPage <= 3) {
-          pages.push(1, 2, 3, 4, 5);
-        } else if (currentPage >= totalPages - 2) {
-          for (let i = totalPages - 4; i <= totalPages; i++) {
-            pages.push(i);
-          }
-        } else {
-          for (let i = currentPage - 2; i <= currentPage + 2; i++) {
-            pages.push(i);
-          }
-        }
-      }
-      
-      return pages;
-    };
 
-    return (
-      <div className="flex items-center justify-between px-4 py-3 bg-white border-t border-gray-200 sm:px-6">
-        <div className="flex justify-between flex-1 sm:hidden">
-          <button
-            onClick={() => onPageChange(currentPage - 1)}
-            disabled={currentPage === 1}
-            className="relative inline-flex items-center px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50 disabled:opacity-50"
-          >
-            이전
-          </button>
-          <button
-            onClick={() => onPageChange(currentPage + 1)}
-            disabled={currentPage === totalPages}
-            className="relative inline-flex items-center px-4 py-2 ml-3 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50 disabled:opacity-50"
-          >
-            다음
-          </button>
-        </div>
-        <div className="hidden sm:flex sm:flex-1 sm:items-center sm:justify-between">
-          <div>
-            <p className="text-sm text-gray-700">
-              <span className="font-medium">{(currentPage - 1) * itemsPerPage + 1}</span>
-              {' '}-{' '}
-              <span className="font-medium">{Math.min(currentPage * itemsPerPage, (activeTab === 'employees' ? filteredAndSortedEmployees.length : allDepartments.length))}</span>
-              {' '}of{' '}
-              <span className="font-medium">{activeTab === 'employees' ? filteredAndSortedEmployees.length : allDepartments.length}</span>
-              {' '}results
-            </p>
-          </div>
-          <div>
-            <nav className="inline-flex -space-x-px rounded-md shadow-sm">
-              <button
-                onClick={() => onPageChange(currentPage - 1)}
-                disabled={currentPage === 1}
-                className="relative inline-flex items-center px-2 py-2 text-gray-400 bg-white border border-gray-300 rounded-l-md hover:bg-gray-50 disabled:opacity-50"
-              >
-                <ChevronLeft className="w-5 h-5" />
-              </button>
-              {getPageNumbers().map((page) => (
-                <button
-                  key={page}
-                  onClick={() => onPageChange(page)}
-                  className={`relative inline-flex items-center px-4 py-2 text-sm font-medium border ${
-                    page === currentPage
-                      ? 'z-10 bg-blue-50 border-blue-500 text-blue-600'
-                      : 'bg-white border-gray-300 text-gray-500 hover:bg-gray-50'
-                  }`}
-                >
-                  {page}
-                </button>
-              ))}
-              <button
-                onClick={() => onPageChange(currentPage + 1)}
-                disabled={currentPage === totalPages}
-                className="relative inline-flex items-center px-2 py-2 text-gray-400 bg-white border border-gray-300 rounded-r-md hover:bg-gray-50 disabled:opacity-50"
-              >
-                <ChevronRight className="w-5 h-5" />
-              </button>
-            </nav>
-          </div>
-        </div>
-      </div>
-    );
-  };
 
   // 직원 편집 모달
   const EmployeeEditModal = () => {
@@ -999,10 +908,16 @@ export default function CompanyEmployees() {
               </div>
             </div>
             
-            <Pagination
+            <AdminPagination
               currentPage={currentPage}
               totalPages={getTotalPages(filteredAndSortedEmployees.length)}
+              totalItems={filteredAndSortedEmployees.length}
+              itemsPerPage={itemsPerPage}
               onPageChange={setCurrentPage}
+              onItemsPerPageChange={(items) => {
+                setItemsPerPage(items);
+                setCurrentPage(1);
+              }}
             />
           </div>
         )}
@@ -1141,10 +1056,16 @@ export default function CompanyEmployees() {
             </div>
             
             {/* 부서 관리 페이지네이션 */}
-            <Pagination
+            <AdminPagination
               currentPage={currentPage}
               totalPages={Math.ceil(getFilteredDepartments().length / departmentItemsPerPage)}
+              totalItems={getFilteredDepartments().length}
+              itemsPerPage={departmentItemsPerPage}
               onPageChange={setCurrentPage}
+              onItemsPerPageChange={(items) => {
+                setDepartmentItemsPerPage(items);
+                setCurrentPage(1);
+              }}
             />
           </div>
         )}

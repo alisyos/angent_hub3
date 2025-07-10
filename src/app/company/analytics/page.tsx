@@ -3,13 +3,16 @@
 import { useState, useEffect, Suspense } from 'react';
 import { useSearchParams } from 'next/navigation';
 import CompanyLayout from '@/components/CompanyLayout';
+import Modal from '@/components/Modal';
+import AdminPagination from '@/components/admin/AdminPagination';
+import { aiAgents } from '@/data/agents';
 import { 
   Users,
   Building,
   Activity,
   Clock,
-  ChevronLeft,
-  ChevronRight
+  Filter,
+  Eye
 } from 'lucide-react';
 
 interface AnalyticsData {
@@ -18,33 +21,28 @@ interface AnalyticsData {
     name: string;
     department: string;
     totalCredits: number;
-    avgCreditsPerDay: number;
+    usageCount: number;
     mostUsedAgent: string;
-    activeHours: string;
-    efficiency: number;
     lastActivity: string;
+    agentUsage: { agentName: string; usageCount: number; credits: number }[];
   }[];
   
   // 부서별 분석 데이터
   departmentStats: {
     name: string;
     totalCredits: number;
-    employeeCount: number;
-    avgCreditsPerEmployee: number;
+    usageCount: number;
     mostUsedAgent: string;
-    efficiency: number;
-    growth: number;
+    agentUsage: { agentName: string; usageCount: number; credits: number }[];
   }[];
   
   // 에이전트별 분석 데이터
   agentStats: {
     name: string;
-    category: string;
-    totalUsage: number;
-    uniqueUsers: number;
-    avgSessionTime: string;
-    popularityScore: number;
-    rating: number;
+    totalCredits: number;
+    usageCount: number;
+    userCount: number;
+    userUsage: { userName: string; department: string; usageCount: number; credits: number }[];
   }[];
 }
 
@@ -52,43 +50,204 @@ function CompanyAnalyticsContent() {
   const searchParams = useSearchParams();
   const [activeTab, setActiveTab] = useState('employee');
   const [currentPage, setCurrentPage] = useState(1);
-  const [timePeriod, setTimePeriod] = useState('최근 7일');
+  const [itemsPerPage, setItemsPerPage] = useState(10);
   
-  const itemsPerPage = 10;
+  // 기간 필터 상태
+  const [analyticsFilter, setAnalyticsFilter] = useState({
+    startDate: '',
+    endDate: '',
+    period: 'week' // 'all', 'week', 'month', 'custom'
+  });
+
+  // 모달 상태
+  const [detailModal, setDetailModal] = useState<{
+    isOpen: boolean;
+    type: 'employee' | 'department' | 'agent' | null;
+    data: any;
+  }>({
+    isOpen: false,
+    type: null,
+    data: null
+  });
+
+  // AI 에이전트 이름 목록 생성
+  const agentNames = aiAgents.map(agent => agent.name);
 
   const mockData: AnalyticsData = {
     employeeStats: [
-      { name: '김철수', department: '개발팀', totalCredits: 2500, avgCreditsPerDay: 125, mostUsedAgent: 'ChatGPT', activeHours: '09:00-18:00', efficiency: 92, lastActivity: '2024-01-15' },
-      { name: '이영희', department: '마케팅팀', totalCredits: 2200, avgCreditsPerDay: 110, mostUsedAgent: 'Claude', activeHours: '10:00-19:00', efficiency: 88, lastActivity: '2024-01-14' },
-      { name: '박민수', department: '디자인팀', totalCredits: 1800, avgCreditsPerDay: 90, mostUsedAgent: 'Midjourney', activeHours: '09:30-18:30', efficiency: 85, lastActivity: '2024-01-13' },
-      { name: '최수진', department: '개발팀', totalCredits: 2100, avgCreditsPerDay: 105, mostUsedAgent: 'GitHub Copilot', activeHours: '08:00-17:00', efficiency: 94, lastActivity: '2024-01-15' },
-      { name: '정호영', department: '기획팀', totalCredits: 1600, avgCreditsPerDay: 80, mostUsedAgent: 'Notion AI', activeHours: '10:00-19:00', efficiency: 82, lastActivity: '2024-01-12' },
-      { name: '윤서연', department: '마케팅팀', totalCredits: 1900, avgCreditsPerDay: 95, mostUsedAgent: 'Canva AI', activeHours: '09:00-18:00', efficiency: 89, lastActivity: '2024-01-14' },
-      { name: '강동혁', department: '영업팀', totalCredits: 1500, avgCreditsPerDay: 75, mostUsedAgent: 'Salesforce AI', activeHours: '09:00-18:00', efficiency: 78, lastActivity: '2024-01-11' },
-      { name: '송미래', department: '디자인팀', totalCredits: 1700, avgCreditsPerDay: 85, mostUsedAgent: 'Figma AI', activeHours: '10:00-19:00', efficiency: 87, lastActivity: '2024-01-13' },
-      { name: '임진우', department: '개발팀', totalCredits: 2300, avgCreditsPerDay: 115, mostUsedAgent: 'CodeT5', activeHours: '08:30-17:30', efficiency: 91, lastActivity: '2024-01-15' },
-      { name: '한소영', department: '기획팀', totalCredits: 1400, avgCreditsPerDay: 70, mostUsedAgent: 'Miro AI', activeHours: '09:30-18:30', efficiency: 80, lastActivity: '2024-01-12' },
-      { name: '장현석', department: '영업팀', totalCredits: 1300, avgCreditsPerDay: 65, mostUsedAgent: 'HubSpot AI', activeHours: '08:00-17:00', efficiency: 75, lastActivity: '2024-01-11' },
-      { name: '오혜진', department: '마케팅팀', totalCredits: 2000, avgCreditsPerDay: 100, mostUsedAgent: 'Buffer AI', activeHours: '10:00-19:00', efficiency: 86, lastActivity: '2024-01-14' },
+      { 
+        name: '김철수', 
+        department: '개발팀', 
+        totalCredits: 250, 
+        usageCount: 25, 
+        mostUsedAgent: '회의록 자동화 AI', 
+        lastActivity: '2024-01-15',
+        agentUsage: [
+          { agentName: '회의록 자동화 AI', usageCount: 8, credits: 80 },
+          { agentName: '이메일 작성 AI', usageCount: 10, credits: 80 },
+          { agentName: 'AI PPT 슬라이드 생성기', usageCount: 4, credits: 100 },
+          { agentName: '음성파일 기반 문서 자동화 AI', usageCount: 3, credits: 90 }
+        ]
+      },
+      { 
+        name: '이영희', 
+        department: '마케팅팀', 
+        totalCredits: 380, 
+        usageCount: 22, 
+        mostUsedAgent: '리뷰 분석 AI', 
+        lastActivity: '2024-01-14',
+        agentUsage: [
+          { agentName: '리뷰 분석 AI', usageCount: 8, credits: 120 },
+          { agentName: 'SNS 이벤트 기획 AI', usageCount: 6, credits: 108 },
+          { agentName: '키워드 분석 AI', usageCount: 5, credits: 60 },
+          { agentName: 'AI 카드뉴스 생성기', usageCount: 3, credits: 60 }
+        ]
+      },
+      { 
+        name: '박민수', 
+        department: '디자인팀', 
+        totalCredits: 320, 
+        usageCount: 18, 
+        mostUsedAgent: 'AI 카드뉴스 생성기', 
+        lastActivity: '2024-01-13',
+        agentUsage: [
+          { agentName: 'AI 카드뉴스 생성기', usageCount: 7, credits: 140 },
+          { agentName: 'AI 블로그 생성기', usageCount: 6, credits: 90 },
+          { agentName: '광고 문구 분석 및 제안 AI', usageCount: 3, credits: 60 },
+          { agentName: 'AI PPT 슬라이드 생성기', usageCount: 2, credits: 50 }
+        ]
+      },
+      { 
+        name: '최수진', 
+        department: '개발팀', 
+        totalCredits: 210, 
+        usageCount: 21, 
+        mostUsedAgent: '이메일 작성 AI', 
+        lastActivity: '2024-01-15',
+        agentUsage: [
+          { agentName: '이메일 작성 AI', usageCount: 12, credits: 96 },
+          { agentName: '회의록 자동화 AI', usageCount: 6, credits: 60 },
+          { agentName: 'AI PPT 슬라이드 생성기', usageCount: 2, credits: 50 },
+          { agentName: '음성파일 기반 문서 자동화 AI', usageCount: 1, credits: 30 }
+        ]
+      },
+      { 
+        name: '정호영', 
+        department: '기획팀', 
+        totalCredits: 160, 
+        usageCount: 16, 
+        mostUsedAgent: 'AI PPT 슬라이드 생성기', 
+        lastActivity: '2024-01-12',
+        agentUsage: [
+          { agentName: 'AI PPT 슬라이드 생성기', usageCount: 5, credits: 125 },
+          { agentName: '회의록 자동화 AI', usageCount: 3, credits: 30 },
+          { agentName: '이메일 작성 AI', usageCount: 8, credits: 64 }
+        ]
+      }
     ],
     departmentStats: [
-      { name: '개발팀', totalCredits: 6900, employeeCount: 3, avgCreditsPerEmployee: 2300, mostUsedAgent: 'ChatGPT', efficiency: 92, growth: 15 },
-      { name: '마케팅팀', totalCredits: 6100, employeeCount: 3, avgCreditsPerEmployee: 2033, mostUsedAgent: 'Claude', efficiency: 88, growth: 12 },
-      { name: '디자인팀', totalCredits: 3500, employeeCount: 2, avgCreditsPerEmployee: 1750, mostUsedAgent: 'Midjourney', efficiency: 86, growth: 8 },
-      { name: '기획팀', totalCredits: 3000, employeeCount: 2, avgCreditsPerEmployee: 1500, mostUsedAgent: 'Notion AI', efficiency: 81, growth: 5 },
-      { name: '영업팀', totalCredits: 2800, employeeCount: 2, avgCreditsPerEmployee: 1400, mostUsedAgent: 'Salesforce AI', efficiency: 77, growth: 3 },
+      { 
+        name: '개발팀', 
+        totalCredits: 460, 
+        usageCount: 46, 
+        mostUsedAgent: '회의록 자동화 AI',
+        agentUsage: [
+          { agentName: '회의록 자동화 AI', usageCount: 14, credits: 140 },
+          { agentName: '이메일 작성 AI', usageCount: 22, credits: 176 },
+          { agentName: 'AI PPT 슬라이드 생성기', usageCount: 6, credits: 150 },
+          { agentName: '음성파일 기반 문서 자동화 AI', usageCount: 4, credits: 120 }
+        ]
+      },
+      { 
+        name: '마케팅팀', 
+        totalCredits: 380, 
+        usageCount: 22, 
+        mostUsedAgent: '리뷰 분석 AI',
+        agentUsage: [
+          { agentName: '리뷰 분석 AI', usageCount: 8, credits: 120 },
+          { agentName: 'SNS 이벤트 기획 AI', usageCount: 6, credits: 108 },
+          { agentName: '키워드 분석 AI', usageCount: 5, credits: 60 },
+          { agentName: 'AI 카드뉴스 생성기', usageCount: 3, credits: 60 }
+        ]
+      },
+      { 
+        name: '디자인팀', 
+        totalCredits: 320, 
+        usageCount: 18, 
+        mostUsedAgent: 'AI 카드뉴스 생성기',
+        agentUsage: [
+          { agentName: 'AI 카드뉴스 생성기', usageCount: 7, credits: 140 },
+          { agentName: 'AI 블로그 생성기', usageCount: 6, credits: 90 },
+          { agentName: '광고 문구 분석 및 제안 AI', usageCount: 3, credits: 60 },
+          { agentName: 'AI PPT 슬라이드 생성기', usageCount: 2, credits: 50 }
+        ]
+      },
+      { 
+        name: '기획팀', 
+        totalCredits: 160, 
+        usageCount: 16, 
+        mostUsedAgent: 'AI PPT 슬라이드 생성기',
+        agentUsage: [
+          { agentName: 'AI PPT 슬라이드 생성기', usageCount: 5, credits: 125 },
+          { agentName: '회의록 자동화 AI', usageCount: 3, credits: 30 },
+          { agentName: '이메일 작성 AI', usageCount: 8, credits: 64 }
+        ]
+      }
     ],
     agentStats: [
-      { name: 'ChatGPT', category: '텍스트 AI', totalUsage: 8500, uniqueUsers: 45, avgSessionTime: '12분', popularityScore: 95, rating: 4.8 },
-      { name: 'Claude', category: '텍스트 AI', totalUsage: 7200, uniqueUsers: 38, avgSessionTime: '15분', popularityScore: 88, rating: 4.7 },
-      { name: 'Midjourney', category: '이미지 AI', totalUsage: 4500, uniqueUsers: 25, avgSessionTime: '8분', popularityScore: 78, rating: 4.6 },
-      { name: 'GitHub Copilot', category: '코드 AI', totalUsage: 3800, uniqueUsers: 18, avgSessionTime: '20분', popularityScore: 82, rating: 4.9 },
-      { name: 'Notion AI', category: '생산성 AI', totalUsage: 3200, uniqueUsers: 32, avgSessionTime: '10분', popularityScore: 72, rating: 4.5 },
-      { name: 'Canva AI', category: '디자인 AI', totalUsage: 2800, uniqueUsers: 22, avgSessionTime: '18분', popularityScore: 68, rating: 4.4 },
-      { name: 'Salesforce AI', category: '비즈니스 AI', totalUsage: 2400, uniqueUsers: 15, avgSessionTime: '14분', popularityScore: 65, rating: 4.3 },
-      { name: 'Figma AI', category: '디자인 AI', totalUsage: 2200, uniqueUsers: 12, avgSessionTime: '16분', popularityScore: 62, rating: 4.2 },
-      { name: 'CodeT5', category: '코드 AI', totalUsage: 1800, uniqueUsers: 8, avgSessionTime: '25분', popularityScore: 58, rating: 4.1 },
-      { name: 'Miro AI', category: '협업 AI', totalUsage: 1600, uniqueUsers: 10, avgSessionTime: '11분', popularityScore: 55, rating: 4.0 },
+      { 
+        name: '회의록 자동화 AI', 
+        totalCredits: 170, 
+        usageCount: 17, 
+        userCount: 3,
+        userUsage: [
+          { userName: '김철수', department: '개발팀', usageCount: 8, credits: 80 },
+          { userName: '최수진', department: '개발팀', usageCount: 6, credits: 60 },
+          { userName: '정호영', department: '기획팀', usageCount: 3, credits: 30 }
+        ]
+      },
+      { 
+        name: '이메일 작성 AI', 
+        totalCredits: 240, 
+        usageCount: 30, 
+        userCount: 3,
+        userUsage: [
+          { userName: '김철수', department: '개발팀', usageCount: 10, credits: 80 },
+          { userName: '최수진', department: '개발팀', usageCount: 12, credits: 96 },
+          { userName: '정호영', department: '기획팀', usageCount: 8, credits: 64 }
+        ]
+      },
+      { 
+        name: '리뷰 분석 AI', 
+        totalCredits: 120, 
+        usageCount: 8, 
+        userCount: 1,
+        userUsage: [
+          { userName: '이영희', department: '마케팅팀', usageCount: 8, credits: 120 }
+        ]
+      },
+      { 
+        name: 'AI 카드뉴스 생성기', 
+        totalCredits: 200, 
+        usageCount: 10, 
+        userCount: 2,
+        userUsage: [
+          { userName: '박민수', department: '디자인팀', usageCount: 7, credits: 140 },
+          { userName: '이영희', department: '마케팅팀', usageCount: 3, credits: 60 }
+        ]
+      },
+      { 
+        name: 'AI PPT 슬라이드 생성기', 
+        totalCredits: 325, 
+        usageCount: 13, 
+        userCount: 3,
+        userUsage: [
+          { userName: '김철수', department: '개발팀', usageCount: 4, credits: 100 },
+          { userName: '박민수', department: '디자인팀', usageCount: 2, credits: 50 },
+          { userName: '정호영', department: '기획팀', usageCount: 5, credits: 125 },
+          { userName: '최수진', department: '개발팀', usageCount: 2, credits: 50 }
+        ]
+      }
     ]
   };
 
@@ -106,11 +265,18 @@ function CompanyAnalyticsContent() {
     }
   }, [searchParams]);
 
+  // 기간 필터링된 데이터 가져오기
+  const getFilteredData = () => {
+    // 실제로는 여기서 API 호출하여 필터링된 데이터를 가져와야 함
+    return mockData;
+  };
+
   // 페이지네이션 관련 함수
   const getCurrentData = () => {
-    if (activeTab === 'employee') return mockData.employeeStats;
-    if (activeTab === 'team') return mockData.departmentStats;
-    if (activeTab === 'agent') return mockData.agentStats;
+    const filteredData = getFilteredData();
+    if (activeTab === 'employee') return filteredData.employeeStats;
+    if (activeTab === 'team') return filteredData.departmentStats;
+    if (activeTab === 'agent') return filteredData.agentStats;
     return [];
   };
 
@@ -124,19 +290,121 @@ function CompanyAnalyticsContent() {
     setCurrentPage(page);
   };
 
-  const handleTimePeriodChange = (period: string) => {
-    setTimePeriod(period);
-    // 여기서 실제 데이터를 다시 불러와야 함
+  const handleAnalyticsFilterChange = (field: string, value: string) => {
+    setAnalyticsFilter(prev => ({ ...prev, [field]: value }));
+    setCurrentPage(1);
+  };
+
+  // 요약 데이터 계산
+  const getSummaryData = () => {
+    const filteredData = getFilteredData();
+    
+    const totalUsageCount = filteredData.employeeStats.reduce((sum, emp) => sum + emp.usageCount, 0);
+    const totalCredits = filteredData.employeeStats.reduce((sum, emp) => sum + emp.totalCredits, 0);
+    const totalUsers = filteredData.employeeStats.length;
+
+    return {
+      totalUsageCount,
+      totalCredits,
+      totalUsers
+    };
+  };
+
+  const summaryData = getSummaryData();
+
+  // 자세히 보기 모달 열기
+  const openDetailModal = (type: 'employee' | 'department' | 'agent', data: any) => {
+    setDetailModal({
+      isOpen: true,
+      type,
+      data
+    });
+  };
+
+  // 자세히 보기 모달 닫기
+  const closeDetailModal = () => {
+    setDetailModal({
+      isOpen: false,
+      type: null,
+      data: null
+    });
   };
 
   return (
     <CompanyLayout 
       title="분석 및 리포트"
-      description="회사의 AI 사용 현황을 분석하고 리포트를 생성하세요"
-      timePeriod={timePeriod}
-      onTimePeriodChange={handleTimePeriodChange}
+      description="회사의 AI 에이전트 사용 현황을 분석하고 리포트를 생성하세요"
+      hideTimePeriod={true}
     >
       <div className="space-y-6">
+        {/* 기간 선택 섹션 */}
+        <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+          <div className="flex items-center justify-between mb-4">
+            <h3 className="text-lg font-semibold text-gray-900">기간 선택</h3>
+            <Filter className="w-5 h-5 text-gray-400" />
+          </div>
+          
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+            <div>
+              <select
+                value={analyticsFilter.period}
+                onChange={(e) => handleAnalyticsFilterChange('period', e.target.value)}
+                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              >
+                <option value="all">전체</option>
+                <option value="week">최근 1주일</option>
+                <option value="month">최근 1개월</option>
+                <option value="custom">직접 선택</option>
+              </select>
+            </div>
+            
+            {analyticsFilter.period === 'custom' && (
+              <>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">시작일</label>
+                  <input
+                    type="date"
+                    value={analyticsFilter.startDate}
+                    onChange={(e) => handleAnalyticsFilterChange('startDate', e.target.value)}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">종료일</label>
+                  <input
+                    type="date"
+                    value={analyticsFilter.endDate}
+                    onChange={(e) => handleAnalyticsFilterChange('endDate', e.target.value)}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  />
+                </div>
+              </>
+            )}
+          </div>
+        </div>
+
+        {/* 요약 정보 */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+          <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+            <h3 className="text-sm font-medium text-gray-600">총 사용 횟수</h3>
+            <p className="text-2xl font-bold text-blue-600 mt-2">
+              {summaryData.totalUsageCount.toLocaleString()}회
+            </p>
+          </div>
+          <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+            <h3 className="text-sm font-medium text-gray-600">총 사용 크레딧</h3>
+            <p className="text-2xl font-bold text-green-600 mt-2">
+              {summaryData.totalCredits.toLocaleString()}크레딧
+            </p>
+          </div>
+          <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+            <h3 className="text-sm font-medium text-gray-600">총 사용자 수</h3>
+            <p className="text-2xl font-bold text-purple-600 mt-2">
+              {summaryData.totalUsers}명
+            </p>
+          </div>
+        </div>
+
         {/* 탭 메뉴 */}
         <div className="border-b border-gray-200">
           <nav className="flex space-x-8">
@@ -167,9 +435,9 @@ function CompanyAnalyticsContent() {
         {activeTab === 'employee' && (
           <div className="bg-white rounded-xl shadow-sm border border-gray-200">
             <div className="p-6 border-b border-gray-200">
-              <h3 className="text-lg font-semibold text-gray-900">직원별 AI 사용 분석</h3>
+              <h3 className="text-lg font-semibold text-gray-900">직원별 에이전트 사용 분석</h3>
               <p className="text-sm text-gray-600 mt-1">
-                직원들의 AI 사용 패턴과 효율성을 분석합니다.
+                직원들의 AI 에이전트 사용 현황 및 패턴을 분석 합니다.
               </p>
             </div>
             
@@ -181,19 +449,19 @@ function CompanyAnalyticsContent() {
                       직원 정보
                     </th>
                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      사용 횟수
+                    </th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                       사용 크레딧
                     </th>
                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      주요 AI
-                    </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      활동 시간
-                    </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      효율성
+                      주사용 에이전트
                     </th>
                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                       최근 활동
+                    </th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      자세히 보기
                     </th>
                   </tr>
                 </thead>
@@ -213,36 +481,26 @@ function CompanyAnalyticsContent() {
                           </div>
                         </div>
                       </td>
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        <div className="text-sm text-gray-900">
-                          {employee.totalCredits.toLocaleString()}
-                        </div>
-                        <div className="text-sm text-gray-500">
-                          일평균 {employee.avgCreditsPerDay}
-                        </div>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                        {employee.usageCount}회
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                        {employee.totalCredits.toLocaleString()}크레딧
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
                         {employee.mostUsedAgent}
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                        <div className="flex items-center">
-                          <Clock className="w-4 h-4 mr-1" />
-                          {employee.activeHours}
-                        </div>
+                        {employee.lastActivity}
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap">
-                        <div className="flex items-center">
-                          <div className="w-16 bg-gray-200 rounded-full h-2">
-                            <div
-                              className="bg-blue-600 h-2 rounded-full"
-                              style={{ width: `${employee.efficiency}%` }}
-                            ></div>
-                          </div>
-                          <span className="ml-2 text-sm text-gray-900">{employee.efficiency}%</span>
-                        </div>
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                        {employee.lastActivity}
+                        <button
+                          onClick={() => openDetailModal('employee', employee)}
+                          className="flex items-center space-x-1 text-blue-600 hover:text-blue-800"
+                        >
+                          <Eye className="w-4 h-4" />
+                          <span className="text-sm">보기</span>
+                        </button>
                       </td>
                     </tr>
                   ))}
@@ -256,9 +514,9 @@ function CompanyAnalyticsContent() {
         {activeTab === 'team' && (
           <div className="bg-white rounded-xl shadow-sm border border-gray-200">
             <div className="p-6 border-b border-gray-200">
-              <h3 className="text-lg font-semibold text-gray-900">부서별 AI 사용 분석</h3>
+              <h3 className="text-lg font-semibold text-gray-900">부서별 에이전트 사용 분석</h3>
               <p className="text-sm text-gray-600 mt-1">
-                부서별 AI 사용 현황과 성과를 분석합니다.
+                부서별 AI 에이전트 사용 현황과 성과를 분석합니다.
               </p>
             </div>
             
@@ -270,22 +528,16 @@ function CompanyAnalyticsContent() {
                       부서명
                     </th>
                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      총 크레딧
+                      사용 횟수
                     </th>
                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      직원 수
+                      사용 크레딧
                     </th>
                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      평균 사용량
+                      주사용 에이전트
                     </th>
                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      주요 AI
-                    </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      효율성
-                    </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      성장률
+                      자세히 보기
                     </th>
                   </tr>
                 </thead>
@@ -305,38 +557,22 @@ function CompanyAnalyticsContent() {
                         </div>
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                        {department.totalCredits.toLocaleString()}
+                        {department.usageCount}회
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                        {department.employeeCount}명
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                        {department.avgCreditsPerEmployee.toLocaleString()}
+                        {department.totalCredits.toLocaleString()}크레딧
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
                         {department.mostUsedAgent}
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap">
-                        <div className="flex items-center">
-                          <div className="w-16 bg-gray-200 rounded-full h-2">
-                            <div
-                              className="bg-green-600 h-2 rounded-full"
-                              style={{ width: `${department.efficiency}%` }}
-                            ></div>
-                          </div>
-                          <span className="ml-2 text-sm text-gray-900">{department.efficiency}%</span>
-                        </div>
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${
-                          department.growth > 10 
-                            ? 'bg-green-100 text-green-800' 
-                            : department.growth > 5 
-                            ? 'bg-yellow-100 text-yellow-800'
-                            : 'bg-red-100 text-red-800'
-                        }`}>
-                          +{department.growth}%
-                        </span>
+                        <button
+                          onClick={() => openDetailModal('department', department)}
+                          className="flex items-center space-x-1 text-blue-600 hover:text-blue-800"
+                        >
+                          <Eye className="w-4 h-4" />
+                          <span className="text-sm">보기</span>
+                        </button>
                       </td>
                     </tr>
                   ))}
@@ -350,7 +586,7 @@ function CompanyAnalyticsContent() {
         {activeTab === 'agent' && (
           <div className="bg-white rounded-xl shadow-sm border border-gray-200">
             <div className="p-6 border-b border-gray-200">
-              <h3 className="text-lg font-semibold text-gray-900">AI 에이전트별 사용 분석</h3>
+              <h3 className="text-lg font-semibold text-gray-900">에이전트별 사용 분석</h3>
               <p className="text-sm text-gray-600 mt-1">
                 각 AI 에이전트의 사용 현황과 인기도를 분석합니다.
               </p>
@@ -361,22 +597,19 @@ function CompanyAnalyticsContent() {
                 <thead className="bg-gray-50">
                   <tr>
                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      AI 에이전트
+                      AI에이전트
                     </th>
                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      총 사용량
+                      사용 횟수
                     </th>
                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      사용자 수
+                      사용 크레딧
                     </th>
                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      평균 세션 시간
+                      사용자수
                     </th>
                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      인기도
-                    </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      평점
+                      자세히 보기
                     </th>
                   </tr>
                 </thead>
@@ -390,35 +623,29 @@ function CompanyAnalyticsContent() {
                           </div>
                           <div className="ml-4">
                             <div className="text-sm font-medium text-gray-900">{agent.name}</div>
-                            <div className="text-sm text-gray-500">{agent.category}</div>
+                            <div className="text-sm text-gray-500">
+                              {aiAgents.find(a => a.name === agent.name)?.category || '기타'}
+                            </div>
                           </div>
                         </div>
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                        {agent.totalUsage.toLocaleString()}
+                        {agent.usageCount}회
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                        {agent.uniqueUsers}명
+                        {agent.totalCredits.toLocaleString()}크레딧
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                        {agent.avgSessionTime}
+                        {agent.userCount}명
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap">
-                        <div className="flex items-center">
-                          <div className="w-16 bg-gray-200 rounded-full h-2">
-                            <div
-                              className="bg-indigo-600 h-2 rounded-full"
-                              style={{ width: `${agent.popularityScore}%` }}
-                            ></div>
-                          </div>
-                          <span className="ml-2 text-sm text-gray-900">{agent.popularityScore}%</span>
-                        </div>
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        <div className="flex items-center">
-                          <span className="text-sm text-yellow-400">★</span>
-                          <span className="ml-1 text-sm text-gray-900">{agent.rating}</span>
-                        </div>
+                        <button
+                          onClick={() => openDetailModal('agent', agent)}
+                          className="flex items-center space-x-1 text-blue-600 hover:text-blue-800"
+                        >
+                          <Eye className="w-4 h-4" />
+                          <span className="text-sm">보기</span>
+                        </button>
                       </td>
                     </tr>
                   ))}
@@ -429,33 +656,128 @@ function CompanyAnalyticsContent() {
         )}
 
         {/* 페이지네이션 */}
-        {totalPages > 1 && (
-          <div className="flex items-center justify-between px-6 py-4 bg-white border-t border-gray-200">
-            <div className="text-sm text-gray-700">
-              {(currentPage - 1) * itemsPerPage + 1}-{Math.min(currentPage * itemsPerPage, getCurrentData().length)} / {getCurrentData().length}
-            </div>
-            <div className="flex items-center space-x-2">
-              <button
-                onClick={() => handlePageChange(currentPage - 1)}
-                disabled={currentPage === 1}
-                className="p-2 rounded-md border border-gray-300 disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-50"
-              >
-                <ChevronLeft className="w-4 h-4" />
-              </button>
-              <span className="px-4 py-2 text-sm font-medium">
-                {currentPage} / {totalPages}
-              </span>
-              <button
-                onClick={() => handlePageChange(currentPage + 1)}
-                disabled={currentPage === totalPages}
-                className="p-2 rounded-md border border-gray-300 disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-50"
-              >
-                <ChevronRight className="w-4 h-4" />
-              </button>
-            </div>
+        <AdminPagination
+          currentPage={currentPage}
+          totalPages={totalPages}
+          totalItems={getCurrentData().length}
+          itemsPerPage={itemsPerPage}
+          onPageChange={handlePageChange}
+          onItemsPerPageChange={(items) => {
+            setItemsPerPage(items);
+            setCurrentPage(1);
+          }}
+        />
+      </div>
+
+      {/* 자세히 보기 모달 */}
+      <Modal
+        isOpen={detailModal.isOpen}
+        onClose={closeDetailModal}
+        title={`${detailModal.type === 'employee' ? '직원' : detailModal.type === 'department' ? '부서' : 'AI 에이전트'} 상세 정보`}
+      >
+        {detailModal.data && (
+          <div className="space-y-4">
+            {detailModal.type === 'employee' && (
+              <>
+                <div className="border-b pb-4">
+                  <h4 className="font-semibold text-gray-900">{detailModal.data.name}</h4>
+                  <p className="text-sm text-gray-600">{detailModal.data.department}</p>
+                </div>
+                <div>
+                  <h5 className="font-medium text-gray-900 mb-3">AI 에이전트별 사용 현황</h5>
+                  <div className="overflow-x-auto">
+                    <table className="w-full text-sm">
+                      <thead className="bg-gray-50">
+                        <tr>
+                          <th className="px-3 py-2 text-left">에이전트명</th>
+                          <th className="px-3 py-2 text-left">사용 횟수</th>
+                          <th className="px-3 py-2 text-left">사용 크레딧</th>
+                        </tr>
+                      </thead>
+                      <tbody className="divide-y divide-gray-200">
+                        {detailModal.data.agentUsage.map((usage: any, index: number) => (
+                          <tr key={index}>
+                            <td className="px-3 py-2">{usage.agentName}</td>
+                            <td className="px-3 py-2">{usage.usageCount}회</td>
+                            <td className="px-3 py-2">{usage.credits}크레딧</td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+              </>
+            )}
+            
+            {detailModal.type === 'department' && (
+              <>
+                <div className="border-b pb-4">
+                  <h4 className="font-semibold text-gray-900">{detailModal.data.name}</h4>
+                </div>
+                <div>
+                  <h5 className="font-medium text-gray-900 mb-3">AI 에이전트별 사용 현황</h5>
+                  <div className="overflow-x-auto">
+                    <table className="w-full text-sm">
+                      <thead className="bg-gray-50">
+                        <tr>
+                          <th className="px-3 py-2 text-left">에이전트명</th>
+                          <th className="px-3 py-2 text-left">사용 횟수</th>
+                          <th className="px-3 py-2 text-left">사용 크레딧</th>
+                        </tr>
+                      </thead>
+                      <tbody className="divide-y divide-gray-200">
+                        {detailModal.data.agentUsage.map((usage: any, index: number) => (
+                          <tr key={index}>
+                            <td className="px-3 py-2">{usage.agentName}</td>
+                            <td className="px-3 py-2">{usage.usageCount}회</td>
+                            <td className="px-3 py-2">{usage.credits}크레딧</td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+              </>
+            )}
+            
+            {detailModal.type === 'agent' && (
+              <>
+                <div className="border-b pb-4">
+                  <h4 className="font-semibold text-gray-900">{detailModal.data.name}</h4>
+                  <p className="text-sm text-gray-600">
+                    {aiAgents.find(a => a.name === detailModal.data.name)?.category || '기타'}
+                  </p>
+                </div>
+                <div>
+                  <h5 className="font-medium text-gray-900 mb-3">사용자별 사용 현황</h5>
+                  <div className="overflow-x-auto">
+                    <table className="w-full text-sm">
+                      <thead className="bg-gray-50">
+                        <tr>
+                          <th className="px-3 py-2 text-left">사용자명</th>
+                          <th className="px-3 py-2 text-left">부서</th>
+                          <th className="px-3 py-2 text-left">사용 횟수</th>
+                          <th className="px-3 py-2 text-left">사용 크레딧</th>
+                        </tr>
+                      </thead>
+                      <tbody className="divide-y divide-gray-200">
+                        {detailModal.data.userUsage.map((usage: any, index: number) => (
+                          <tr key={index}>
+                            <td className="px-3 py-2">{usage.userName}</td>
+                            <td className="px-3 py-2">{usage.department}</td>
+                            <td className="px-3 py-2">{usage.usageCount}회</td>
+                            <td className="px-3 py-2">{usage.credits}크레딧</td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+              </>
+            )}
           </div>
         )}
-      </div>
+      </Modal>
     </CompanyLayout>
   );
 }
