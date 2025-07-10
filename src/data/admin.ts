@@ -795,6 +795,7 @@ export const mockInquiries: InquiryAdmin[] = [
 
 // === 결제 관리 Mock 데이터 ===
 export const mockPayments: PaymentAdmin[] = [
+  // 최근 7일 데이터 (2025-07-04 ~ 2025-07-10)
   {
     id: 'pay001',
     user: {
@@ -804,16 +805,18 @@ export const mockPayments: PaymentAdmin[] = [
       type: 'general_user'
     },
     type: 'credit_purchase',
-    amount: 100000,
-    credits: 1000,
+    productName: '기본 패키지',
+    amount: 10000,
+    credits: 100,
     status: 'completed',
     paymentMethod: 'card',
-    transactionId: 'TXN-20240120-001',
-    receiptUrl: '/receipts/TXN-20240120-001.pdf',
-    createdAt: '2024-01-20T10:30:00Z',
-    completedAt: '2024-01-20T10:31:00Z',
+    taxInvoiceStatus: 'not_applicable',
+    transactionId: 'TXN-20250710-001',
+    receiptUrl: '/receipts/TXN-20250710-001.pdf',
+    createdAt: '2025-07-10T10:30:00Z',
+    completedAt: '2025-07-10T10:31:00Z',
     gateway: 'KCP',
-    gatewayTransactionId: 'KCP-20240120-12345'
+    gatewayTransactionId: 'KCP-20250710-12345'
   },
   {
     id: 'pay002',
@@ -821,40 +824,321 @@ export const mockPayments: PaymentAdmin[] = [
       id: '2',
       name: '이영희',
       email: 'lee.yh@techstartup.com',
-      type: 'company_admin'
+      type: 'company_admin',
+      companyName: '테크스타트업'
     },
     type: 'credit_purchase',
-    amount: 500000,
-    credits: 5000,
+    productName: '엔터프라이즈 패키지',
+    amount: 70000,
+    credits: 1000,
     status: 'completed',
     paymentMethod: 'bank',
-    transactionId: 'TXN-20240119-002',
-    receiptUrl: '/receipts/TXN-20240119-002.pdf',
-    createdAt: '2024-01-19T14:20:00Z',
-    completedAt: '2024-01-19T14:25:00Z',
+    taxInvoiceStatus: 'issued',
+    transactionId: 'TXN-20250709-002',
+    receiptUrl: '/receipts/TXN-20250709-002.pdf',
+    createdAt: '2025-07-09T14:22:00Z',
+    completedAt: '2025-07-09T14:25:00Z',
     gateway: 'Inicis',
-    gatewayTransactionId: 'INI-20240119-67890'
+    gatewayTransactionId: 'INI-20250709-67890'
   },
   {
     id: 'pay003',
     user: {
-      id: '4',
-      name: '정수진',
-      email: 'jung.sj@marketing.co.kr',
-      type: 'company_admin'
+      id: '5',
+      name: '최동현',
+      email: 'choi.dh@freelancer.com',
+      type: 'general_user'
+    },
+    type: 'credit_purchase',
+    productName: '인기 패키지',
+    amount: 25000,
+    credits: 300,
+    status: 'completed',
+    paymentMethod: 'kakaopay',
+    taxInvoiceStatus: 'not_applicable',
+    transactionId: 'TXN-20250708-003',
+    receiptUrl: '/receipts/TXN-20250708-003.pdf',
+    createdAt: '2025-07-08T15:30:00Z',
+    completedAt: '2025-07-08T15:31:00Z',
+    gateway: 'KCP',
+    gatewayTransactionId: 'KCP-20250708-23456'
+  },
+  {
+    id: 'pay004',
+    user: {
+      id: '9',
+      name: '박민수',
+      email: 'park.ms@startup.kr',
+      type: 'company_admin',
+      companyName: '혁신스타트업'
+    },
+    type: 'credit_purchase',
+    productName: '프리미엄 패키지',
+    amount: 40000,
+    credits: 500,
+    status: 'pending',
+    paymentMethod: 'bank',
+    taxInvoiceStatus: 'pending',
+    transactionId: 'TXN-20250707-004',
+    createdAt: '2025-07-07T09:45:00Z',
+    gateway: 'KCP',
+    gatewayTransactionId: 'KCP-20250707-45678'
+  },
+  {
+    id: 'pay005',
+    user: {
+      id: '3',
+      name: '김대영',
+      email: 'kim.dy@design.co.kr',
+      type: 'general_user'
+    },
+    type: 'credit_purchase',
+    productName: '기본 패키지',
+    amount: 10000,
+    credits: 100,
+    status: 'completed',
+    paymentMethod: 'naverpay',
+    taxInvoiceStatus: 'not_applicable',
+    transactionId: 'TXN-20250706-005',
+    receiptUrl: '/receipts/TXN-20250706-005.pdf',
+    createdAt: '2025-07-06T11:20:00Z',
+    completedAt: '2025-07-06T11:21:00Z',
+    gateway: 'Inicis',
+    gatewayTransactionId: 'INI-20250706-34567'
+  },
+  {
+    id: 'pay006',
+    user: {
+      id: '8',
+      name: '송민호',
+      email: 'song.mh@marketing.co.kr',
+      type: 'company_admin',
+      companyName: '디지털마케팅'
     },
     type: 'refund',
-    amount: -50000,
+    productName: '프리미엄 패키지',
+    amount: -40000,
     credits: -500,
     status: 'refunded',
     paymentMethod: 'card',
-    transactionId: 'TXN-20240118-003',
-    receiptUrl: '/receipts/TXN-20240118-003.pdf',
-    createdAt: '2024-01-18T09:15:00Z',
-    refundedAt: '2024-01-18T16:20:00Z',
+    taxInvoiceStatus: 'not_applicable',
+    transactionId: 'TXN-20250705-006',
+    receiptUrl: '/receipts/TXN-20250705-006.pdf',
+    createdAt: '2025-07-05T09:15:00Z',
+    refundedAt: '2025-07-05T16:20:00Z',
     refundReason: '서비스 불만족으로 인한 환불',
     refundedBy: 'admin-001',
     gateway: 'KCP'
+  },
+  {
+    id: 'pay007',
+    user: {
+      id: '7',
+      name: '장미희',
+      email: 'jang.mh@edu.org',
+      type: 'general_user'
+    },
+    type: 'credit_purchase',
+    productName: '인기 패키지',
+    amount: 25000,
+    credits: 300,
+    status: 'completed',
+    paymentMethod: 'card',
+    taxInvoiceStatus: 'not_applicable',
+    transactionId: 'TXN-20250704-007',
+    receiptUrl: '/receipts/TXN-20250704-007.pdf',
+    createdAt: '2025-07-04T16:15:00Z',
+    completedAt: '2025-07-04T16:16:00Z',
+    gateway: 'Inicis',
+    gatewayTransactionId: 'INI-20250704-56789'
+  },
+  
+  // 최근 30일 데이터 (2025-06-11 ~ 2025-07-03)
+  {
+    id: 'pay008',
+    user: {
+      id: '4',
+      name: '정수현',
+      email: 'jung.sh@corp.com',
+      type: 'company_admin',
+      companyName: '글로벌기업'
+    },
+    type: 'credit_purchase',
+    productName: '엔터프라이즈 패키지',
+    amount: 70000,
+    credits: 1000,
+    status: 'completed',
+    paymentMethod: 'bank',
+    taxInvoiceStatus: 'issued',
+    transactionId: 'TXN-20250703-008',
+    receiptUrl: '/receipts/TXN-20250703-008.pdf',
+    createdAt: '2025-07-03T14:30:00Z',
+    completedAt: '2025-07-03T14:35:00Z',
+    gateway: 'KCP',
+    gatewayTransactionId: 'KCP-20250703-67890'
+  },
+  {
+    id: 'pay009',
+    user: {
+      id: '1',
+      name: '김철수',
+      email: 'kim.cs@example.com',
+      type: 'general_user'
+    },
+    type: 'credit_purchase',
+    productName: '프리미엄 패키지',
+    amount: 40000,
+    credits: 500,
+    status: 'completed',
+    paymentMethod: 'kakaopay',
+    taxInvoiceStatus: 'not_applicable',
+    transactionId: 'TXN-20250630-009',
+    receiptUrl: '/receipts/TXN-20250630-009.pdf',
+    createdAt: '2025-06-30T12:00:00Z',
+    completedAt: '2025-06-30T12:01:00Z',
+    gateway: 'KCP',
+    gatewayTransactionId: 'KCP-20250630-78901'
+  },
+  {
+    id: 'pay010',
+    user: {
+      id: '6',
+      name: '한지수',
+      email: 'han.js@techstartup.com',
+      type: 'company_employee',
+      companyName: '테크스타트업'
+    },
+    type: 'credit_purchase',
+    productName: '기본 패키지',
+    amount: 10000,
+    credits: 100,
+    status: 'completed',
+    paymentMethod: 'naverpay',
+    taxInvoiceStatus: 'not_applicable',
+    transactionId: 'TXN-20250625-010',
+    receiptUrl: '/receipts/TXN-20250625-010.pdf',
+    createdAt: '2025-06-25T11:20:00Z',
+    completedAt: '2025-06-25T11:21:00Z',
+    gateway: 'Inicis',
+    gatewayTransactionId: 'INI-20250625-34567'
+  },
+  {
+    id: 'pay011',
+    user: {
+      id: '10',
+      name: '임성민',
+      email: 'lim.sm@agency.kr',
+      type: 'company_admin',
+      companyName: '크리에이티브에이전시'
+    },
+    type: 'credit_purchase',
+    productName: '인기 패키지',
+    amount: 25000,
+    credits: 300,
+    status: 'refunded',
+    paymentMethod: 'card',
+    taxInvoiceStatus: 'not_applicable',
+    transactionId: 'TXN-20250620-011',
+    receiptUrl: '/receipts/TXN-20250620-011.pdf',
+    createdAt: '2025-06-20T10:00:00Z',
+    completedAt: '2025-06-20T10:01:00Z',
+    refundedAt: '2025-06-22T15:30:00Z',
+    refundReason: '중복 결제로 인한 환불',
+    refundedBy: 'admin-002',
+    gateway: 'KCP',
+    gatewayTransactionId: 'KCP-20250620-89012'
+  },
+  {
+    id: 'pay012',
+    user: {
+      id: '3',
+      name: '김대영',
+      email: 'kim.dy@design.co.kr',
+      type: 'general_user'
+    },
+    type: 'credit_purchase',
+    productName: '프리미엄 패키지',
+    amount: 40000,
+    credits: 500,
+    status: 'completed',
+    paymentMethod: 'bank',
+    taxInvoiceStatus: 'not_applicable',
+    transactionId: 'TXN-20250615-012',
+    receiptUrl: '/receipts/TXN-20250615-012.pdf',
+    createdAt: '2025-06-15T09:30:00Z',
+    completedAt: '2025-06-15T09:35:00Z',
+    gateway: 'Inicis',
+    gatewayTransactionId: 'INI-20250615-90123'
+  },
+  
+  // 30일 이전 데이터 (2025-06-10 이전)
+  {
+    id: 'pay013',
+    user: {
+      id: '2',
+      name: '이영희',
+      email: 'lee.yh@techstartup.com',
+      type: 'company_admin',
+      companyName: '테크스타트업'
+    },
+    type: 'credit_purchase',
+    productName: '기본 패키지',
+    amount: 10000,
+    credits: 100,
+    status: 'completed',
+    paymentMethod: 'card',
+    taxInvoiceStatus: 'pending',
+    transactionId: 'TXN-20250610-013',
+    receiptUrl: '/receipts/TXN-20250610-013.pdf',
+    createdAt: '2025-06-10T14:00:00Z',
+    completedAt: '2025-06-10T14:01:00Z',
+    gateway: 'KCP',
+    gatewayTransactionId: 'KCP-20250610-01234'
+  },
+  {
+    id: 'pay014',
+    user: {
+      id: '5',
+      name: '최동현',
+      email: 'choi.dh@freelancer.com',
+      type: 'general_user'
+    },
+    type: 'credit_purchase',
+    productName: '인기 패키지',
+    amount: 25000,
+    credits: 300,
+    status: 'completed',
+    paymentMethod: 'kakaopay',
+    taxInvoiceStatus: 'not_applicable',
+    transactionId: 'TXN-20250605-014',
+    receiptUrl: '/receipts/TXN-20250605-014.pdf',
+    createdAt: '2025-06-05T13:45:00Z',
+    completedAt: '2025-06-05T13:46:00Z',
+    gateway: 'KCP',
+    gatewayTransactionId: 'KCP-20250605-12345'
+  },
+  {
+    id: 'pay015',
+    user: {
+      id: '9',
+      name: '박민수',
+      email: 'park.ms@startup.kr',
+      type: 'company_admin',
+      companyName: '혁신스타트업'
+    },
+    type: 'credit_purchase',
+    productName: '엔터프라이즈 패키지',
+    amount: 70000,
+    credits: 1000,
+    status: 'completed',
+    paymentMethod: 'bank',
+    taxInvoiceStatus: 'issued',
+    transactionId: 'TXN-20250530-015',
+    receiptUrl: '/receipts/TXN-20250530-015.pdf',
+    createdAt: '2025-05-30T10:20:00Z',
+    completedAt: '2025-05-30T10:25:00Z',
+    gateway: 'Inicis',
+    gatewayTransactionId: 'INI-20250530-23456'
   }
 ];
 

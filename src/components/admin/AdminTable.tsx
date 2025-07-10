@@ -121,7 +121,7 @@ export default function AdminTable<T>({
                   className={`px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider ${
                     column.sortable ? 'cursor-pointer hover:bg-gray-100 group' : ''
                   } ${column.className || ''}`}
-                  style={{ width: column.sortable ? 'auto' : column.width }}
+                  style={{ width: 'auto' }}
                   onClick={() => handleSort(column)}
                 >
                   <div className="flex items-center space-x-1">
@@ -131,7 +131,7 @@ export default function AdminTable<T>({
                 </th>
               ))}
               {actions && actions.length > 0 && (
-                <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                   작업
                 </th>
               )}
@@ -171,8 +171,8 @@ export default function AdminTable<T>({
                     </td>
                   ))}
                   {actions && actions.length > 0 && (
-                    <td className="px-6 py-4 whitespace-nowrap text-right text-sm">
-                      <div className="flex items-center justify-end space-x-2">
+                    <td className="px-6 py-4 whitespace-nowrap text-left text-sm">
+                      <div className="flex items-center justify-start space-x-2">
                         {actions
                           .filter(action => !action.show || action.show(item))
                           .map((action, actionIndex) => {

@@ -31,6 +31,7 @@ import AdminFilter, { FilterConfig } from '@/components/admin/AdminFilter';
 import AdminPagination from '@/components/admin/AdminPagination';
 import AdminModal, { ConfirmModal } from '@/components/admin/AdminModal';
 import AddUserModal from '@/components/admin/AddUserModal';
+import EditUserModal from '@/components/admin/EditUserModal';
 import { mockUsers, generateUserActivityLogs } from '@/data/admin';
 import { AdminUser } from '@/types/admin';
 
@@ -42,11 +43,13 @@ export default function AdminUsers() {
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage, setItemsPerPage] = useState(25);
   const [selectedUser, setSelectedUser] = useState<AdminUser | null>(null);
+  const [selectedUserPeriodCredits, setSelectedUserPeriodCredits] = useState<number>(0);
   const [isUserModalOpen, setIsUserModalOpen] = useState(false);
+  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [isAddUserModalOpen, setIsAddUserModalOpen] = useState(false);
   const [confirmModal, setConfirmModal] = useState<{
     isOpen: boolean;
-    type: 'suspend' | 'activate' | 'delete' | null;
+    type: 'suspend' | 'activate' | null;
     user: AdminUser | null;
   }>({ isOpen: false, type: null, user: null });
 
@@ -273,6 +276,9 @@ export default function AdminUsers() {
       label: '상세 보기',
       icon: Eye,
       onClick: (user: any) => {
+        // 원본 사용자 기간 크레딧을 먼저 계산
+        const originalPeriodCredits = calculatePeriodCredits(user);
+        setSelectedUserPeriodCredits(originalPeriodCredits);
         setSelectedUser({
           ...user,
           activityLogs: generateUserActivityLogs(user?.id || '', 20)
@@ -285,35 +291,10 @@ export default function AdminUsers() {
       label: '수정',
       icon: Edit,
       onClick: (user: any) => {
-        console.log('Edit user:', user);
+        setSelectedUser(user);
+        setIsEditModalOpen(true);
       },
       color: 'gray' as const
-    },
-    {
-      label: '정지',
-      icon: Ban,
-      onClick: (user: any) => {
-        setConfirmModal({
-          isOpen: true,
-          type: 'suspend',
-          user
-        });
-      },
-      color: 'yellow' as const,
-      show: (user: any) => user?.status === 'active'
-    },
-    {
-      label: '활성화',
-      icon: CheckCircle,
-      onClick: (user: any) => {
-        setConfirmModal({
-          isOpen: true,
-          type: 'activate',
-          user
-        });
-      },
-      color: 'green' as const,
-      show: (user: any) => user?.status !== 'active'
     }
   ];
 
@@ -404,6 +385,12 @@ export default function AdminUsers() {
 
   const handleAddUser = (userData: any) => {
     console.log('새 사용자 추가:', userData);
+    // 실제 구현에서는 API 호출
+    // 현재는 콘솔에 로그만 출력
+  };
+
+  const handleEditUser = (userData: Partial<AdminUser>) => {
+    console.log('사용자 정보 수정:', userData);
     // 실제 구현에서는 API 호출
     // 현재는 콘솔에 로그만 출력
   };
@@ -546,7 +533,10 @@ export default function AdminUsers() {
           title={`${selectedUser.name} 상세 정보`}
           size="lg"
         >
-          <UserDetailModal user={selectedUser} />
+          <UserDetailModal 
+            user={selectedUser} 
+            currentPeriodCredits={selectedUserPeriodCredits}
+          />
         </AdminModal>
       )}
 
@@ -557,17 +547,16 @@ export default function AdminUsers() {
         onConfirm={handleConfirmAction}
         title={
           confirmModal.type === 'suspend' ? '사용자 정지' :
-          confirmModal.type === 'activate' ? '사용자 활성화' :
-          '사용자 삭제'
+          confirmModal.type === 'activate' ? '사용자 활성화' : ''
         }
         message={
           confirmModal.type === 'suspend' 
             ? `${confirmModal.user?.name}님의 계정을 정지하시겠습니까? 정지된 계정은 로그인할 수 없습니다.`
             : confirmModal.type === 'activate'
             ? `${confirmModal.user?.name}님의 계정을 활성화하시겠습니까?`
-            : `${confirmModal.user?.name}님의 계정을 삭제하시겠습니까?`
+            : ''
         }
-        type={confirmModal.type === 'suspend' ? 'warning' : confirmModal.type === 'activate' ? 'info' : 'error'}
+        type={confirmModal.type === 'suspend' ? 'warning' : confirmModal.type === 'activate' ? 'info' : 'info'}
       />
 
       {/* 새 사용자 추가 모달 */}
@@ -576,12 +565,25 @@ export default function AdminUsers() {
         onClose={() => setIsAddUserModalOpen(false)}
         onSubmit={handleAddUser}
       />
+
+      {/* 사용자 편집 모달 */}
+      {selectedUser && (
+        <EditUserModal
+          isOpen={isEditModalOpen}
+          onClose={() => {
+            setIsEditModalOpen(false);
+            setSelectedUser(null);
+          }}
+          user={selectedUser}
+          onSave={handleEditUser}
+        />
+      )}
     </AdminLayout>
   );
 }
 
 // 사용자 상세 정보 모달 컴포넌트
-function UserDetailModal({ user }: { user: AdminUser }) {
+function UserDetailModal({ user, currentPeriodCredits }: { user: AdminUser; currentPeriodCredits?: number }) {
   const getUserTypeLabel = (type: string) => {
     const labels = {
       general_user: '일반사용자',
@@ -603,9 +605,9 @@ function UserDetailModal({ user }: { user: AdminUser }) {
 
   return (
     <div className="space-y-6">
-      {/* 기본 정보 */}
+      {/* 사용자 기본 정보 */}
       <div>
-        <h3 className="text-lg font-medium text-gray-900 mb-4">기본 정보</h3>
+        <h3 className="text-lg font-medium text-gray-900 mb-4">사용자 기본 정보</h3>
         <div className="grid grid-cols-2 gap-4">
           <div>
             <label className="block text-sm font-medium text-gray-500">이름</label>
@@ -614,6 +616,10 @@ function UserDetailModal({ user }: { user: AdminUser }) {
           <div>
             <label className="block text-sm font-medium text-gray-500">이메일</label>
             <p className="mt-1 text-sm text-gray-900">{user.email}</p>
+          </div>
+          <div>
+            <label className="block text-sm font-medium text-gray-500">전화번호</label>
+            <p className="mt-1 text-sm text-gray-900">{user.phone || '정보 없음'}</p>
           </div>
           <div>
             <label className="block text-sm font-medium text-gray-500">계정 유형</label>
@@ -648,45 +654,69 @@ function UserDetailModal({ user }: { user: AdminUser }) {
               <p className="mt-1 text-sm text-gray-900">{user.companyInfo.name}</p>
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-500">사업자번호</label>
+              <label className="block text-sm font-medium text-gray-500">사업자등록번호</label>
               <p className="mt-1 text-sm text-gray-900">{user.companyInfo.businessNumber}</p>
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-500">대표자명</label>
+              <p className="mt-1 text-sm text-gray-900">{user.companyInfo.ceo || '정보 없음'}</p>
             </div>
             <div>
               <label className="block text-sm font-medium text-gray-500">직원 수</label>
               <p className="mt-1 text-sm text-gray-900">{user.companyInfo.employeeCount}명</p>
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-500">구독 플랜</label>
-              <p className="mt-1 text-sm text-gray-900">{user.companyInfo.subscriptionPlan}</p>
+              <label className="block text-sm font-medium text-gray-500">업종</label>
+              <p className="mt-1 text-sm text-gray-900">{user.companyInfo.industry || '정보 없음'}</p>
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-500">전화번호</label>
+              <p className="mt-1 text-sm text-gray-900">{user.companyInfo.phone || '정보 없음'}</p>
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-500">이메일</label>
+              <p className="mt-1 text-sm text-gray-900">{user.companyInfo.email || '정보 없음'}</p>
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-500">웹사이트</label>
+              <p className="mt-1 text-sm text-gray-900">{user.companyInfo.website || '정보 없음'}</p>
+            </div>
+            <div className="col-span-2">
+              <label className="block text-sm font-medium text-gray-500">주소</label>
+              <p className="mt-1 text-sm text-gray-900">{user.companyInfo.address || '정보 없음'}</p>
+            </div>
+            <div className="col-span-2">
+              <label className="block text-sm font-medium text-gray-500">회사 소개</label>
+              <p className="mt-1 text-sm text-gray-900">{user.companyInfo.description || '정보 없음'}</p>
             </div>
           </div>
         </div>
       )}
 
-      {/* 크레딧 및 사용 정보 */}
+      {/* 크레딧 사용 정보 */}
       <div>
-        <h3 className="text-lg font-medium text-gray-900 mb-4">크레딧 및 사용 정보</h3>
+        <h3 className="text-lg font-medium text-gray-900 mb-4">크레딧 사용 정보</h3>
         <div className="grid grid-cols-3 gap-4">
-          <div>
-            <label className="block text-sm font-medium text-gray-500">보유 크레딧</label>
-            <p className="mt-1 text-lg font-semibold text-blue-600">{user.credits.toLocaleString()}</p>
+          <div className="text-center p-4 bg-blue-50 rounded-lg">
+            <p className="text-2xl font-bold text-blue-600">{user.credits.toLocaleString()}</p>
+            <p className="text-sm text-gray-600">현재 보유 크레딧</p>
           </div>
-          <div>
-            <label className="block text-sm font-medium text-gray-500">총 사용 크레딧</label>
-            <p className="mt-1 text-lg font-semibold text-purple-600">{user.totalCreditsUsed.toLocaleString()}</p>
+          <div className="text-center p-4 bg-purple-50 rounded-lg">
+            <p className="text-2xl font-bold text-purple-600">{user.totalCreditsUsed.toLocaleString()}</p>
+            <p className="text-sm text-gray-600">전체 사용 크레딧</p>
           </div>
-          <div>
-            <label className="block text-sm font-medium text-gray-500">총 사용액</label>
-            <p className="mt-1 text-lg font-semibold text-green-600">{user.totalSpent.toLocaleString()}원</p>
+          <div className="text-center p-4 bg-green-50 rounded-lg">
+            <p className="text-2xl font-bold text-green-600">{currentPeriodCredits?.toLocaleString() || '0'}</p>
+            <p className="text-sm text-gray-600">기간 내 사용 크레딧</p>
           </div>
         </div>
       </div>
 
-      {/* 활동 로그 */}
+      {/* 최근 활동 */}
       <div>
-        <h3 className="text-lg font-medium text-gray-900 mb-4">최근 활동</h3>
+        <h3 className="text-lg font-medium text-gray-900 mb-4">최근 활동 (최근 20개)</h3>
         <div className="space-y-3 max-h-64 overflow-y-auto">
-          {user.activityLogs?.map((log) => (
+          {user.activityLogs?.slice(0, 20).map((log) => (
             <div key={log.id} className="flex items-start space-x-3 p-3 bg-gray-50 rounded-lg">
               <div className="flex-1">
                 <p className="text-sm text-gray-900">{log.details}</p>
@@ -696,6 +726,9 @@ function UserDetailModal({ user }: { user: AdminUser }) {
               </div>
             </div>
           ))}
+          {(!user.activityLogs || user.activityLogs.length === 0) && (
+            <p className="text-sm text-gray-500 text-center py-4">활동 기록이 없습니다.</p>
+          )}
         </div>
       </div>
     </div>

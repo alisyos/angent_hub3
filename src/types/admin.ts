@@ -18,6 +18,7 @@ export interface AdminUser extends User {
   totalSpent: number;
   status: 'active' | 'suspended' | 'inactive';
   registeredAt: string;
+  phone?: string;
   companyInfo?: CompanyDetails;
   employees?: User[]; // 회사 관리자인 경우
   activityLogs: UserActivityLog[];
@@ -30,6 +31,11 @@ export interface CompanyDetails extends CompanyInfo {
   employeeCount: number;
   subscriptionPlan: string;
   totalEmployees: User[];
+  ceo?: string;
+  industry?: string;
+  email?: string;
+  website?: string;
+  description?: string;
 }
 
 export interface UserActivityLog {
@@ -160,12 +166,15 @@ export interface PaymentAdmin {
     name: string;
     email: string;
     type: 'general_user' | 'company_admin' | 'company_employee' | 'admin';
+    companyName?: string; // 회사관리자인 경우 회사명
   };
   type: 'credit_purchase' | 'subscription' | 'refund';
+  productName: string; // 상품명 (크레딧 패키지명)
   amount: number;
   credits: number;
   status: 'pending' | 'completed' | 'failed' | 'refunded' | 'cancelled';
   paymentMethod: 'card' | 'bank' | 'kakaopay' | 'naverpay' | 'toss';
+  taxInvoiceStatus?: 'not_applicable' | 'pending' | 'issued'; // 세금계산서 상태 (발행안함, 발행 전, 발행완료)
   transactionId: string;
   receiptUrl?: string;
   createdAt: string;
