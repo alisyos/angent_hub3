@@ -20,7 +20,7 @@ export const mockUsers: User[] = [
         userId: '1',
         action: 'login',
         details: '로그인',
-        timestamp: '2024-01-20T14:30:00Z',
+        timestamp: new Date(Date.now() - 1 * 24 * 60 * 60 * 1000).toISOString(),
         ipAddress: '192.168.1.100'
       },
       {
@@ -28,7 +28,7 @@ export const mockUsers: User[] = [
         userId: '1',
         action: 'agent_use',
         details: '회의록 자동화 AI 사용 (10 크레딧)',
-        timestamp: '2024-01-20T15:00:00Z',
+        timestamp: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000).toISOString(),
         ipAddress: '192.168.1.100'
       },
       {
@@ -36,7 +36,7 @@ export const mockUsers: User[] = [
         userId: '1',
         action: 'agent_use',
         details: '이메일 작성 AI 사용 (8 크레딧)',
-        timestamp: '2024-01-19T11:20:00Z',
+        timestamp: new Date(Date.now() - 3 * 24 * 60 * 60 * 1000).toISOString(),
         ipAddress: '192.168.1.100'
       },
       {
@@ -44,7 +44,7 @@ export const mockUsers: User[] = [
         userId: '1',
         action: 'agent_use',
         details: 'AI PPT 슬라이드 생성기 사용 (25 크레딧)',
-        timestamp: '2024-01-18T10:30:00Z',
+        timestamp: new Date(Date.now() - 5 * 24 * 60 * 60 * 1000).toISOString(),
         ipAddress: '192.168.1.100'
       },
       {
@@ -52,7 +52,7 @@ export const mockUsers: User[] = [
         userId: '1',
         action: 'agent_use',
         details: '키워드 분석 AI 사용 (12 크레딧)',
-        timestamp: '2024-01-15T14:20:00Z',
+        timestamp: new Date(Date.now() - 10 * 24 * 60 * 60 * 1000).toISOString(),
         ipAddress: '192.168.1.100'
       },
       {
@@ -60,7 +60,7 @@ export const mockUsers: User[] = [
         userId: '1',
         action: 'agent_use',
         details: '리뷰 분석 AI 사용 (15 크레딧)',
-        timestamp: '2024-01-10T09:15:00Z',
+        timestamp: new Date(Date.now() - 20 * 24 * 60 * 60 * 1000).toISOString(),
         ipAddress: '192.168.1.100'
       },
       {
@@ -68,7 +68,7 @@ export const mockUsers: User[] = [
         userId: '1',
         action: 'agent_use',
         details: 'AI 블로그 생성기 사용 (15 크레딧)',
-        timestamp: '2024-01-05T16:45:00Z',
+        timestamp: new Date(Date.now() - 40 * 24 * 60 * 60 * 1000).toISOString(),
         ipAddress: '192.168.1.100'
       }
     ]
@@ -100,7 +100,7 @@ export const mockUsers: User[] = [
         userId: '2',
         action: 'credit_purchase',
         details: '5000 크레딧 충전',
-        timestamp: '2024-01-19T09:00:00Z',
+        timestamp: new Date(Date.now() - 1 * 24 * 60 * 60 * 1000).toISOString(),
         ipAddress: '192.168.1.200'
       },
       {
@@ -108,7 +108,7 @@ export const mockUsers: User[] = [
         userId: '2',
         action: 'agent_use',
         details: 'AI PPT 슬라이드 생성기 사용 (25 크레딧)',
-        timestamp: '2024-01-19T16:30:00Z',
+        timestamp: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000).toISOString(),
         ipAddress: '192.168.1.200'
       },
       {
@@ -116,7 +116,7 @@ export const mockUsers: User[] = [
         userId: '2',
         action: 'agent_use',
         details: '음성파일 기반 문서 자동화 AI 사용 (30 크레딧)',
-        timestamp: '2024-01-18T13:15:00Z',
+        timestamp: new Date(Date.now() - 4 * 24 * 60 * 60 * 1000).toISOString(),
         ipAddress: '192.168.1.200'
       },
       {
@@ -124,7 +124,7 @@ export const mockUsers: User[] = [
         userId: '2',
         action: 'agent_use',
         details: '광고 문구 분석 및 제안 AI 사용 (20 크레딧)',
-        timestamp: '2024-01-17T11:20:00Z',
+        timestamp: new Date(Date.now() - 6 * 24 * 60 * 60 * 1000).toISOString(),
         ipAddress: '192.168.1.200'
       },
       {
@@ -132,7 +132,7 @@ export const mockUsers: User[] = [
         userId: '2',
         action: 'agent_use',
         details: 'SNS 이벤트 기획 AI 사용 (18 크레딧)',
-        timestamp: '2024-01-12T09:30:00Z',
+        timestamp: new Date(Date.now() - 15 * 24 * 60 * 60 * 1000).toISOString(),
         ipAddress: '192.168.1.200'
       },
       {
@@ -140,7 +140,7 @@ export const mockUsers: User[] = [
         userId: '2',
         action: 'agent_use',
         details: 'AI 카드뉴스 생성기 사용 (20 크레딧)',
-        timestamp: '2024-01-08T15:45:00Z',
+        timestamp: new Date(Date.now() - 35 * 24 * 60 * 60 * 1000).toISOString(),
         ipAddress: '192.168.1.200'
       }
     ]
@@ -186,7 +186,7 @@ export const mockUsers: User[] = [
         userId: '4',
         action: 'agent_use',
         details: '키워드 분석 AI 사용 (12 크레딧)',
-        timestamp: '2024-01-12T10:15:00Z',
+        timestamp: new Date(Date.now() - 3 * 24 * 60 * 60 * 1000).toISOString(),
         ipAddress: '192.168.1.300'
       },
       {
@@ -194,7 +194,7 @@ export const mockUsers: User[] = [
         userId: '4',
         action: 'agent_use',
         details: '리뷰 분석 AI 사용 (15 크레딧)',
-        timestamp: '2024-01-11T14:30:00Z',
+        timestamp: new Date(Date.now() - 8 * 24 * 60 * 60 * 1000).toISOString(),
         ipAddress: '192.168.1.300'
       },
       {
@@ -801,7 +801,7 @@ export const mockPayments: PaymentAdmin[] = [
       id: '1',
       name: '김철수',
       email: 'kim.cs@example.com',
-      type: 'individual'
+      type: 'general_user'
     },
     type: 'credit_purchase',
     amount: 100000,
@@ -821,7 +821,7 @@ export const mockPayments: PaymentAdmin[] = [
       id: '2',
       name: '이영희',
       email: 'lee.yh@techstartup.com',
-      type: 'company'
+      type: 'company_admin'
     },
     type: 'credit_purchase',
     amount: 500000,
@@ -841,7 +841,7 @@ export const mockPayments: PaymentAdmin[] = [
       id: '4',
       name: '정수진',
       email: 'jung.sj@marketing.co.kr',
-      type: 'company'
+      type: 'company_admin'
     },
     type: 'refund',
     amount: -50000,

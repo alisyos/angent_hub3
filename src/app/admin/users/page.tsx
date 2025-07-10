@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import AdminLayout from '@/components/AdminLayout';
 import { 
   Search, 
@@ -30,27 +30,47 @@ import AdminTable from '@/components/admin/AdminTable';
 import AdminFilter, { FilterConfig } from '@/components/admin/AdminFilter';
 import AdminPagination from '@/components/admin/AdminPagination';
 import AdminModal, { ConfirmModal } from '@/components/admin/AdminModal';
+import AddUserModal from '@/components/admin/AddUserModal';
 import { mockUsers, generateUserActivityLogs } from '@/data/admin';
 import { AdminUser } from '@/types/admin';
 
 export default function AdminUsers() {
   const [searchValue, setSearchValue] = useState('');
-  const [filterValues, setFilterValues] = useState<Record<string, string | string[]>>({});
+  const [filterValues, setFilterValues] = useState<Record<string, string | string[]>>({
+    period: 'all'
+  });
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage, setItemsPerPage] = useState(25);
   const [selectedUser, setSelectedUser] = useState<AdminUser | null>(null);
   const [isUserModalOpen, setIsUserModalOpen] = useState(false);
+  const [isAddUserModalOpen, setIsAddUserModalOpen] = useState(false);
   const [confirmModal, setConfirmModal] = useState<{
     isOpen: boolean;
     type: 'suspend' | 'activate' | 'delete' | null;
     user: AdminUser | null;
   }>({ isOpen: false, type: null, user: null });
 
+  // 커스텀 이벤트 리스너 등록
+  useEffect(() => {
+    const handleDateFilterChange = (event: any) => {
+      const { field, value } = event.detail;
+      setDateFilter(prev => ({
+        ...prev,
+        [field]: value
+      }));
+    };
+
+    document.addEventListener('dateFilterChange', handleDateFilterChange);
+    return () => {
+      document.removeEventListener('dateFilterChange', handleDateFilterChange);
+    };
+  }, []);
+
   // 기간 선택 필터 상태
   const [dateFilter, setDateFilter] = useState({
     startDate: '',
     endDate: '',
-    period: 'all' // 'all', 'week', 'month', 'custom'
+    period: 'all' // 'all', '7days', '30days', 'custom'
   });
 
   // 기간별 크레딧 사용량 계산 함수
@@ -60,12 +80,12 @@ export default function AdminUsers() {
     let startDate: Date | null = null;
     let endDate: Date | null = null;
 
-    if (dateFilter.period === 'week') {
+    if (dateFilter.period === '7days') {
       startDate = new Date();
       startDate.setDate(startDate.getDate() - 7);
-    } else if (dateFilter.period === 'month') {
+    } else if (dateFilter.period === '30days') {
       startDate = new Date();
-      startDate.setMonth(startDate.getMonth() - 1);
+      startDate.setDate(startDate.getDate() - 30);
     } else if (dateFilter.period === 'custom') {
       if (dateFilter.startDate) startDate = new Date(dateFilter.startDate);
       if (dateFilter.endDate) endDate = new Date(dateFilter.endDate);
@@ -121,6 +141,17 @@ export default function AdminUsers() {
         { label: '비활성', value: 'inactive' },
         { label: '정지', value: 'suspended' }
       ]
+    },
+    {
+      key: 'period',
+      label: '기간 선택 (사용 크레딧)',
+      type: 'select',
+      options: [
+        { label: '전체', value: 'all' },
+        { label: '최근 7일', value: '7days' },
+        { label: '최근 30일', value: '30days' },
+        { label: '직접 선택', value: 'custom' }
+      ]
     }
   ];
 
@@ -166,10 +197,11 @@ export default function AdminUsers() {
   const stats = {
     total: mockUsers.length,
     active: mockUsers.filter(u => u.status === 'active').length,
+    inactive: mockUsers.filter(u => u.status === 'inactive').length,
+    suspended: mockUsers.filter(u => u.status === 'suspended').length,
     generalUsers: mockUsers.filter(u => u.type === 'general_user').length,
     companyAdmin: mockUsers.filter(u => u.type === 'company_admin').length,
-    companyEmployee: mockUsers.filter(u => u.type === 'company_employee').length,
-    suspended: mockUsers.filter(u => u.status === 'suspended').length
+    companyEmployee: mockUsers.filter(u => u.type === 'company_employee').length
   };
 
   // 테이블 컬럼 정의
@@ -219,7 +251,6 @@ export default function AdminUsers() {
         return (
           <div className="flex items-center">
             <span className="font-medium text-purple-600">{periodCredits.toLocaleString()}</span>
-            <span className="text-xs text-gray-500 ml-1">크레딧</span>
           </div>
         );
       }
@@ -300,15 +331,23 @@ export default function AdminUsers() {
     
     const Icon = config.icon;
 
-    // 회사관리자나 회사일반사용자인 경우 회사명 포함
-    const displayLabel = (type === 'company_admin' || type === 'company_employee') && companyName
-      ? `${config.label} (${companyName})`
-      : config.label;
+    // 회사관리자나 회사일반사용자인 경우 회사명을 줄바꿈으로 표시
+    if ((type === 'company_admin' || type === 'company_employee') && companyName) {
+      return (
+        <div className="flex flex-col items-start">
+          <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${config.bg} ${config.text}`}>
+            <Icon className="w-3 h-3 mr-1" />
+            {config.label}
+          </span>
+          <span className="text-xs text-gray-500 mt-1">({companyName})</span>
+        </div>
+      );
+    }
 
     return (
       <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${config.bg} ${config.text}`}>
         <Icon className="w-3 h-3 mr-1" />
-        {displayLabel}
+        {config.label}
       </span>
     );
   };
@@ -342,6 +381,15 @@ export default function AdminUsers() {
       ...prev,
       [key]: value
     }));
+    
+    // 기간 선택 필터인 경우 dateFilter 상태도 업데이트
+    if (key === 'period') {
+      setDateFilter(prev => ({
+        ...prev,
+        period: value as string
+      }));
+    }
+    
     setCurrentPage(1);
   };
 
@@ -354,8 +402,17 @@ export default function AdminUsers() {
     setConfirmModal({ isOpen: false, type: null, user: null });
   };
 
+  const handleAddUser = (userData: any) => {
+    console.log('새 사용자 추가:', userData);
+    // 실제 구현에서는 API 호출
+    // 현재는 콘솔에 로그만 출력
+  };
+
   const newUserButton = (
-    <button className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 flex items-center space-x-2">
+    <button 
+      onClick={() => setIsAddUserModalOpen(true)}
+      className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 flex items-center space-x-2"
+    >
       <Plus className="w-4 h-4" />
       <span>새 사용자 추가</span>
     </button>
@@ -364,10 +421,11 @@ export default function AdminUsers() {
   // 기간별 표시 텍스트
   const getPeriodText = () => {
     switch (dateFilter.period) {
-      case 'week': return '최근 1주일';
-      case 'month': return '최근 1개월';
+      case 'all': return '전체';
+      case '7days': return '최근 7일';
+      case '30days': return '최근 30일';
       case 'custom': return '선택 기간';
-      default: return '전체 기간';
+      default: return '전체';
     }
   };
 
@@ -378,88 +436,71 @@ export default function AdminUsers() {
       actions={newUserButton}
       hideTimePeriod={true}
     >
-      {/* 기간 선택 섹션 */}
-      <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6 mb-8">
-        <div className="flex items-center justify-between mb-4">
-          <h3 className="text-lg font-semibold text-gray-900">기간 선택</h3>
-          <div className="flex items-center space-x-2">
-            <Calendar className="w-5 h-5 text-gray-400" />
-            <span className="text-sm text-gray-600">현재: {getPeriodText()}</span>
-          </div>
-        </div>
-        
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-          <div>
-            <select
-              value={dateFilter.period}
-              onChange={(e) => handleDateFilterChange('period', e.target.value)}
-              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-            >
-              <option value="all">전체</option>
-              <option value="week">최근 1주일</option>
-              <option value="month">최근 1개월</option>
-              <option value="custom">직접 선택</option>
-            </select>
-          </div>
-          
-          {dateFilter.period === 'custom' && (
-            <>
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">시작일</label>
-                <input
-                  type="date"
-                  value={dateFilter.startDate}
-                  onChange={(e) => handleDateFilterChange('startDate', e.target.value)}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                />
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">종료일</label>
-                <input
-                  type="date"
-                  value={dateFilter.endDate}
-                  onChange={(e) => handleDateFilterChange('endDate', e.target.value)}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                />
-              </div>
-            </>
-          )}
-        </div>
-        
-        <div className="mt-4 p-3 bg-blue-50 rounded-lg">
-          <p className="text-sm text-blue-800">
-            💡 기간 선택은 리스트의 '사용 크레딧' 컬럼에 반영됩니다. 선택된 기간 내 크레딧 사용량을 확인할 수 있습니다.
-          </p>
-        </div>
-      </div>
+
 
       {/* 통계 카드 */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
-        <AdminStats
-          title="전체 사용자"
-          value={stats.total}
-          icon={User}
-          color="blue"
-        />
-        <AdminStats
-          title="활성 사용자"
-          value={stats.active}
-          icon={CheckCircle}
-          color="green"
-          change={{ value: 12.5, type: 'positive', label: '전월대비' }}
-        />
-        <AdminStats
-          title="회사 계정"
-          value={stats.companyAdmin + stats.companyEmployee}
-          icon={Building2}
-          color="purple"
-        />
-        <AdminStats
-          title="정지된 계정"
-          value={stats.suspended}
-          icon={Ban}
-          color="red"
-        />
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 mb-6">
+        {/* 전체 사용자 박스 */}
+        <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-4">
+          <div className="flex items-center gap-3 mb-3">
+            <div className="w-8 h-8 bg-blue-100 rounded-lg flex items-center justify-center">
+              <User className="w-4 h-4 text-blue-600" />
+            </div>
+            <h3 className="font-medium text-gray-900">전체 사용자</h3>
+          </div>
+          <div className="grid grid-cols-2 gap-2">
+            <div className="text-center py-2">
+              <p className="text-lg font-semibold text-gray-900">{stats.total}</p>
+              <p className="text-xs text-gray-600">전체</p>
+            </div>
+            <div className="text-center py-2">
+              <p className="text-lg font-semibold text-green-600">{stats.active}</p>
+              <p className="text-xs text-gray-600">활성</p>
+            </div>
+            <div className="text-center py-2">
+              <p className="text-lg font-semibold text-yellow-600">{stats.inactive}</p>
+              <p className="text-xs text-gray-600">비활성</p>
+            </div>
+            <div className="text-center py-2">
+              <p className="text-lg font-semibold text-red-600">{stats.suspended}</p>
+              <p className="text-xs text-gray-600">정지</p>
+            </div>
+          </div>
+        </div>
+
+        {/* 일반 사용자 박스 */}
+        <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-4">
+          <div className="flex items-center gap-3 mb-3">
+            <div className="w-8 h-8 bg-purple-100 rounded-lg flex items-center justify-center">
+              <User className="w-4 h-4 text-purple-600" />
+            </div>
+            <h3 className="font-medium text-gray-900">일반 사용자</h3>
+          </div>
+          <div className="text-center">
+            <p className="text-2xl font-bold text-purple-600">{stats.generalUsers}</p>
+            <p className="text-xs text-gray-600">개인 계정 가입자</p>
+          </div>
+        </div>
+
+        {/* 회사 사용자 박스 */}
+        <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-4">
+          <div className="flex items-center gap-3 mb-3">
+            <div className="w-8 h-8 bg-green-100 rounded-lg flex items-center justify-center">
+              <Building2 className="w-4 h-4 text-green-600" />
+            </div>
+            <h3 className="font-medium text-gray-900">회사 사용자</h3>
+          </div>
+          <div className="grid grid-cols-2 gap-2">
+            <div className="text-center py-2">
+              <p className="text-lg font-semibold text-green-600">{stats.companyAdmin}</p>
+              <p className="text-xs text-gray-600">관리자</p>
+            </div>
+            <div className="text-center py-2">
+              <p className="text-lg font-semibold text-blue-600">{stats.companyEmployee}</p>
+              <p className="text-xs text-gray-600">일반사용자</p>
+            </div>
+          </div>
+        </div>
       </div>
 
       {/* 필터 */}
@@ -472,6 +513,8 @@ export default function AdminUsers() {
         onFilterChange={handleFilterChange}
         className="mb-6"
       />
+
+
 
       {/* 테이블 */}
       <AdminTable
@@ -525,6 +568,13 @@ export default function AdminUsers() {
             : `${confirmModal.user?.name}님의 계정을 삭제하시겠습니까?`
         }
         type={confirmModal.type === 'suspend' ? 'warning' : confirmModal.type === 'activate' ? 'info' : 'error'}
+      />
+
+      {/* 새 사용자 추가 모달 */}
+      <AddUserModal
+        isOpen={isAddUserModalOpen}
+        onClose={() => setIsAddUserModalOpen(false)}
+        onSubmit={handleAddUser}
       />
     </AdminLayout>
   );

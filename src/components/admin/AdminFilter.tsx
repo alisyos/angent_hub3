@@ -56,19 +56,57 @@ export default function AdminFilter({
     switch (filter.type) {
       case 'select':
         return (
-          <select
-            key={filter.key}
-            value={value || ''}
-            onChange={(e) => onFilterChange(filter.key, e.target.value)}
-            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm"
-          >
-            <option value="">{filter.placeholder || `모든 ${filter.label}`}</option>
-            {filter.options?.map((option) => (
-              <option key={option.value} value={option.value}>
-                {option.label}
-              </option>
-            ))}
-          </select>
+          <div key={filter.key}>
+            <select
+              value={value || ''}
+              onChange={(e) => onFilterChange(filter.key, e.target.value)}
+              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm"
+            >
+              {/* 기간 선택 필터가 아닌 경우에만 자동 placeholder 옵션 표시 */}
+              {filter.key !== 'period' && (
+                <option value="">{filter.placeholder || `모든 ${filter.label}`}</option>
+              )}
+              {filter.options?.map((option) => (
+                <option key={option.value} value={option.value}>
+                  {option.label}
+                </option>
+              ))}
+            </select>
+            
+            {/* 기간 선택 필터의 직접 선택 시 날짜 입력 필드 */}
+            {filter.key === 'period' && value === 'custom' && (
+              <div className="mt-4 grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">시작일</label>
+                  <input
+                    type="date"
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm"
+                    onChange={(e) => {
+                      // 부모 컴포넌트에서 처리하도록 이벤트 전파
+                      const event = new CustomEvent('dateFilterChange', {
+                        detail: { field: 'startDate', value: e.target.value }
+                      });
+                      document.dispatchEvent(event);
+                    }}
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">종료일</label>
+                  <input
+                    type="date"
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm"
+                    onChange={(e) => {
+                      // 부모 컴포넌트에서 처리하도록 이벤트 전파
+                      const event = new CustomEvent('dateFilterChange', {
+                        detail: { field: 'endDate', value: e.target.value }
+                      });
+                      document.dispatchEvent(event);
+                    }}
+                  />
+                </div>
+              </div>
+            )}
+          </div>
         );
 
       case 'multiselect':
