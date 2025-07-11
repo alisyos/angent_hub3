@@ -46,4 +46,6 @@ export interface CreditPackage {
   price: number;
   bonus?: number;
   popular?: boolean;
+  isActive?: boolean;
+  order?: number;
 } 

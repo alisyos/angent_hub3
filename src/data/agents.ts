@@ -164,28 +164,63 @@ export const creditPackages: CreditPackage[] = [
     name: '기본 패키지',
     credits: 100,
     price: 10000,
-    bonus: 0
+    bonus: 0,
+    isActive: true,
+    order: 1
   },
   {
     id: 'popular-300',
-    name: '인기 패키지',
+    name: '추천 패키지',
     credits: 300,
     price: 25000,
     bonus: 50,
-    popular: true
+    popular: true,
+    isActive: true,
+    order: 2
   },
   {
     id: 'premium-500',
     name: '프리미엄 패키지',
     credits: 500,
     price: 40000,
-    bonus: 100
+    bonus: 100,
+    isActive: true,
+    order: 3
   },
   {
     id: 'enterprise-1000',
     name: '엔터프라이즈 패키지',
     credits: 1000,
     price: 70000,
-    bonus: 200
+    bonus: 200,
+    isActive: true,
+    order: 4
+  },
+  {
+    id: 'starter-50',
+    name: '스타터 패키지',
+    credits: 50,
+    price: 5000,
+    bonus: 0,
+    isActive: false,
+    order: 5
+  },
+  {
+    id: 'mega-2000',
+    name: '메가 패키지',
+    credits: 2000,
+    price: 120000,
+    bonus: 500,
+    isActive: false,
+    order: 6
+  },
+  {
+    id: 'trial-20',
+    name: '체험 패키지',
+    credits: 20,
+    price: 2000,
+    bonus: 5,
+    isActive: false,
+    order: 7
   }
 ]; 

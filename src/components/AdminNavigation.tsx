@@ -9,7 +9,8 @@ import {
   HelpCircle,
   DollarSign,
   Bot,
-  Shield
+  Shield,
+  Package
 } from 'lucide-react';
 
 const navigationItems = [
@@ -18,6 +19,7 @@ const navigationItems = [
   { id: 'inquiries', name: '문의 관리', href: '/admin/inquiries', icon: MessageSquare },
   { id: 'faq', name: 'FAQ 관리', href: '/admin/faq', icon: HelpCircle },
   { id: 'payments', name: '결제 관리', href: '/admin/payments', icon: DollarSign },
+  { id: 'credit-packages', name: '크레딧 패키지 관리', href: '/admin/credit-packages', icon: Package },
   { id: 'agents', name: '에이전트 관리', href: '/admin/agents', icon: Bot },
 ];
 

@@ -147,7 +147,7 @@ export default function Credits() {
                     <div className="absolute -top-3 left-1/2 transform -translate-x-1/2">
                       <span className="bg-gradient-to-r from-orange-400 to-red-400 text-white px-3 py-1 rounded-full text-xs font-medium flex items-center">
                         <Star className="w-3 h-3 mr-1" />
-                        인기
+                        추천
                       </span>
                     </div>
                   )}
