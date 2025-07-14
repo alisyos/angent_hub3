@@ -53,14 +53,14 @@ export default function Profile() {
     startDate: '',
     endDate: '',
     type: 'all', // 'all', 'purchase', 'usage'
-    period: 'all' // 'all', 'week', 'month', 'custom'
+    period: 'week' // 'all', 'week', 'month', 'custom'
   });
 
   const [usageFilter, setUsageFilter] = useState({
     startDate: '',
     endDate: '',
     category: 'all', // 'all', '일반사무', '마케팅/광고', '콘텐츠 제작'
-    period: 'all' // 'all', 'week', 'month', 'custom'
+    period: 'week' // 'all', 'week', 'month', 'custom'
   });
 
   const [currentPage, setCurrentPage] = useState(1);
@@ -279,12 +279,13 @@ export default function Profile() {
 
   // 크레딧 내역 필터링 및 페이지네이션
   const getFilteredCreditHistory = () => {
-    // 회사 계정인 경우 사용 내역만 사용
+    // 회사 계정이나 관리자 계정인 경우 사용 내역만 사용
     const isCompanyAccount = userInfo.accountType === 'company';
-    let filtered = [...(isCompanyAccount ? companyUsageHistory : creditHistory)];
+    const isAdminAccount = userInfo.role === '관리자';
+    let filtered = [...(isCompanyAccount || isAdminAccount ? companyUsageHistory : creditHistory)];
 
-    // 유형 필터링 (회사 계정은 사용 내역만 있으므로 필터링 불필요)
-    if (creditFilter.type !== 'all' && !isCompanyAccount) {
+    // 유형 필터링 (회사 계정이나 관리자 계정은 사용 내역만 있으므로 필터링 불필요)
+    if (creditFilter.type !== 'all' && !isCompanyAccount && !isAdminAccount) {
       filtered = filtered.filter(item => item.type === creditFilter.type);
     }
 
@@ -293,15 +294,15 @@ export default function Profile() {
     let endDate = '';
 
     if (creditFilter.period === 'week') {
-      // 1주일 전부터 오늘까지
+      // 최근 7일
       const today = new Date();
       const weekAgo = new Date(today.getTime() - 7 * 24 * 60 * 60 * 1000);
       startDate = weekAgo.toISOString().split('T')[0];
       endDate = today.toISOString().split('T')[0];
     } else if (creditFilter.period === 'month') {
-      // 1개월 전부터 오늘까지
+      // 최근 30일
       const today = new Date();
-      const monthAgo = new Date(today.getFullYear(), today.getMonth() - 1, today.getDate());
+      const monthAgo = new Date(today.getTime() - 30 * 24 * 60 * 60 * 1000);
       startDate = monthAgo.toISOString().split('T')[0];
       endDate = today.toISOString().split('T')[0];
     } else if (creditFilter.period === 'custom') {
@@ -330,9 +331,10 @@ export default function Profile() {
   // 필터링된 데이터의 합계 계산
   const getFilteredSummary = () => {
     const isCompanyAccount = userInfo.accountType === 'company';
+    const isAdminAccount = userInfo.role === '관리자';
     
-    if (isCompanyAccount) {
-      // 회사 계정은 사용량만 계산
+    if (isCompanyAccount || isAdminAccount) {
+      // 회사 계정이나 관리자 계정은 사용량만 계산
       const totalUsage = filteredHistory
         .reduce((sum, item) => sum + Math.abs(item.amount), 0);
       
@@ -380,7 +382,7 @@ export default function Profile() {
         startDate: '',
         endDate: '',
         type: 'all',
-        period: 'all'
+        period: 'week'
       });
       setCurrentPage(1);
     } else if (tab === 'usage') {
@@ -389,7 +391,7 @@ export default function Profile() {
         startDate: '',
         endDate: '',
         category: 'all',
-        period: 'all'
+        period: 'week'
       });
       setUsageCurrentPage(1);
     }
@@ -411,22 +413,20 @@ export default function Profile() {
       let filteredDates = stat.dates;
 
       // 기간 필터링
-      if (usageFilter.period !== 'all') {
-        filteredDates = stat.dates.filter(date => {
-          const itemDate = new Date(date);
-          
-          if (usageFilter.period === 'week') {
-            return itemDate >= weekAgo;
-          } else if (usageFilter.period === 'month') {
-            return itemDate >= monthAgo;
-          } else if (usageFilter.period === 'custom' && usageFilter.startDate && usageFilter.endDate) {
-            const startDate = new Date(usageFilter.startDate);
-            const endDate = new Date(usageFilter.endDate);
-            return itemDate >= startDate && itemDate <= endDate;
-          }
-          return true;
-        });
-      }
+      filteredDates = stat.dates.filter(date => {
+        const itemDate = new Date(date);
+        
+        if (usageFilter.period === 'week') {
+          return itemDate >= weekAgo;
+        } else if (usageFilter.period === 'month') {
+          return itemDate >= monthAgo;
+        } else if (usageFilter.period === 'custom' && usageFilter.startDate && usageFilter.endDate) {
+          const startDate = new Date(usageFilter.startDate);
+          const endDate = new Date(usageFilter.endDate);
+          return itemDate >= startDate && itemDate <= endDate;
+        }
+        return true;
+      });
 
       const filteredUsage = filteredDates.length;
       const filteredCredits = Math.round((filteredUsage / stat.usage) * stat.credits);
@@ -627,7 +627,8 @@ export default function Profile() {
                       <div className="flex items-center space-x-3 p-3 bg-gray-50 rounded-md">
                         <Building2 className="w-4 h-4 text-gray-400" />
                         <span className="text-gray-900">
-                          {userInfo.accountType === 'individual' ? '개인' : '회사'}
+                          {userInfo.role === '관리자' ? '서비스 관리자' : 
+                           userInfo.accountType === 'individual' ? '개인' : '회사'}
                         </span>
                       </div>
                     </div>
@@ -805,8 +806,8 @@ export default function Profile() {
 
               {/* 필터 컨트롤 */}
               <div className="space-y-3 mb-6">
-                {/* 일반 사용자만 유형 선택 표시 */}
-                {userInfo.accountType !== 'company' && (
+                {/* 일반 사용자만 유형 선택 표시 (관리자는 제외) */}
+                {userInfo.accountType !== 'company' && userInfo.role !== '관리자' && (
                   <div className="flex items-center space-x-4">
                     <label className="text-sm font-medium text-gray-700 w-12">유형</label>
                     <select
@@ -829,9 +830,8 @@ export default function Profile() {
                     onChange={(e) => handleFilterChange('period', e.target.value)}
                     className="flex-1 max-w-xs px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                   >
-                    <option value="all">전체</option>
-                    <option value="week">1주일</option>
-                    <option value="month">1개월</option>
+                    <option value="week">최근 7일</option>
+                    <option value="month">최근 30일</option>
                     <option value="custom">직접입력</option>
                   </select>
                 </div>
@@ -862,7 +862,7 @@ export default function Profile() {
               </div>
 
               {/* 합계 정보 - 일반 사용자만 표시 */}
-              {userInfo.accountType !== 'company' && (
+              {userInfo.accountType !== 'company' && userInfo.role !== '관리자' && (
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4 p-4 bg-gray-50 rounded-lg">
                   <div className="text-center">
                     <p className="text-sm text-gray-600">총 충전</p>
@@ -877,6 +877,16 @@ export default function Profile() {
                     <p className={`text-xl font-bold ${(totalPurchase - totalUsage) >= 0 ? 'text-green-600' : 'text-red-600'}`}>
                       {(totalPurchase - totalUsage) >= 0 ? '+' : ''}{(totalPurchase - totalUsage).toLocaleString()}
                     </p>
+                  </div>
+                </div>
+              )}
+              {/* 관리자 계정 안내 */}
+              {userInfo.role === '관리자' && (
+                <div className="p-4 bg-blue-50 rounded-lg">
+                  <div className="text-center">
+                    <p className="text-sm text-gray-600">잔여 크레딧</p>
+                    <p className="text-xl font-bold text-blue-600">무제한</p>
+                    <p className="text-xs text-gray-500 mt-1">관리자 계정은 크레딧 제한이 없습니다</p>
                   </div>
                 </div>
               )}
@@ -906,7 +916,7 @@ export default function Profile() {
                       <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">내용</th>
                       <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">변동량</th>
                       <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                        {userInfo.accountType === 'company' ? '누적 사용량' : '잔여 크레딧'}
+                        {userInfo.accountType === 'company' || userInfo.role === '관리자' ? '누적 사용량' : '잔여 크레딧'}
                       </th>
                     </tr>
                   </thead>
@@ -929,7 +939,7 @@ export default function Profile() {
                             </span>
                           </td>
                           <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                            {userInfo.accountType === 'company' 
+                            {userInfo.accountType === 'company' || userInfo.role === '관리자'
                               ? `${('cumulativeUsage' in item ? (item as {cumulativeUsage: number}).cumulativeUsage : 0).toLocaleString()}` 
                               : ('balance' in item ? (item as {balance: number}).balance : 0).toLocaleString()
                             }
@@ -1012,9 +1022,8 @@ export default function Profile() {
                     onChange={(e) => handleUsageFilterChange('period', e.target.value)}
                     className="flex-1 max-w-xs px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                   >
-                    <option value="all">전체</option>
-                    <option value="week">1주일</option>
-                    <option value="month">1개월</option>
+                    <option value="week">최근 7일</option>
+                    <option value="month">최근 30일</option>
                     <option value="custom">직접입력</option>
                   </select>
                 </div>

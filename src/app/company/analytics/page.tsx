@@ -11,7 +11,6 @@ import {
   Building,
   Activity,
   Clock,
-  Filter,
   Eye
 } from 'lucide-react';
 
@@ -52,12 +51,8 @@ function CompanyAnalyticsContent() {
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage, setItemsPerPage] = useState(10);
   
-  // 기간 필터 상태
-  const [analyticsFilter, setAnalyticsFilter] = useState({
-    startDate: '',
-    endDate: '',
-    period: 'week' // 'all', 'week', 'month', 'custom'
-  });
+  const [dateRange, setDateRange] = useState('7d');
+  const [customDateRange, setCustomDateRange] = useState<{ startDate: string; endDate: string } | null>(null);
 
   // 모달 상태
   const [detailModal, setDetailModal] = useState<{
@@ -69,6 +64,60 @@ function CompanyAnalyticsContent() {
     type: null,
     data: null
   });
+
+  // 기간에 따른 날짜 계산
+  const getDateRange = () => {
+    const now = new Date();
+    let startDate = new Date();
+    
+    if (dateRange === '7d') {
+      startDate.setDate(now.getDate() - 7);
+    } else if (dateRange === '30d') {
+      startDate.setDate(now.getDate() - 30);
+    } else if (dateRange === 'custom' && customDateRange) {
+      startDate = new Date(customDateRange.startDate);
+      const endDate = new Date(customDateRange.endDate);
+      endDate.setHours(23, 59, 59, 999);
+      return { startDate, endDate };
+    }
+    
+    return { startDate, endDate: now };
+  };
+
+  const { startDate, endDate } = getDateRange();
+
+  // CompanyLayout에서 호출되는 기간 변경 핸들러
+  const handleTimePeriodChange = (period: string) => {
+    if (period === '최근 7일') {
+      setDateRange('7d');
+      setCustomDateRange(null);
+    } else if (period === '최근 30일') {
+      setDateRange('30d');
+      setCustomDateRange(null);
+    } else if (period === '직접입력') {
+      setDateRange('custom');
+    }
+    setCurrentPage(1);
+  };
+
+  // 커스텀 날짜 범위 설정 핸들러
+  const handleCustomDateRange = (dateRange: { startDate: string; endDate: string }) => {
+    setCustomDateRange(dateRange);
+    setDateRange('custom');
+    setCurrentPage(1);
+  };
+
+  // 현재 선택된 기간 텍스트 반환
+  const getCurrentPeriodText = () => {
+    if (dateRange === '7d') return '최근 7일';
+    if (dateRange === '30d') return '최근 30일';
+    if (dateRange === 'custom' && customDateRange) {
+      const start = new Date(customDateRange.startDate).toLocaleDateString('ko-KR');
+      const end = new Date(customDateRange.endDate).toLocaleDateString('ko-KR');
+      return `${start} ~ ${end}`;
+    }
+    return '직접입력';
+  };
 
   // AI 에이전트 이름 목록 생성
   const agentNames = aiAgents.map(agent => agent.name);
@@ -291,8 +340,7 @@ function CompanyAnalyticsContent() {
   };
 
   const handleAnalyticsFilterChange = (field: string, value: string) => {
-    setAnalyticsFilter(prev => ({ ...prev, [field]: value }));
-    setCurrentPage(1);
+    // This function is no longer needed as filtering is handled by CompanyLayout
   };
 
   // 요약 데이터 계산
@@ -334,54 +382,14 @@ function CompanyAnalyticsContent() {
     <CompanyLayout 
       title="분석 및 리포트"
       description="회사의 AI 에이전트 사용 현황을 분석하고 리포트를 생성하세요"
-      hideTimePeriod={true}
+      timePeriod={getCurrentPeriodText()}
+      onTimePeriodChange={handleTimePeriodChange}
+      customDateRange={customDateRange || undefined}
+      onCustomDateRange={handleCustomDateRange}
     >
       <div className="space-y-6">
         {/* 기간 선택 섹션 */}
-        <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
-          <div className="flex items-center justify-between mb-4">
-            <h3 className="text-lg font-semibold text-gray-900">기간 선택</h3>
-            <Filter className="w-5 h-5 text-gray-400" />
-          </div>
-          
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-            <div>
-              <select
-                value={analyticsFilter.period}
-                onChange={(e) => handleAnalyticsFilterChange('period', e.target.value)}
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-              >
-                <option value="all">전체</option>
-                <option value="week">최근 1주일</option>
-                <option value="month">최근 1개월</option>
-                <option value="custom">직접 선택</option>
-              </select>
-            </div>
-            
-            {analyticsFilter.period === 'custom' && (
-              <>
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">시작일</label>
-                  <input
-                    type="date"
-                    value={analyticsFilter.startDate}
-                    onChange={(e) => handleAnalyticsFilterChange('startDate', e.target.value)}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                  />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">종료일</label>
-                  <input
-                    type="date"
-                    value={analyticsFilter.endDate}
-                    onChange={(e) => handleAnalyticsFilterChange('endDate', e.target.value)}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                  />
-                </div>
-              </>
-            )}
-          </div>
-        </div>
+        {/* This section is now handled by CompanyLayout */}
 
         {/* 요약 정보 */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
@@ -394,7 +402,7 @@ function CompanyAnalyticsContent() {
           <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
             <h3 className="text-sm font-medium text-gray-600">총 사용 크레딧</h3>
             <p className="text-2xl font-bold text-green-600 mt-2">
-              {summaryData.totalCredits.toLocaleString()}크레딧
+              {summaryData.totalCredits.toLocaleString()}
             </p>
           </div>
           <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
@@ -485,7 +493,7 @@ function CompanyAnalyticsContent() {
                         {employee.usageCount}회
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                        {employee.totalCredits.toLocaleString()}크레딧
+                        {employee.totalCredits.toLocaleString()}
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
                         {employee.mostUsedAgent}
@@ -560,7 +568,7 @@ function CompanyAnalyticsContent() {
                         {department.usageCount}회
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                        {department.totalCredits.toLocaleString()}크레딧
+                        {department.totalCredits.toLocaleString()}
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
                         {department.mostUsedAgent}
@@ -633,7 +641,7 @@ function CompanyAnalyticsContent() {
                         {agent.usageCount}회
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                        {agent.totalCredits.toLocaleString()}크레딧
+                        {agent.totalCredits.toLocaleString()}
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
                         {agent.userCount}명
@@ -699,7 +707,7 @@ function CompanyAnalyticsContent() {
                           <tr key={index}>
                             <td className="px-3 py-2">{usage.agentName}</td>
                             <td className="px-3 py-2">{usage.usageCount}회</td>
-                            <td className="px-3 py-2">{usage.credits}크레딧</td>
+                            <td className="px-3 py-2">{usage.credits}</td>
                           </tr>
                         ))}
                       </tbody>
@@ -730,7 +738,7 @@ function CompanyAnalyticsContent() {
                           <tr key={index}>
                             <td className="px-3 py-2">{usage.agentName}</td>
                             <td className="px-3 py-2">{usage.usageCount}회</td>
-                            <td className="px-3 py-2">{usage.credits}크레딧</td>
+                            <td className="px-3 py-2">{usage.credits}</td>
                           </tr>
                         ))}
                       </tbody>
@@ -766,7 +774,7 @@ function CompanyAnalyticsContent() {
                             <td className="px-3 py-2">{usage.userName}</td>
                             <td className="px-3 py-2">{usage.department}</td>
                             <td className="px-3 py-2">{usage.usageCount}회</td>
-                            <td className="px-3 py-2">{usage.credits}크레딧</td>
+                            <td className="px-3 py-2">{usage.credits}</td>
                           </tr>
                         ))}
                       </tbody>

@@ -4,20 +4,68 @@ import { useState } from 'react';
 import CompanyLayout from '@/components/CompanyLayout';
 import AdminPagination from '@/components/admin/AdminPagination';
 import { 
-  Filter,
   Calendar
 } from 'lucide-react';
 
 export default function CompanyCredits() {
-  // 크레딧 충전 내역 필터 상태
-  const [creditFilter, setCreditFilter] = useState({
-    startDate: '',
-    endDate: '',
-    period: 'all' // 'all', 'week', 'month', 'custom'
-  });
-  
+  const [dateRange, setDateRange] = useState('7d');
+  const [customDateRange, setCustomDateRange] = useState<{ startDate: string; endDate: string } | null>(null);
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage, setItemsPerPage] = useState(10);
+
+  // 기간에 따른 날짜 계산
+  const getDateRange = () => {
+    const now = new Date();
+    let startDate = new Date();
+    
+    if (dateRange === '7d') {
+      startDate.setDate(now.getDate() - 7);
+    } else if (dateRange === '30d') {
+      startDate.setDate(now.getDate() - 30);
+    } else if (dateRange === 'custom' && customDateRange) {
+      startDate = new Date(customDateRange.startDate);
+      const endDate = new Date(customDateRange.endDate);
+      endDate.setHours(23, 59, 59, 999);
+      return { startDate, endDate };
+    }
+    
+    return { startDate, endDate: now };
+  };
+
+  const { startDate, endDate } = getDateRange();
+
+  // CompanyLayout에서 호출되는 기간 변경 핸들러
+  const handleTimePeriodChange = (period: string) => {
+    if (period === '최근 7일') {
+      setDateRange('7d');
+      setCustomDateRange(null);
+    } else if (period === '최근 30일') {
+      setDateRange('30d');
+      setCustomDateRange(null);
+    } else if (period === '직접입력') {
+      setDateRange('custom');
+    }
+    setCurrentPage(1); // 필터 변경시 첫 페이지로 이동
+  };
+
+  // 커스텀 날짜 범위 설정 핸들러
+  const handleCustomDateRange = (dateRange: { startDate: string; endDate: string }) => {
+    setCustomDateRange(dateRange);
+    setDateRange('custom');
+    setCurrentPage(1);
+  };
+
+  // 현재 선택된 기간 텍스트 반환
+  const getCurrentPeriodText = () => {
+    if (dateRange === '7d') return '최근 7일';
+    if (dateRange === '30d') return '최근 30일';
+    if (dateRange === 'custom' && customDateRange) {
+      const start = new Date(customDateRange.startDate).toLocaleDateString('ko-KR');
+      const end = new Date(customDateRange.endDate).toLocaleDateString('ko-KR');
+      return `${start} ~ ${end}`;
+    }
+    return '직접입력';
+  };
 
   // 회사 크레딧 충전 내역 (2025년 7월 8일 기준 최근 데이터)
   const creditPurchaseHistory = [
@@ -35,7 +83,10 @@ export default function CompanyCredits() {
     { id: 12, amount: 80000, description: '연간 패키지', date: '2025-04-25', balance: 85000, paymentMethod: '계좌이체', invoice: '2025-012', credits: 9000 },
     { id: 13, amount: 18000, description: '베이직 패키지', date: '2025-04-15', balance: 23000, paymentMethod: '카드', invoice: '2025-013', credits: 1800 },
     { id: 14, amount: 45000, description: '프리미엄 패키지', date: '2025-04-10', balance: 50000, paymentMethod: '계좌이체', invoice: '2025-014', credits: 4800 },
-    { id: 15, amount: 30000, description: '프로 패키지', date: '2025-03-20', balance: 35000, paymentMethod: '카드', invoice: '2025-015', credits: 3200 }
+    { id: 15, amount: 30000, description: '프로 패키지', date: '2025-03-20', balance: 35000, paymentMethod: '카드', invoice: '2025-015', credits: 3200 },
+    { id: 16, amount: -25000, description: '프로 패키지 환불', date: '2025-07-03', balance: 15000, paymentMethod: '환불', invoice: '2025-R001', credits: -2500 },
+    { id: 17, amount: -15000, description: '베이직 패키지 환불', date: '2025-06-18', balance: 18500, paymentMethod: '환불', invoice: '2025-R002', credits: -1500 },
+    { id: 18, amount: -40000, description: '프리미엄 패키지 환불', date: '2025-05-28', balance: 30000, paymentMethod: '환불', invoice: '2025-R003', credits: -4000 }
   ];
 
   // 크레딧 충전 내역 관련 함수들
@@ -43,36 +94,12 @@ export default function CompanyCredits() {
     let filtered = [...creditPurchaseHistory];
 
     // 기간 필터링
-    if (creditFilter.period !== 'all') {
-      const now = new Date();
-      const startDate = new Date();
-
-      if (creditFilter.period === 'week') {
-        startDate.setDate(now.getDate() - 7);
-      } else if (creditFilter.period === 'month') {
-        startDate.setMonth(now.getMonth() - 1);
-      }
-
-      filtered = filtered.filter(item => {
-        const itemDate = new Date(item.date);
-        return itemDate >= startDate;
-      });
-    }
-
-    // 커스텀 날짜 필터링
-    if (creditFilter.startDate) {
-      filtered = filtered.filter(item => item.date >= creditFilter.startDate);
-    }
-    if (creditFilter.endDate) {
-      filtered = filtered.filter(item => item.date <= creditFilter.endDate);
-    }
+    filtered = filtered.filter(item => {
+      const itemDate = new Date(item.date);
+      return itemDate >= startDate && itemDate <= endDate;
+    });
 
     return filtered.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
-  };
-
-  const handleCreditFilterChange = (field: string, value: string) => {
-    setCreditFilter(prev => ({ ...prev, [field]: value }));
-    setCurrentPage(1); // 필터 변경시 첫 페이지로 이동
   };
 
   const handlePageChange = (page: number) => {
@@ -101,55 +128,12 @@ export default function CompanyCredits() {
     <CompanyLayout 
       title="크레딧 충전 내역"
       description="회사 크레딧 충전 이력을 확인하고 관리하세요"
-      hideTimePeriod={true}
+      timePeriod={getCurrentPeriodText()}
+      onTimePeriodChange={handleTimePeriodChange}
+      customDateRange={customDateRange || undefined}
+      onCustomDateRange={handleCustomDateRange}
     >
       <div className="space-y-6">
-        {/* 필터 섹션 */}
-        <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
-          <div className="flex items-center justify-between mb-4">
-            <h3 className="text-lg font-semibold text-gray-900">기간 선택</h3>
-            <Filter className="w-5 h-5 text-gray-400" />
-          </div>
-          
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-            <div>
-              <select
-                value={creditFilter.period}
-                onChange={(e) => handleCreditFilterChange('period', e.target.value)}
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-              >
-                <option value="all">전체</option>
-                <option value="week">최근 1주일</option>
-                <option value="month">최근 1개월</option>
-                <option value="custom">직접 선택</option>
-              </select>
-            </div>
-            
-            {creditFilter.period === 'custom' && (
-              <>
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">시작일</label>
-                  <input
-                    type="date"
-                    value={creditFilter.startDate}
-                    onChange={(e) => handleCreditFilterChange('startDate', e.target.value)}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                  />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">종료일</label>
-                  <input
-                    type="date"
-                    value={creditFilter.endDate}
-                    onChange={(e) => handleCreditFilterChange('endDate', e.target.value)}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                  />
-                </div>
-              </>
-            )}
-          </div>
-        </div>
-
         {/* 요약 정보 */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
           <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
@@ -167,7 +151,7 @@ export default function CompanyCredits() {
           <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
             <h3 className="text-sm font-medium text-gray-600">충전 크레딧</h3>
             <p className="text-2xl font-bold text-purple-600 mt-2">
-              {getTotalCredits().toLocaleString()}크레딧
+              {getTotalCredits().toLocaleString()}
             </p>
           </div>
         </div>
@@ -218,22 +202,24 @@ export default function CompanyCredits() {
                       {item.description}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-blue-600">
-                      +{item.amount.toLocaleString()}원
+                      {item.amount >= 0 ? '+' : ''}{item.amount.toLocaleString()}원
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                       <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${
                         item.paymentMethod === '카드' 
                           ? 'bg-blue-100 text-blue-800' 
+                          : item.paymentMethod === '환불'
+                          ? 'bg-red-100 text-red-800'
                           : 'bg-green-100 text-green-800'
                       }`}>
                         {item.paymentMethod}
                       </span>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-purple-600">
-                      +{item.credits.toLocaleString()}크레딧
+                      {item.credits >= 0 ? '+' : ''}{item.credits.toLocaleString()}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                      {item.balance.toLocaleString()}크레딧
+                      {item.balance.toLocaleString()}
                     </td>
                   </tr>
                 ))}
@@ -248,11 +234,7 @@ export default function CompanyCredits() {
             totalItems={getFilteredCreditHistory().length}
             itemsPerPage={itemsPerPage}
             onPageChange={handlePageChange}
-            onItemsPerPageChange={(items) => {
-              setItemsPerPage(items);
-              setCurrentPage(1);
-            }}
-            className="px-6 py-4 border-t border-gray-200"
+            onItemsPerPageChange={setItemsPerPage}
           />
         </div>
       </div>

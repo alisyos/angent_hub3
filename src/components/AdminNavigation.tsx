@@ -13,6 +13,8 @@ import {
   Package,
   Grid3X3
 } from 'lucide-react';
+import { mockUsers, mockInquiries } from '@/data/admin';
+import { aiAgents } from '@/data/agents';
 
 const navigationItems = [
   { id: 'dashboard', name: '대시보드', href: '/admin', icon: BarChart3 },
@@ -31,6 +33,13 @@ interface AdminNavigationProps {
 
 export default function AdminNavigation({ className = '' }: AdminNavigationProps) {
   const pathname = usePathname();
+
+  // 통계 데이터 계산
+  const totalUsers = mockUsers.length;
+  const activeUsers = mockUsers.filter(user => user.status === 'active').length;
+  const totalAgents = aiAgents.length;
+  const activeAgents = aiAgents.filter(agent => agent.isActive).length;
+  const pendingInquiries = mockInquiries.filter(inquiry => inquiry.status === 'pending').length;
 
   return (
     <aside className={`w-64 bg-white border-r border-gray-200 min-h-screen ${className}`}>
@@ -89,16 +98,16 @@ export default function AdminNavigation({ className = '' }: AdminNavigationProps
           <h3 className="text-sm font-medium text-gray-900 mb-3">빠른 통계</h3>
           <div className="space-y-2">
             <div className="flex justify-between text-xs">
-              <span className="text-gray-600">총 사용자</span>
-              <span className="font-medium text-gray-900">2,847</span>
+              <span className="text-gray-600">사용자</span>
+              <span className="font-medium text-gray-900">{activeUsers}/{totalUsers}</span>
+            </div>
+            <div className="flex justify-between text-xs">
+              <span className="text-gray-600">에이전트</span>
+              <span className="font-medium text-green-600">{activeAgents}/{totalAgents}</span>
             </div>
             <div className="flex justify-between text-xs">
               <span className="text-gray-600">미처리 문의</span>
-              <span className="font-medium text-orange-600">23</span>
-            </div>
-            <div className="flex justify-between text-xs">
-              <span className="text-gray-600">활성 에이전트</span>
-              <span className="font-medium text-green-600">10/10</span>
+              <span className="font-medium text-orange-600">{pendingInquiries}</span>
             </div>
           </div>
         </div>

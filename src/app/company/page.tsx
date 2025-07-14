@@ -23,8 +23,61 @@ import {
 } from 'recharts';
 
 export default function CompanyDashboard() {
-  const [selectedPeriod, setSelectedPeriod] = useState('최근 7일');
+  const [dateRange, setDateRange] = useState('7d');
+  const [customDateRange, setCustomDateRange] = useState<{ startDate: string; endDate: string } | null>(null);
   
+  // 기간에 따른 날짜 계산
+  const getDateRange = () => {
+    const now = new Date();
+    let startDate = new Date();
+    
+    if (dateRange === '7d') {
+      startDate.setDate(now.getDate() - 7);
+    } else if (dateRange === '30d') {
+      startDate.setDate(now.getDate() - 30);
+    } else if (dateRange === 'custom' && customDateRange) {
+      startDate = new Date(customDateRange.startDate);
+      const endDate = new Date(customDateRange.endDate);
+      endDate.setHours(23, 59, 59, 999); // 종료일의 끝까지 포함
+      return { startDate, endDate };
+    }
+    
+    return { startDate, endDate: now };
+  };
+
+  const { startDate, endDate } = getDateRange();
+
+  // CompanyLayout에서 호출되는 기간 변경 핸들러
+  const handleTimePeriodChange = (period: string) => {
+    if (period === '최근 7일') {
+      setDateRange('7d');
+      setCustomDateRange(null);
+    } else if (period === '최근 30일') {
+      setDateRange('30d');
+      setCustomDateRange(null);
+    } else if (period === '직접입력') {
+      setDateRange('custom');
+    }
+  };
+
+  // 커스텀 날짜 범위 설정 핸들러
+  const handleCustomDateRange = (dateRange: { startDate: string; endDate: string }) => {
+    setCustomDateRange(dateRange);
+    setDateRange('custom');
+  };
+
+  // 현재 선택된 기간 텍스트 반환
+  const getCurrentPeriodText = () => {
+    if (dateRange === '7d') return '최근 7일';
+    if (dateRange === '30d') return '최근 30일';
+    if (dateRange === 'custom' && customDateRange) {
+      const start = new Date(customDateRange.startDate).toLocaleDateString('ko-KR');
+      const end = new Date(customDateRange.endDate).toLocaleDateString('ko-KR');
+      return `${start} ~ ${end}`;
+    }
+    return '직접입력';
+  };
+
   // 대시보드에서는 상위 5명의 직원만 표시 (사용량 기준)
   const topEmployeesByUsage = [...employeeData]
     .filter(emp => emp.creditsUsed > 0)
@@ -62,29 +115,10 @@ export default function CompanyDashboard() {
   // 기간별 크레딧 충전 현황 계산
   const getCreditChargeStats = () => {
     let filtered = [...creditPurchaseHistory];
-    const now = new Date();
-    let startDate = new Date();
-
-    switch (selectedPeriod) {
-      case '최근 1일':
-        startDate.setDate(now.getDate() - 7);
-        break;
-      case '최근 7일':
-        startDate.setDate(now.getDate() - 7);
-        break;
-      case '최근 30일':
-        startDate.setDate(now.getDate() - 30);
-        break;
-      case '최근 90일':
-        startDate.setDate(now.getDate() - 90);
-        break;
-      default:
-        startDate = new Date('2023-01-01');
-    }
 
     filtered = filtered.filter(item => {
       const itemDate = new Date(item.date);
-      return itemDate >= startDate;
+      return itemDate >= startDate && itemDate <= endDate;
     });
 
     const totalAmount = filtered.reduce((sum, item) => sum + item.amount, 0);
@@ -95,60 +129,37 @@ export default function CompanyDashboard() {
 
   // 기간별 그래프 데이터 (크레딧 사용량과 사용횟수 포함)
   const getChartData = () => {
-    switch (selectedPeriod) {
-      case '최근 1일':
-        // 최근 7일간의 크레딧 사용량
-        return [
-          { period: '01-14', usage: 720, count: 45 },
-          { period: '01-15', usage: 850, count: 52 },
-          { period: '01-16', usage: 920, count: 58 },
-          { period: '01-17', usage: 780, count: 48 },
-          { period: '01-18', usage: 1050, count: 65 },
-          { period: '01-19', usage: 1180, count: 72 },
-          { period: '01-20', usage: 1320, count: 78 }
-        ];
-      case '최근 7일':
-        // 최근 10주간의 크레딧 사용량
-        return [
-          { period: '10주전', usage: 4200, count: 280 },
-          { period: '9주전', usage: 4800, count: 320 },
-          { period: '8주전', usage: 5100, count: 340 },
-          { period: '7주전', usage: 4950, count: 330 },
-          { period: '6주전', usage: 5300, count: 353 },
-          { period: '5주전', usage: 5700, count: 380 },
-          { period: '4주전', usage: 5850, count: 390 },
-          { period: '3주전', usage: 6200, count: 413 },
-          { period: '2주전', usage: 5900, count: 393 },
-          { period: '1주전', usage: 6500, count: 433 }
-        ];
-      case '최근 30일':
-      case '최근 90일':
-        // 최근 12개월의 크레딧 사용량
-        return [
-          { period: '1월', usage: 18500, count: 1233 },
-          { period: '2월', usage: 22000, count: 1467 },
-          { period: '3월', usage: 19800, count: 1320 },
-          { period: '4월', usage: 24500, count: 1633 },
-          { period: '5월', usage: 27200, count: 1813 },
-          { period: '6월', usage: 25800, count: 1720 },
-          { period: '7월', usage: 29100, count: 1940 },
-          { period: '8월', usage: 31500, count: 2100 },
-          { period: '9월', usage: 28900, count: 1927 },
-          { period: '10월', usage: 33200, count: 2213 },
-          { period: '11월', usage: 35800, count: 2387 },
-          { period: '12월', usage: 38400, count: 2560 }
-        ];
-      default:
-        return [];
+    if (dateRange === '7d') {
+      // 최근 7일간의 크레딧 사용량
+      return [
+        { period: '01-14', usage: 720, count: 45 },
+        { period: '01-15', usage: 850, count: 52 },
+        { period: '01-16', usage: 920, count: 58 },
+        { period: '01-17', usage: 780, count: 48 },
+        { period: '01-18', usage: 1050, count: 65 },
+        { period: '01-19', usage: 1180, count: 72 },
+        { period: '01-20', usage: 1320, count: 78 }
+      ];
+    } else if (dateRange === '30d' || dateRange === 'custom') {
+      // 최근 30일간의 크레딧 사용량 (주단위)
+      return [
+        { period: '4주전', usage: 4200, count: 280 },
+        { period: '3주전', usage: 4800, count: 320 },
+        { period: '2주전', usage: 5100, count: 340 },
+        { period: '1주전', usage: 4950, count: 330 }
+      ];
     }
+    return [];
   };
 
   return (
     <CompanyLayout 
       title="회사 관리 대시보드"
       description="AI 에이전트 사용 현황과 직원 관리를 한눈에 확인하세요"
-      timePeriod={selectedPeriod}
-      onTimePeriodChange={setSelectedPeriod}
+      timePeriod={getCurrentPeriodText()}
+      onTimePeriodChange={handleTimePeriodChange}
+      customDateRange={customDateRange || undefined}
+      onCustomDateRange={handleCustomDateRange}
     >
       <div className="space-y-8">
         {/* 상단 메인 섹션 - 좌측 카드 3개, 우측 그래프 */}

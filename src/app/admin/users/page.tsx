@@ -38,7 +38,7 @@ import { AdminUser } from '@/types/admin';
 export default function AdminUsers() {
   const [searchValue, setSearchValue] = useState('');
   const [filterValues, setFilterValues] = useState<Record<string, string | string[]>>({
-    period: 'all'
+    period: '7days'
   });
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage, setItemsPerPage] = useState(25);
@@ -73,7 +73,7 @@ export default function AdminUsers() {
   const [dateFilter, setDateFilter] = useState({
     startDate: '',
     endDate: '',
-    period: 'all' // 'all', '7days', '30days', 'custom'
+    period: '7days' // '7days', '30days', 'custom'
   });
 
   // 기간별 크레딧 사용량 계산 함수
@@ -94,10 +94,7 @@ export default function AdminUsers() {
       if (dateFilter.endDate) endDate = new Date(dateFilter.endDate);
     }
 
-    // 전체 기간인 경우 모든 크레딧 사용량 반환
-    if (dateFilter.period === 'all') {
-      return user.totalCreditsUsed;
-    }
+
 
     // 기간 내 크레딧 사용량 계산
     let periodCredits = 0;
@@ -150,10 +147,9 @@ export default function AdminUsers() {
       label: '기간 선택 (사용 크레딧)',
       type: 'select',
       options: [
-        { label: '전체', value: 'all' },
         { label: '최근 7일', value: '7days' },
         { label: '최근 30일', value: '30days' },
-        { label: '직접 선택', value: 'custom' }
+        { label: '직접 입력', value: 'custom' }
       ]
     }
   ];
@@ -395,24 +391,35 @@ export default function AdminUsers() {
     // 현재는 콘솔에 로그만 출력
   };
 
-  const newUserButton = (
-    <button 
-      onClick={() => setIsAddUserModalOpen(true)}
-      className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 flex items-center space-x-2"
-    >
-      <Plus className="w-4 h-4" />
-      <span>새 사용자 추가</span>
-    </button>
+  const headerActions = (
+    <div className="flex items-center space-x-3">
+      <button 
+        onClick={() => {
+          // 결제 추가 모달 열기 (구현 필요)
+          console.log('결제 추가 버튼 클릭');
+        }}
+        className="px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 flex items-center space-x-2"
+      >
+        <CreditCard className="w-4 h-4" />
+        <span>결제 추가</span>
+      </button>
+      <button 
+        onClick={() => setIsAddUserModalOpen(true)}
+        className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 flex items-center space-x-2"
+      >
+        <Plus className="w-4 h-4" />
+        <span>새 사용자 추가</span>
+      </button>
+    </div>
   );
 
   // 기간별 표시 텍스트
   const getPeriodText = () => {
     switch (dateFilter.period) {
-      case 'all': return '전체';
       case '7days': return '최근 7일';
       case '30days': return '최근 30일';
       case 'custom': return '선택 기간';
-      default: return '전체';
+      default: return '최근 7일';
     }
   };
 
@@ -420,7 +427,7 @@ export default function AdminUsers() {
     <AdminLayout
       title="사용자 관리"
       description="플랫폼 사용자들을 관리하고 모니터링하세요"
-      actions={newUserButton}
+      actions={headerActions}
       hideTimePeriod={true}
     >
 
@@ -491,15 +498,95 @@ export default function AdminUsers() {
       </div>
 
       {/* 필터 */}
-      <AdminFilter
-        searchValue={searchValue}
-        onSearchChange={setSearchValue}
-        searchPlaceholder="이름, 이메일, 회사명으로 검색..."
-        filters={filterConfigs}
-        filterValues={filterValues}
-        onFilterChange={handleFilterChange}
-        className="mb-6"
-      />
+      <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6 mb-6">
+        <div className="grid grid-cols-1 gap-4">
+          {/* 검색 */}
+          <div className="flex items-center space-x-4">
+            <div className="flex-1 relative">
+              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
+              <input
+                type="text"
+                placeholder="이름, 이메일, 회사명으로 검색..."
+                value={searchValue}
+                onChange={(e) => setSearchValue(e.target.value)}
+                className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              />
+            </div>
+          </div>
+
+          {/* 필터 */}
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            {/* 계정 유형 */}
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">계정 유형</label>
+              <select
+                value={filterValues.type || ''}
+                onChange={(e) => handleFilterChange('type', e.target.value)}
+                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm"
+              >
+                <option value="">모든 계정 유형</option>
+                <option value="general_user">일반사용자</option>
+                <option value="company_admin">회사관리자</option>
+                <option value="company_employee">회사일반사용자</option>
+                <option value="admin">관리자</option>
+              </select>
+            </div>
+
+            {/* 상태 */}
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">상태</label>
+              <select
+                value={filterValues.status || ''}
+                onChange={(e) => handleFilterChange('status', e.target.value)}
+                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm"
+              >
+                <option value="">모든 상태</option>
+                <option value="active">활성</option>
+                <option value="inactive">비활성</option>
+                <option value="suspended">정지</option>
+              </select>
+            </div>
+
+            {/* 기간 선택 */}
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">기간 선택 (사용 크레딧)</label>
+              <select
+                value={filterValues.period}
+                onChange={(e) => handleFilterChange('period', e.target.value)}
+                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm"
+              >
+                <option value="7days">최근 7일</option>
+                <option value="30days">최근 30일</option>
+                <option value="custom">직접 입력</option>
+              </select>
+              
+              {/* 직접 입력 시 날짜 입력 필드 */}
+              {filterValues.period === 'custom' && (
+                <div className="mt-4 grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">시작일</label>
+                    <input
+                      type="date"
+                      value={dateFilter.startDate}
+                      onChange={(e) => handleDateFilterChange('startDate', e.target.value)}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">종료일</label>
+                    <input
+                      type="date"
+                      value={dateFilter.endDate}
+                      onChange={(e) => handleDateFilterChange('endDate', e.target.value)}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm"
+                    />
+                  </div>
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+      </div>
 
 
 
