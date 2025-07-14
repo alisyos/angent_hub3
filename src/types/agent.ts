@@ -21,6 +21,19 @@ export interface AgentInput {
 
 export type AgentCategory = '일반사무' | '마케팅/광고' | '콘텐츠 제작';
 
+export interface Category {
+  id: string;
+  name: string;
+  description: string;
+  color: string;
+  icon: string;
+  order: number;
+  isActive: boolean;
+  agentCount?: number;
+  createdAt: string;
+  updatedAt: string;
+}
+
 export interface User {
   id: string;
   email: string;

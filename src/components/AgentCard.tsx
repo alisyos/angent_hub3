@@ -66,15 +66,7 @@ export default function AgentCard({ agent, onClick }: AgentCardProps) {
           )}
         </div>
 
-        {/* Input/Output Info */}
-        <div className="space-y-2 mb-4 text-xs text-gray-500">
-          <div>
-            <span className="font-medium">입력:</span> {agent.inputs.length}개 항목
-          </div>
-          <div>
-            <span className="font-medium">출력:</span> {agent.outputs.length}개 결과물
-          </div>
-        </div>
+
 
         {/* Action Button */}
         <button

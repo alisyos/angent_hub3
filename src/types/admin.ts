@@ -52,6 +52,8 @@ export interface AgentAdmin extends AIAgent {
   statistics: AgentStatistics;
   settings: AgentSettings;
   logs: AgentLog[];
+  order: number; // 표시 순서
+  customImage?: string; // 커스텀 이미지 (base64)
 }
 
 export interface AgentStatistics {

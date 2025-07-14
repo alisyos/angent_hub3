@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import AdminLayout from '@/components/AdminLayout';
 import AdminStats from '@/components/admin/AdminStats';
 import AdminFilter from '@/components/admin/AdminFilter';
@@ -25,12 +25,25 @@ import {
   FileText,
   CheckCircle,
   XCircle,
-  Save
+  Save,
+  Edit,
+  ArrowUp,
+  ArrowDown,
+  Monitor,
+  ArrowUpDown
 } from 'lucide-react';
 
+// 아이콘 목록 (20~30개)
+const availableIcons = [
+  '📝', '📧', '📊', '🔍', '🎨', '🎉', '✍️', '📈', '💡', '🎙️',
+  '📋', '💼', '📱', '🖥️', '⚡', '🚀', '🎯', '📌', '🔧', '⚙️',
+  '📦', '🎭', '🎪', '🎨', '🎬', '📷', '🎵', '🎼', '🎸', '🎮'
+];
+
 // AgentAdmin 타입으로 변환하는 헬퍼 함수
-const convertToAgentAdmin = (agent: AIAgent): AgentAdmin => ({
+const convertToAgentAdmin = (agent: AIAgent, index: number): AgentAdmin => ({
   ...agent,
+  order: index + 1,
   statistics: {
     totalUsage: Math.floor(Math.random() * 2000) + 500,
     successRate: Math.random() * 20 + 80, // 80-100%
@@ -41,7 +54,7 @@ const convertToAgentAdmin = (agent: AIAgent): AgentAdmin => ({
     errorCount: Math.floor(Math.random() * 50)
   },
   settings: {
-    isEnabled: true,
+    isEnabled: agent.isActive,
     maxConcurrentUsers: Math.floor(Math.random() * 50) + 10,
     maintenanceMode: false,
     apiKeys: ['key_' + Math.random().toString(36).substr(2, 9)],
@@ -62,15 +75,21 @@ const convertToAgentAdmin = (agent: AIAgent): AgentAdmin => ({
 });
 
 export default function AdminAgents() {
-  const [agentAdmins] = useState<AgentAdmin[]>(aiAgents.map(convertToAgentAdmin));
+  const [agentAdmins, setAgentAdmins] = useState<AgentAdmin[]>(
+    aiAgents.map(convertToAgentAdmin).sort((a, b) => (a.order || 0) - (b.order || 0))
+  );
   const [filteredAgents, setFilteredAgents] = useState<AgentAdmin[]>(agentAdmins);
   const [selectedAgent, setSelectedAgent] = useState<AgentAdmin | null>(null);
   const [showDetailModal, setShowDetailModal] = useState(false);
   const [showSettingsModal, setShowSettingsModal] = useState(false);
   const [showLogsModal, setShowLogsModal] = useState(false);
+  const [showEditModal, setShowEditModal] = useState(false);
+  const [showManageModal, setShowManageModal] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage, setItemsPerPage] = useState(10);
-  const [filterValues, setFilterValues] = useState<Record<string, string | string[]>>({});
+  const [filterValues, setFilterValues] = useState<Record<string, string | string[]>>({
+    period: '7days'
+  });
   const [searchValue, setSearchValue] = useState('');
   const [editingSettings, setEditingSettings] = useState<AgentSettings>({
     isEnabled: false,
@@ -79,6 +98,17 @@ export default function AdminAgents() {
     apiKeys: [],
     rateLimit: 0,
     timeout: 0
+  });
+  
+  const [editingAgent, setEditingAgent] = useState<Partial<AgentAdmin>>({});
+  
+  // 정렬 상태
+  const [sortConfig, setSortConfig] = useState<{
+    key: string;
+    direction: 'asc' | 'desc';
+  }>({
+    key: 'order',
+    direction: 'asc'
   });
   const [confirmModal, setConfirmModal] = useState<{
     isOpen: boolean;
@@ -89,6 +119,81 @@ export default function AdminAgents() {
     agent: null,
     type: 'toggle'
   });
+
+  // 기간 선택 필터 상태
+  const [dateFilter, setDateFilter] = useState({
+    startDate: '',
+    endDate: '',
+    period: '7days' // 'all', '7days', '30days', 'custom'
+  });
+
+  // 커스텀 이벤트 리스너 등록
+  useEffect(() => {
+    const handleDateFilterChange = (event: any) => {
+      const { field, value } = event.detail;
+      setDateFilter(prev => ({
+        ...prev,
+        [field]: value
+      }));
+    };
+
+    document.addEventListener('dateFilterChange', handleDateFilterChange);
+    return () => {
+      document.removeEventListener('dateFilterChange', handleDateFilterChange);
+    };
+  }, []);
+
+  // agentAdmins가 변경될 때 필터링 재적용
+  useEffect(() => {
+    applyFilters();
+  }, [agentAdmins, searchValue, filterValues, sortConfig]);
+
+  // 기간별 사용량 계산 함수
+  const calculatePeriodUsage = (agent: AgentAdmin) => {
+    if (!agent.logs) return { usage: 0, credits: 0, success: 0, error: 0 };
+
+    let startDate: Date | null = null;
+    let endDate: Date | null = null;
+
+    if (dateFilter.period === '7days') {
+      startDate = new Date();
+      startDate.setDate(startDate.getDate() - 7);
+    } else if (dateFilter.period === '30days') {
+      startDate = new Date();
+      startDate.setDate(startDate.getDate() - 30);
+    } else if (dateFilter.period === 'custom') {
+      if (dateFilter.startDate) startDate = new Date(dateFilter.startDate);
+      if (dateFilter.endDate) endDate = new Date(dateFilter.endDate);
+    }
+
+    // 전체 기간이 아닌 경우에만 날짜 필터링
+
+    // 기간 내 사용량 계산
+    let usage = 0;
+    let success = 0;
+    let error = 0;
+
+    agent.logs.forEach(log => {
+      const logDate = new Date(log.timestamp);
+      
+      // 시작일 체크
+      if (startDate && logDate < startDate) return;
+      
+      // 종료일 체크
+      if (endDate && logDate > endDate) return;
+      
+      usage++;
+      if (log.status === 'success') success++;
+      if (log.status === 'error' || log.status === 'timeout') error++; // 타임아웃을 오류로 포함
+    });
+
+    return {
+      usage,
+      credits: success * agent.creditCost, // 성공건에 대해서만 크레딧 계산
+      success,
+      error
+    };
+  };
 
   // 필터 정의
   const filterOptions = [
@@ -108,19 +213,17 @@ export default function AdminAgents() {
       type: 'select' as const,
       options: [
         { value: 'enabled', label: '활성' },
-        { value: 'disabled', label: '비활성' },
-        { value: 'maintenance', label: '점검중' }
+        { value: 'disabled', label: '비활성' }
       ]
     },
     {
-      key: 'performance',
-      label: '성능',
+      key: 'period',
+      label: '기간 선택',
       type: 'select' as const,
       options: [
-        { value: 'excellent', label: '우수 (95%+)' },
-        { value: 'good', label: '양호 (90-95%)' },
-        { value: 'fair', label: '보통 (85-90%)' },
-        { value: 'poor', label: '미흡 (<85%)' }
+        { value: '7days', label: '최근 7일' },
+        { value: '30days', label: '최근 30일' },
+        { value: 'custom', label: '직접 선택' }
       ]
     }
   ];
@@ -130,33 +233,31 @@ export default function AdminAgents() {
     {
       key: 'agent',
       label: '에이전트',
+      sortable: true,
       render: (agent: AgentAdmin) => (
         <div className="flex items-center space-x-3">
           <div className="flex-shrink-0">
             <div className={`w-10 h-10 rounded-lg flex items-center justify-center ${
-              agent?.settings?.isEnabled && !agent?.settings?.maintenanceMode
+              agent?.settings?.isEnabled
                 ? 'bg-green-100'
-                : agent?.settings?.maintenanceMode
-                ? 'bg-yellow-100'
                 : 'bg-red-100'
             }`}>
-              <Bot className={`w-5 h-5 ${
-                agent?.settings?.isEnabled && !agent?.settings?.maintenanceMode
-                  ? 'text-green-600'
-                  : agent?.settings?.maintenanceMode
-                  ? 'text-yellow-600'
-                  : 'text-red-600'
-              }`} />
+              {agent?.customImage ? (
+                <img
+                  src={agent.customImage}
+                  alt={agent.name}
+                  className="w-8 h-8 rounded object-cover"
+                />
+              ) : (
+                <span className="text-xl">
+                  {agent?.icon || '📝'}
+                </span>
+              )}
             </div>
           </div>
           <div className="min-w-0 flex-1">
             <p className="text-sm font-medium text-gray-900 truncate">
               {agent?.name || '에이전트명 없음'}
-            </p>
-            <p className="text-sm text-gray-500 truncate">
-              {agent?.description && agent.description.length > 40 
-                ? `${agent.description.substring(0, 40)}...` 
-                : (agent?.description || '설명 없음')}
             </p>
             <div className="flex items-center mt-1 space-x-2">
               <span className="text-xs text-gray-400">
@@ -164,6 +265,24 @@ export default function AdminAgents() {
               </span>
               {getCategoryBadge(agent?.category || '일반사무')}
             </div>
+            {/* 해시태그 */}
+            {agent?.hashtags && agent.hashtags.length > 0 && (
+              <div className="flex flex-wrap gap-1 mt-2">
+                {agent.hashtags.slice(0, 3).map((tag, index) => (
+                  <span
+                    key={index}
+                    className="inline-flex items-center px-1.5 py-0.5 rounded text-xs font-medium bg-gray-100 text-gray-600"
+                  >
+                    #{tag}
+                  </span>
+                ))}
+                {agent.hashtags.length > 3 && (
+                  <span className="inline-flex items-center px-1.5 py-0.5 rounded text-xs font-medium bg-gray-100 text-gray-500">
+                    +{agent.hashtags.length - 3}
+                  </span>
+                )}
+              </div>
+            )}
           </div>
         </div>
       )
@@ -171,143 +290,128 @@ export default function AdminAgents() {
     {
       key: 'status',
       label: '상태',
+      sortable: true,
       render: (agent: AgentAdmin) => getStatusBadge(agent?.settings || { isEnabled: false, maintenanceMode: false })
+    },
+    {
+      key: 'order',
+      label: '노출 순서',
+      sortable: true,
+      render: (agent: AgentAdmin) => (
+        <div className="text-center">
+          <span className="text-sm font-medium text-gray-900">
+            {agent?.order || 0}
+          </span>
+        </div>
+      )
     },
     {
       key: 'performance',
       label: '성능 지표',
-      render: (agent: AgentAdmin) => (
-        <div className="space-y-1">
-          <div className="flex items-center justify-between">
-            <span className="text-xs text-gray-500">성공률</span>
-            <span className={`text-xs font-medium ${
-              (agent?.statistics?.successRate ?? 0) >= 95 ? 'text-green-600' :
-              (agent?.statistics?.successRate ?? 0) >= 90 ? 'text-blue-600' :
-              (agent?.statistics?.successRate ?? 0) >= 85 ? 'text-yellow-600' :
-              'text-red-600'
-            }`}>
-              {(agent?.statistics?.successRate ?? 0).toFixed(1)}%
-            </span>
+      sortable: true,
+      render: (agent: AgentAdmin) => {
+        const periodData = calculatePeriodUsage(agent);
+        const totalExecutions = periodData.success + periodData.error;
+        const successRate = totalExecutions > 0 ? (periodData.success / totalExecutions) * 100 : 0;
+        
+        return (
+          <div className="space-y-1">
+            <div className="flex items-center justify-between">
+              <span className="text-xs text-gray-500">성공</span>
+              <span className="text-xs font-medium text-green-600">
+                {periodData.success.toLocaleString()}건
+              </span>
+            </div>
+            <div className="flex items-center justify-between">
+              <span className="text-xs text-gray-500">오류</span>
+              <span className="text-xs font-medium text-red-600">
+                {periodData.error.toLocaleString()}건
+              </span>
+            </div>
+            <div className="flex items-center justify-between">
+              <span className="text-xs text-gray-500">성공률</span>
+              <span className={`text-xs font-medium ${
+                successRate >= 95 ? 'text-green-600' :
+                successRate >= 90 ? 'text-blue-600' :
+                successRate >= 85 ? 'text-yellow-600' :
+                'text-red-600'
+              }`}>
+                {successRate.toFixed(1)}%
+              </span>
+            </div>
           </div>
-          <div className="flex items-center justify-between">
-            <span className="text-xs text-gray-500">평균 처리</span>
-            <span className="text-xs text-gray-900">
-              {(agent?.statistics?.averageProcessingTime ?? 0).toFixed(1)}초
-            </span>
-          </div>
-          <div className="flex items-center justify-between">
-            <span className="text-xs text-gray-500">사용자 평점</span>
-            <span className="text-xs text-gray-900">
-              {(agent?.statistics?.userRating ?? 0).toFixed(1)}★
-            </span>
-          </div>
-        </div>
-      )
+        );
+      }
     },
     {
       key: 'usage',
-      label: '사용량 & 수익',
-      render: (agent: AgentAdmin) => (
-        <div className="space-y-1">
-          <div className="flex items-center justify-between">
-            <span className="text-xs text-gray-500">총 사용</span>
-            <span className="text-xs font-medium text-gray-900">
-              {(agent?.statistics?.totalUsage ?? 0).toLocaleString()}회
-            </span>
+      label: '사용량',
+      sortable: true,
+      render: (agent: AgentAdmin) => {
+        const periodData = calculatePeriodUsage(agent);
+        return (
+          <div className="space-y-1">
+            <div className="flex items-center justify-between">
+              <span className="text-xs text-gray-500">사용</span>
+              <span className="text-xs font-medium text-gray-900">
+                {periodData.usage.toLocaleString()}회
+              </span>
+            </div>
+            <div className="flex items-center justify-between">
+              <span className="text-xs text-gray-500">크레딧</span>
+              <span className="text-xs font-medium text-blue-600">
+                {periodData.credits.toLocaleString()}
+              </span>
+            </div>
           </div>
-          <div className="flex items-center justify-between">
-            <span className="text-xs text-gray-500">월 수익</span>
-            <span className="text-xs font-medium text-green-600">
-              {((agent?.statistics?.revenue ?? 0) / 1000).toFixed(0)}K원
-            </span>
-          </div>
-          <div className="flex items-center justify-between">
-            <span className="text-xs text-gray-500">오류</span>
-            <span className={`text-xs font-medium ${
-              (agent?.statistics?.errorCount ?? 0) > 20 ? 'text-red-600' :
-              (agent?.statistics?.errorCount ?? 0) > 10 ? 'text-yellow-600' :
-              'text-green-600'
-            }`}>
-              {agent?.statistics?.errorCount ?? 0}건
-            </span>
-          </div>
-        </div>
-      )
+        );
+      }
     },
-    {
-      key: 'settings',
-      label: '시스템 설정',
-      render: (agent: AgentAdmin) => (
-        <div className="space-y-1">
-          <div className="flex items-center justify-between">
-            <span className="text-xs text-gray-500">동시 사용자</span>
-            <span className="text-xs text-gray-900">
-              {agent?.settings?.maxConcurrentUsers ?? 0}명
-            </span>
-          </div>
-          <div className="flex items-center justify-between">
-            <span className="text-xs text-gray-500">요청 한도</span>
-            <span className="text-xs text-gray-900">
-              {agent?.settings?.rateLimit ?? 0}/분
-            </span>
-          </div>
-          <div className="flex items-center justify-between">
-            <span className="text-xs text-gray-500">타임아웃</span>
-            <span className="text-xs text-gray-900">
-              {agent?.settings?.timeout ?? 0}초
-            </span>
-          </div>
-        </div>
-      )
-    },
+
     {
       key: 'actions',
       label: '작업',
       render: (agent: AgentAdmin) => (
         <div className="flex items-center space-x-1">
           <button
-            onClick={() => agent && handleViewAgent(agent)}
+            onClick={() => agent && handleEditAgent(agent)}
             className="p-1 text-blue-600 hover:text-blue-900 hover:bg-blue-50 rounded"
-            title="성능 대시보드"
+            title="수정"
             disabled={!agent}
           >
-            <BarChart3 className="w-4 h-4" />
+            <Edit className="w-4 h-4" />
           </button>
           <button
-            onClick={() => agent && handleSettingsAgent(agent)}
+            onClick={() => agent && handleManageAgent(agent)}
             className="p-1 text-green-600 hover:text-green-900 hover:bg-green-50 rounded"
-            title="설정 관리"
+            title="관리"
             disabled={!agent}
           >
-            <Settings className="w-4 h-4" />
+            <Monitor className="w-4 h-4" />
           </button>
           <button
             onClick={() => agent && handleLogsAgent(agent)}
             className="p-1 text-purple-600 hover:text-purple-900 hover:bg-purple-50 rounded"
-            title="로그 확인"
+            title="로그"
             disabled={!agent}
           >
             <FileText className="w-4 h-4" />
           </button>
           <button
-            onClick={() => agent && handleToggleAgent(agent)}
-            className={`p-1 rounded ${
-              agent?.settings?.isEnabled
-                ? 'text-red-600 hover:text-red-900 hover:bg-red-50'
-                : 'text-green-600 hover:text-green-900 hover:bg-green-50'
-            }`}
-            title={agent?.settings?.isEnabled ? '비활성화' : '활성화'}
+            onClick={() => agent && handleMoveUp(agent)}
+            className="p-1 text-gray-600 hover:text-gray-900 hover:bg-gray-50 rounded"
+            title="순서올리기"
             disabled={!agent}
           >
-            {agent?.settings?.isEnabled ? <Pause className="w-4 h-4" /> : <Play className="w-4 h-4" />}
+            <ArrowUp className="w-4 h-4" />
           </button>
           <button
-            onClick={() => agent && handleRestartAgent(agent)}
-            className="p-1 text-orange-600 hover:text-orange-900 hover:bg-orange-50 rounded"
-            title="재시작"
+            onClick={() => agent && handleMoveDown(agent)}
+            className="p-1 text-gray-600 hover:text-gray-900 hover:bg-gray-50 rounded"
+            title="순서내리기"
             disabled={!agent}
           >
-            <RefreshCw className="w-4 h-4" />
+            <ArrowDown className="w-4 h-4" />
           </button>
         </div>
       )
@@ -316,16 +420,8 @@ export default function AdminAgents() {
 
   // 카테고리 배지
   const getCategoryBadge = (category: string) => {
-    const styles = {
-      '일반사무': { bg: 'bg-blue-100', text: 'text-blue-800' },
-      '마케팅/광고': { bg: 'bg-green-100', text: 'text-green-800' },
-      '콘텐츠 제작': { bg: 'bg-purple-100', text: 'text-purple-800' }
-    };
-
-    const style = styles[category as keyof typeof styles] || styles['일반사무'];
-
     return (
-      <span className={`inline-flex items-center px-2 py-0.5 rounded text-xs font-medium ${style.bg} ${style.text}`}>
+      <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-gray-100 text-gray-800">
         {category}
       </span>
     );
@@ -333,14 +429,7 @@ export default function AdminAgents() {
 
   // 상태 배지
   const getStatusBadge = (settings: AgentSettings) => {
-    if (settings?.maintenanceMode) {
-      return (
-        <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800">
-          <AlertTriangle className="w-3 h-3 mr-1" />
-          점검중
-        </span>
-      );
-    } else if (settings?.isEnabled) {
+    if (settings?.isEnabled) {
       return (
         <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
           <CheckCircle className="w-3 h-3 mr-1" />
@@ -377,20 +466,9 @@ export default function AdminAgents() {
             filtered = filtered.filter(agent => agent?.settings?.isEnabled && !agent?.settings?.maintenanceMode);
           } else if (value === 'disabled') {
             filtered = filtered.filter(agent => !agent?.settings?.isEnabled);
-          } else if (value === 'maintenance') {
-            filtered = filtered.filter(agent => agent?.settings?.maintenanceMode);
           }
-        } else if (key === 'performance') {
-          if (value === 'excellent') {
-            filtered = filtered.filter(agent => (agent?.statistics?.successRate ?? 0) >= 95);
-          } else if (value === 'good') {
-            filtered = filtered.filter(agent => (agent?.statistics?.successRate ?? 0) >= 90 && (agent?.statistics?.successRate ?? 0) < 95);
-          } else if (value === 'fair') {
-            filtered = filtered.filter(agent => (agent?.statistics?.successRate ?? 0) >= 85 && (agent?.statistics?.successRate ?? 0) < 90);
-          } else if (value === 'poor') {
-            filtered = filtered.filter(agent => (agent?.statistics?.successRate ?? 0) < 85);
-          }
-    } else {
+
+        } else if (key !== 'period') {
           filtered = filtered.filter(agent => {
             const agentValue = agent?.[key as keyof AgentAdmin];
             return agentValue === value;
@@ -399,14 +477,81 @@ export default function AdminAgents() {
       }
     });
 
+    // 정렬 적용
+    filtered.sort((a, b) => {
+      let aValue: any;
+      let bValue: any;
+
+      switch (sortConfig.key) {
+        case 'agent':
+          aValue = a.name.toLowerCase();
+          bValue = b.name.toLowerCase();
+          break;
+        case 'status':
+          // 활성(1), 비활성(0)으로 정렬
+          aValue = a?.settings?.isEnabled ? 1 : 0;
+          bValue = b?.settings?.isEnabled ? 1 : 0;
+          break;
+        case 'order':
+          aValue = a.order || 0;
+          bValue = b.order || 0;
+          break;
+        case 'usage':
+          const aPeriodData = calculatePeriodUsage(a);
+          const bPeriodData = calculatePeriodUsage(b);
+          aValue = aPeriodData.usage;
+          bValue = bPeriodData.usage;
+          break;
+        case 'performance':
+          const aPerformanceData = calculatePeriodUsage(a);
+          const bPerformanceData = calculatePeriodUsage(b);
+          const aTotalExecutions = aPerformanceData.success + aPerformanceData.error;
+          const bTotalExecutions = bPerformanceData.success + bPerformanceData.error;
+          const aSuccessRate = aTotalExecutions > 0 ? (aPerformanceData.success / aTotalExecutions) * 100 : 0;
+          const bSuccessRate = bTotalExecutions > 0 ? (bPerformanceData.success / bTotalExecutions) * 100 : 0;
+          aValue = aSuccessRate;
+          bValue = bSuccessRate;
+          break;
+        default:
+          // 기본 정렬: 순서
+          aValue = a.order || 0;
+          bValue = b.order || 0;
+          break;
+      }
+
+      if (sortConfig.direction === 'asc') {
+        return aValue < bValue ? -1 : aValue > bValue ? 1 : 0;
+      } else {
+        return aValue > bValue ? -1 : aValue < bValue ? 1 : 0;
+      }
+    });
+
     setFilteredAgents(filtered);
     setCurrentPage(1);
+  };
+
+  // 정렬 핸들러
+  const handleSort = (key: string) => {
+    let direction: 'asc' | 'desc' = 'asc';
+    if (sortConfig.key === key && sortConfig.direction === 'asc') {
+      direction = 'desc';
+    }
+    setSortConfig({ key, direction });
   };
 
   // 이벤트 핸들러
   const handleFilterChange = (key: string, value: string | string[]) => {
     const newFilterValues = { ...filterValues, [key]: value };
     setFilterValues(newFilterValues);
+    
+    // 기간 선택 시 dateFilter 업데이트
+    if (key === 'period') {
+      setDateFilter(prev => ({
+        ...prev,
+        period: value as string
+      }));
+    }
+    
     applyFilters();
   };
 
@@ -420,6 +565,26 @@ export default function AdminAgents() {
     setShowDetailModal(true);
   };
 
+  const handleEditAgent = (agent: AgentAdmin) => {
+    setSelectedAgent(agent);
+    setEditingAgent({
+      name: agent.name,
+      description: agent.description,
+      category: agent.category,
+      creditCost: agent.creditCost,
+      icon: agent.icon,
+      hashtags: [...(agent.hashtags || [])],
+      customImage: agent.customImage,
+      settings: { ...agent.settings }
+    });
+    setShowEditModal(true);
+  };
+
+  const handleManageAgent = (agent: AgentAdmin) => {
+    setSelectedAgent(agent);
+    setShowManageModal(true);
+  };
+
   const handleSettingsAgent = (agent: AgentAdmin) => {
     setSelectedAgent(agent);
     setEditingSettings({ ...agent?.settings || {} });
@@ -429,6 +594,51 @@ export default function AdminAgents() {
   const handleLogsAgent = (agent: AgentAdmin) => {
     setSelectedAgent(agent);
     setShowLogsModal(true);
+  };
+
+  const handleMoveUp = (agent: AgentAdmin) => {
+    const currentOrder = agent.order || 0;
+    const targetOrder = currentOrder - 1;
+    
+    if (targetOrder < 1) return; // 첫 번째 항목이면 이동 불가
+    
+    const targetAgent = agentAdmins.find(a => a.order === targetOrder);
+    if (!targetAgent) return;
+
+    setAgentAdmins(prev => prev.map(a => {
+      if (a.id === agent.id) {
+        return { ...a, order: targetOrder };
+      }
+      if (a.id === targetAgent.id) {
+        return { ...a, order: currentOrder };
+      }
+      return a;
+    }));
+
+    alert(`${agent.name}의 순서가 올라갔습니다.`);
+  };
+
+  const handleMoveDown = (agent: AgentAdmin) => {
+    const currentOrder = agent.order || 0;
+    const targetOrder = currentOrder + 1;
+    
+    const maxOrder = Math.max(...agentAdmins.map(a => a.order || 0));
+    if (targetOrder > maxOrder) return; // 마지막 항목이면 이동 불가
+    
+    const targetAgent = agentAdmins.find(a => a.order === targetOrder);
+    if (!targetAgent) return;
+
+    setAgentAdmins(prev => prev.map(a => {
+      if (a.id === agent.id) {
+        return { ...a, order: targetOrder };
+      }
+      if (a.id === targetAgent.id) {
+        return { ...a, order: currentOrder };
+      }
+      return a;
+    }));
+
+    alert(`${agent.name}의 순서가 내려갔습니다.`);
   };
 
   const handleToggleAgent = (agent: AgentAdmin) => {
@@ -473,9 +683,23 @@ export default function AdminAgents() {
 
   // 통계 계산
   const totalAgents = agentAdmins.length;
-  const activeAgents = agentAdmins.filter(a => a?.settings?.isEnabled && !a?.settings?.maintenanceMode).length;
-  const totalUsage = agentAdmins.reduce((sum, a) => sum + (a?.statistics?.totalUsage ?? 0), 0);
-  const totalRevenue = agentAdmins.reduce((sum, a) => sum + (a?.statistics?.revenue ?? 0), 0);
+  const activeAgents = agentAdmins.filter(a => a?.settings?.isEnabled).length;
+  const inactiveAgents = agentAdmins.filter(a => !a?.settings?.isEnabled).length;
+  
+  // 기간별 총 사용량 계산
+  const totalPeriodUsage = agentAdmins.reduce((sum, agent) => {
+    const periodData = calculatePeriodUsage(agent);
+    return {
+      usage: sum.usage + periodData.usage,
+      credits: sum.credits + periodData.credits,
+      success: sum.success + periodData.success,
+      error: sum.error + periodData.error
+    };
+  }, { usage: 0, credits: 0, success: 0, error: 0 });
+  
+  const totalSuccessRate = totalPeriodUsage.usage > 0 
+    ? (totalPeriodUsage.success / totalPeriodUsage.usage) * 100 
+    : 0;
 
   // 페이지네이션
   const totalItems = filteredAgents.length;
@@ -492,35 +716,68 @@ export default function AdminAgents() {
     >
 
         {/* 통계 */}
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
-          <AdminStats
-            title="총 에이전트"
-            value={totalAgents}
-            icon={Bot}
-            color="blue"
-            change={{ value: 5, type: 'positive' }}
-          />
-          <AdminStats
-            title="활성 에이전트"
-            value={activeAgents}
-            icon={Activity}
-            color="green"
-            change={{ value: 2, type: 'positive' }}
-          />
-          <AdminStats
-            title="총 사용량"
-            value={`${(totalUsage / 1000).toFixed(1)}K`}
-            icon={Users}
-            color="purple"
-            change={{ value: 18, type: 'positive' }}
-          />
-          <AdminStats
-            title="총 수익"
-            value={`${(totalRevenue / 1000000).toFixed(1)}M원`}
-            icon={DollarSign}
-            color="yellow"
-            change={{ value: 22, type: 'positive' }}
-          />
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+          {/* 에이전트 박스 */}
+          <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="text-lg font-semibold text-gray-900">에이전트</h3>
+              <Bot className="w-6 h-6 text-blue-600" />
+            </div>
+            <div className="space-y-3">
+              <div className="flex justify-between items-center">
+                <span className="text-sm text-gray-600">총 에이전트</span>
+                <span className="text-lg font-bold text-gray-900">{totalAgents}개</span>
+              </div>
+              <div className="flex justify-between items-center">
+                <span className="text-sm text-gray-600">활성</span>
+                <span className="text-lg font-bold text-green-600">{activeAgents}개</span>
+              </div>
+              <div className="flex justify-between items-center">
+                <span className="text-sm text-gray-600">비활성</span>
+                <span className="text-lg font-bold text-red-600">{inactiveAgents}개</span>
+              </div>
+            </div>
+          </div>
+
+          {/* 총 사용량 박스 */}
+          <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="text-lg font-semibold text-gray-900">총 사용량</h3>
+              <Users className="w-6 h-6 text-purple-600" />
+            </div>
+            <div className="space-y-3">
+              <div className="flex justify-between items-center">
+                <span className="text-sm text-gray-600">사용</span>
+                <span className="text-lg font-bold text-gray-900">{totalPeriodUsage.usage.toLocaleString()}회</span>
+              </div>
+              <div className="flex justify-between items-center">
+                <span className="text-sm text-gray-600">크레딧</span>
+                <span className="text-lg font-bold text-blue-600">{totalPeriodUsage.credits.toLocaleString()}</span>
+              </div>
+            </div>
+          </div>
+
+          {/* 성능지표 박스 */}
+          <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="text-lg font-semibold text-gray-900">성능지표</h3>
+              <BarChart3 className="w-6 h-6 text-yellow-600" />
+            </div>
+            <div className="space-y-3">
+              <div className="flex justify-between items-center">
+                <span className="text-sm text-gray-600">성공</span>
+                <span className="text-lg font-bold text-green-600">{totalPeriodUsage.success.toLocaleString()}건</span>
+              </div>
+              <div className="flex justify-between items-center">
+                <span className="text-sm text-gray-600">오류</span>
+                <span className="text-lg font-bold text-red-600">{totalPeriodUsage.error.toLocaleString()}건</span>
+              </div>
+              <div className="flex justify-between items-center">
+                <span className="text-sm text-gray-600">성공률</span>
+                <span className="text-lg font-bold text-purple-600">{totalSuccessRate.toFixed(1)}%</span>
+              </div>
+            </div>
+          </div>
         </div>
 
         {/* 필터 */}
@@ -538,6 +795,9 @@ export default function AdminAgents() {
           columns={columns}
           data={paginatedAgents}
           emptyMessage="에이전트가 없습니다"
+          sortBy={sortConfig.key}
+          sortOrder={sortConfig.direction}
+          onSort={handleSort}
         />
 
         {/* 페이지네이션 */}
@@ -589,6 +849,43 @@ export default function AdminAgents() {
           size="xl"
         >
           {selectedAgent && <AgentLogsModal agent={selectedAgent} />}
+        </AdminModal>
+
+        {/* 에이전트 수정 모달 */}
+        <AdminModal
+          isOpen={showEditModal}
+          onClose={() => setShowEditModal(false)}
+          title="에이전트 수정"
+          size="md"
+        >
+          {selectedAgent && (
+            <AgentEditModal
+              agent={selectedAgent}
+              editingAgent={editingAgent}
+              onChange={setEditingAgent}
+              onSave={() => {
+                console.log('Agent updated:', editingAgent);
+                setShowEditModal(false);
+                alert('에이전트가 수정되었습니다.');
+              }}
+              onCancel={() => setShowEditModal(false)}
+            />
+          )}
+        </AdminModal>
+
+        {/* 에이전트 관리 모달 */}
+        <AdminModal
+          isOpen={showManageModal}
+          onClose={() => setShowManageModal(false)}
+          title="에이전트 관리"
+          size="lg"
+        >
+          {selectedAgent && (
+            <AgentManageModal
+              agent={selectedAgent}
+              onClose={() => setShowManageModal(false)}
+            />
+          )}
         </AdminModal>
 
         {/* 확인 모달 */}
@@ -856,15 +1153,125 @@ function AgentLogsModal({ agent }: { agent: AgentAdmin }) {
   console.log('Agent logs for:', agent.name);
   const [logFilter, setLogFilter] = useState('all');
 
-  const filteredLogs = agent.logs.filter(log => {
+  // 기간별 데이터 계산
+  const [dateFilter, setDateFilter] = useState({
+    startDate: '',
+    endDate: '',
+    period: '7days'
+  });
+
+  const calculatePeriodData = () => {
+    let startDate: Date | null = null;
+    let endDate: Date | null = null;
+
+    if (dateFilter.period === '7days') {
+      startDate = new Date();
+      startDate.setDate(startDate.getDate() - 7);
+    } else if (dateFilter.period === '30days') {
+      startDate = new Date();
+      startDate.setDate(startDate.getDate() - 30);
+    } else if (dateFilter.period === 'custom') {
+      if (dateFilter.startDate) startDate = new Date(dateFilter.startDate);
+      if (dateFilter.endDate) endDate = new Date(dateFilter.endDate);
+    }
+
+    let periodLogs = [...agent.logs];
+    
+    // 기간 필터링 적용
+    periodLogs = agent.logs.filter(log => {
+      const logDate = new Date(log.timestamp);
+      if (startDate && logDate < startDate) return false;
+      if (endDate && logDate > endDate) return false;
+      return true;
+    });
+
+    const success = periodLogs.filter(log => log.status === 'success').length;
+    const error = periodLogs.filter(log => log.status === 'error' || log.status === 'timeout').length;
+    const total = periodLogs.length;
+    const successRate = total > 0 ? (success / total) * 100 : 0;
+
+    return {
+      usage: total,
+      credits: success * agent.creditCost, // 성공건에 대해서만 크레딧 계산
+      success,
+      error,
+      successRate,
+      logs: periodLogs
+    };
+  };
+
+  const periodData = calculatePeriodData();
+
+  const filteredLogs = periodData.logs.filter(log => {
     if (logFilter === 'all') return true;
+    if (logFilter === 'error') {
+      return log.status === 'error' || log.status === 'timeout';
+    }
     return log.status === logFilter;
   });
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-6">
+      {/* 기간 선택 */}
       <div className="flex items-center justify-between">
-        <h3 className="text-lg font-medium text-gray-900">실행 로그</h3>
+        <h3 className="text-lg font-medium text-gray-900">에이전트 로그</h3>
+        <div className="flex items-center space-x-4">
+          <select
+            value={dateFilter.period}
+            onChange={(e) => setDateFilter(prev => ({ ...prev, period: e.target.value }))}
+            className="px-3 py-1 text-sm border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+          >
+            <option value="7days">최근 7일</option>
+            <option value="30days">최근 30일</option>
+            <option value="custom">직접 선택</option>
+          </select>
+          {dateFilter.period === 'custom' && (
+            <div className="flex items-center space-x-2">
+              <input
+                type="date"
+                value={dateFilter.startDate}
+                onChange={(e) => setDateFilter(prev => ({ ...prev, startDate: e.target.value }))}
+                className="px-2 py-1 text-sm border border-gray-300 rounded-md"
+              />
+              <span className="text-sm text-gray-500">~</span>
+              <input
+                type="date"
+                value={dateFilter.endDate}
+                onChange={(e) => setDateFilter(prev => ({ ...prev, endDate: e.target.value }))}
+                className="px-2 py-1 text-sm border border-gray-300 rounded-md"
+              />
+            </div>
+          )}
+        </div>
+      </div>
+
+      {/* 통계 요약 */}
+      <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
+        <div className="bg-blue-50 p-4 rounded-lg">
+          <div className="text-2xl font-bold text-blue-600">{periodData.usage.toLocaleString()}</div>
+          <div className="text-sm text-blue-600">사용</div>
+        </div>
+        <div className="bg-green-50 p-4 rounded-lg">
+          <div className="text-2xl font-bold text-green-600">{periodData.credits.toLocaleString()}</div>
+          <div className="text-sm text-green-600">크레딧</div>
+        </div>
+        <div className="bg-green-50 p-4 rounded-lg">
+          <div className="text-2xl font-bold text-green-600">{periodData.success.toLocaleString()}</div>
+          <div className="text-sm text-green-600">성공</div>
+        </div>
+        <div className="bg-red-50 p-4 rounded-lg">
+          <div className="text-2xl font-bold text-red-600">{periodData.error.toLocaleString()}</div>
+          <div className="text-sm text-red-600">오류</div>
+        </div>
+        <div className="bg-purple-50 p-4 rounded-lg">
+          <div className="text-2xl font-bold text-purple-600">{periodData.successRate.toFixed(1)}%</div>
+          <div className="text-sm text-purple-600">성공률</div>
+        </div>
+      </div>
+
+      {/* 로그 필터 */}
+      <div className="flex items-center justify-between">
+        <h4 className="text-md font-medium text-gray-900">실행 로그</h4>
         <select
           value={logFilter}
           onChange={(e) => setLogFilter(e.target.value)}
@@ -873,25 +1280,22 @@ function AgentLogsModal({ agent }: { agent: AgentAdmin }) {
           <option value="all">전체</option>
           <option value="success">성공</option>
           <option value="error">오류</option>
-          <option value="timeout">타임아웃</option>
         </select>
       </div>
 
+      {/* 로그 목록 */}
       <div className="max-h-96 overflow-y-auto space-y-2">
         {filteredLogs.map((log) => (
           <div key={log.id} className={`p-3 rounded-lg border ${
             log.status === 'success' ? 'bg-green-50 border-green-200' :
-            log.status === 'error' ? 'bg-red-50 border-red-200' :
-            'bg-yellow-50 border-yellow-200'
+            'bg-red-50 border-red-200'
           }`}>
             <div className="flex items-center justify-between mb-2">
               <div className="flex items-center space-x-2">
                 {log.status === 'success' ? (
                   <CheckCircle className="w-4 h-4 text-green-600" />
-                ) : log.status === 'error' ? (
-                  <XCircle className="w-4 h-4 text-red-600" />
                 ) : (
-                  <Clock className="w-4 h-4 text-yellow-600" />
+                  <XCircle className="w-4 h-4 text-red-600" />
                 )}
                 <span className="text-sm font-medium text-gray-900">
                   User: {log.userId}
@@ -912,6 +1316,401 @@ function AgentLogsModal({ agent }: { agent: AgentAdmin }) {
           </div>
         ))}
         </div>
+    </div>
+  );
+}
+
+// 에이전트 수정 모달 컴포넌트
+function AgentEditModal({
+  agent,
+  editingAgent,
+  onChange,
+  onSave,
+  onCancel
+}: {
+  agent: AgentAdmin;
+  editingAgent: Partial<AgentAdmin>;
+  onChange: (agent: Partial<AgentAdmin>) => void;
+  onSave: () => void;
+  onCancel: () => void;
+}) {
+  return (
+    <div className="space-y-6">
+      <div className="space-y-4">
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-2">
+            에이전트명
+          </label>
+          <input
+            type="text"
+            value={editingAgent.name || ''}
+            onChange={(e) => onChange({ ...editingAgent, name: e.target.value })}
+            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+            placeholder="에이전트명을 입력하세요"
+          />
+        </div>
+
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-2">
+            설명
+          </label>
+          <textarea
+            value={editingAgent.description || ''}
+            onChange={(e) => onChange({ ...editingAgent, description: e.target.value })}
+            rows={3}
+            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+            placeholder="에이전트 설명을 입력하세요"
+          />
+        </div>
+
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-2">
+            아이콘
+          </label>
+          
+          {/* 아이콘 선택 방식 */}
+          <div className="mb-3">
+            <div className="flex space-x-4">
+              <label className="flex items-center">
+                <input
+                  type="radio"
+                  name="iconType"
+                  value="emoji"
+                  checked={!editingAgent.customImage}
+                  onChange={() => onChange({ ...editingAgent, customImage: undefined })}
+                  className="mr-2"
+                />
+                <span className="text-sm text-gray-700">이모지 아이콘</span>
+              </label>
+              <label className="flex items-center">
+                <input
+                  type="radio"
+                  name="iconType"
+                  value="image"
+                  checked={!!editingAgent.customImage}
+                  onChange={() => onChange({ ...editingAgent, icon: '', customImage: '' })}
+                  className="mr-2"
+                />
+                <span className="text-sm text-gray-700">커스텀 이미지</span>
+              </label>
+            </div>
+          </div>
+
+          {/* 이모지 아이콘 선택 */}
+          {!editingAgent.customImage && (
+            <div>
+              <div className="mb-3">
+                <p className="text-sm text-gray-600 mb-2">아이콘을 선택하세요:</p>
+                <div className="grid grid-cols-10 gap-2 p-3 border border-gray-300 rounded-md max-h-32 overflow-y-auto">
+                  {availableIcons.map((icon, index) => (
+                    <button
+                      key={index}
+                      type="button"
+                      onClick={() => onChange({ ...editingAgent, icon })}
+                      className={`w-8 h-8 flex items-center justify-center rounded border-2 hover:border-blue-500 transition-colors ${
+                        editingAgent.icon === icon ? 'border-blue-500 bg-blue-50' : 'border-gray-200'
+                      }`}
+                    >
+                      <span className="text-lg">{icon}</span>
+                    </button>
+                  ))}
+                </div>
+              </div>
+              
+              <div className="mb-3">
+                <p className="text-sm text-gray-600 mb-2">또는 직접 입력:</p>
+                <input
+                  type="text"
+                  value={editingAgent.icon || ''}
+                  onChange={(e) => onChange({ ...editingAgent, icon: e.target.value })}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  placeholder="이모지 아이콘을 입력하세요 (예: 📝)"
+                />
+              </div>
+            </div>
+          )}
+
+          {/* 커스텀 이미지 업로드 */}
+          {editingAgent.customImage !== undefined && (
+            <div>
+              <div className="mb-3">
+                <input
+                  type="file"
+                  accept="image/*"
+                  onChange={(e) => {
+                    const file = e.target.files?.[0];
+                    if (file) {
+                      const reader = new FileReader();
+                      reader.onload = (event) => {
+                        onChange({ ...editingAgent, customImage: event.target?.result as string });
+                      };
+                      reader.readAsDataURL(file);
+                    }
+                  }}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                />
+                <p className="text-xs text-gray-500 mt-1">JPG, PNG 파일을 업로드하세요 (권장 크기: 64x64px)</p>
+              </div>
+              
+              {/* 이미지 미리보기 */}
+              {editingAgent.customImage && (
+                <div className="mb-3">
+                  <p className="text-sm text-gray-600 mb-2">미리보기:</p>
+                  <div className="w-16 h-16 border border-gray-300 rounded-lg overflow-hidden">
+                    <img
+                      src={editingAgent.customImage}
+                      alt="미리보기"
+                      className="w-full h-full object-cover"
+                    />
+                  </div>
+                </div>
+              )}
+            </div>
+          )}
+
+          {/* 현재 선택된 아이콘 미리보기 */}
+          {editingAgent.icon && !editingAgent.customImage && (
+            <div className="mt-2">
+              <p className="text-sm text-gray-600">현재 선택: <span className="text-2xl ml-2">{editingAgent.icon}</span></p>
+            </div>
+          )}
+        </div>
+
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-2">
+            해시태그
+          </label>
+          <input
+            type="text"
+            value={editingAgent.hashtags?.join(', ') || ''}
+            onChange={(e) => onChange({ 
+              ...editingAgent, 
+              hashtags: e.target.value.split(',').map(tag => tag.trim()).filter(tag => tag) 
+            })}
+            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+            placeholder="해시태그를 쉼표로 구분하여 입력하세요 (예: 회의록, 자동화, 문서작성)"
+          />
+          <p className="text-xs text-gray-500 mt-1">쉼표(,)로 구분하여 여러 해시태그를 입력할 수 있습니다.</p>
+        </div>
+
+        <div className="grid grid-cols-2 gap-4">
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              카테고리
+            </label>
+            <select
+              value={editingAgent.category || '일반사무'}
+              onChange={(e) => onChange({ ...editingAgent, category: e.target.value as any })}
+              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+            >
+              <option value="일반사무">일반사무</option>
+              <option value="마케팅/광고">마케팅/광고</option>
+              <option value="콘텐츠 제작">콘텐츠 제작</option>
+            </select>
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              크레딧
+            </label>
+            <input
+              type="number"
+              min="1"
+              value={editingAgent.creditCost || 0}
+              onChange={(e) => onChange({ ...editingAgent, creditCost: parseInt(e.target.value) || 0 })}
+              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              placeholder="크레딧을 입력하세요"
+            />
+          </div>
+        </div>
+
+        <div>
+          <label className="flex items-center space-x-2">
+            <input
+              type="checkbox"
+              checked={editingAgent.settings?.isEnabled || false}
+              onChange={(e) => onChange({ 
+                ...editingAgent, 
+                settings: { 
+                  ...editingAgent.settings, 
+                  isEnabled: e.target.checked,
+                  maxConcurrentUsers: editingAgent.settings?.maxConcurrentUsers || 10,
+                  maintenanceMode: editingAgent.settings?.maintenanceMode || false,
+                  apiKeys: editingAgent.settings?.apiKeys || [],
+                  rateLimit: editingAgent.settings?.rateLimit || 60,
+                  timeout: editingAgent.settings?.timeout || 60
+                } 
+              })}
+              className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
+            />
+            <span className="text-sm font-medium text-gray-700">활성화</span>
+          </label>
+        </div>
+      </div>
+
+      <div className="flex justify-end space-x-3">
+        <button
+          onClick={onCancel}
+          className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50"
+        >
+          취소
+        </button>
+        <button
+          onClick={onSave}
+          className="px-4 py-2 text-sm font-medium text-white bg-blue-600 border border-transparent rounded-md hover:bg-blue-700 flex items-center"
+        >
+          <Save className="w-4 h-4 mr-2" />
+          저장
+        </button>
+      </div>
+    </div>
+  );
+}
+
+// 에이전트 관리 모달 컴포넌트
+function AgentManageModal({
+  agent,
+  onClose
+}: {
+  agent: AgentAdmin;
+  onClose: () => void;
+}) {
+  const [activeTab, setActiveTab] = useState('model');
+
+  return (
+    <div className="space-y-6">
+      {/* 탭 네비게이션 */}
+      <div className="border-b border-gray-200">
+        <nav className="-mb-px flex space-x-8">
+          <button
+            onClick={() => setActiveTab('model')}
+            className={`py-2 px-1 border-b-2 font-medium text-sm ${
+              activeTab === 'model'
+                ? 'border-blue-500 text-blue-600'
+                : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+            }`}
+          >
+            API 모델
+          </button>
+          <button
+            onClick={() => setActiveTab('prompt')}
+            className={`py-2 px-1 border-b-2 font-medium text-sm ${
+              activeTab === 'prompt'
+                ? 'border-blue-500 text-blue-600'
+                : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+            }`}
+          >
+            시스템 프롬프트
+          </button>
+          <button
+            onClick={() => setActiveTab('apikey')}
+            className={`py-2 px-1 border-b-2 font-medium text-sm ${
+              activeTab === 'apikey'
+                ? 'border-blue-500 text-blue-600'
+                : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+            }`}
+          >
+            API 키
+          </button>
+        </nav>
+      </div>
+
+      {/* 탭 컨텐츠 */}
+      <div className="min-h-[400px]">
+        {activeTab === 'model' && (
+          <div className="space-y-4">
+            <h3 className="text-lg font-medium text-gray-900">API 모델 설정</h3>
+            <div className="space-y-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  현재 모델
+                </label>
+                <div className="p-3 bg-gray-50 rounded-md">
+                  <span className="text-sm text-gray-900">GPT-4</span>
+                </div>
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  모델 변경
+                </label>
+                <select className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                  <option>GPT-4</option>
+                  <option>GPT-3.5-turbo</option>
+                  <option>Claude-3</option>
+                </select>
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Temperature
+                </label>
+                <input
+                  type="range"
+                  min="0"
+                  max="1"
+                  step="0.1"
+                  defaultValue="0.7"
+                  className="w-full"
+                />
+                <div className="text-xs text-gray-500 mt-1">창의성 수준: 0.7</div>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {activeTab === 'prompt' && (
+          <div className="space-y-4">
+            <h3 className="text-lg font-medium text-gray-900">시스템 프롬프트</h3>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                현재 프롬프트
+              </label>
+              <textarea
+                rows={12}
+                defaultValue="당신은 전문적인 AI 어시스턴트입니다. 사용자의 요청을 정확하고 유용하게 처리해주세요."
+                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              />
+            </div>
+            <div className="flex justify-end">
+              <button className="px-4 py-2 text-sm font-medium text-white bg-blue-600 border border-transparent rounded-md hover:bg-blue-700">
+                프롬프트 저장
+              </button>
+            </div>
+          </div>
+        )}
+
+        {activeTab === 'apikey' && (
+          <div className="space-y-4">
+            <h3 className="text-lg font-medium text-gray-900">API 키 관리</h3>
+            <div className="space-y-3">
+              {agent.settings.apiKeys.map((key, index) => (
+                <div key={index} className="flex items-center space-x-3">
+                  <div className="flex-1">
+                    <div className="text-sm text-gray-500">API 키 {index + 1}</div>
+                    <div className="font-mono text-sm bg-gray-100 p-2 rounded">
+                      {key.replace(/./g, '●')}
+                    </div>
+                  </div>
+                  <button className="px-3 py-1 text-sm text-blue-600 border border-blue-600 rounded hover:bg-blue-50">
+                    재생성
+                  </button>
+                </div>
+              ))}
+              <button className="w-full px-4 py-2 text-sm font-medium text-blue-600 bg-blue-50 border border-blue-300 rounded-md hover:bg-blue-100">
+                + 새 API 키 추가
+              </button>
+            </div>
+          </div>
+        )}
+      </div>
+
+      <div className="flex justify-end">
+        <button
+          onClick={onClose}
+          className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50"
+        >
+          닫기
+        </button>
+      </div>
     </div>
   );
 } 

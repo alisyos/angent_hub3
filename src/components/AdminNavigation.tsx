@@ -10,7 +10,8 @@ import {
   DollarSign,
   Bot,
   Shield,
-  Package
+  Package,
+  Grid3X3
 } from 'lucide-react';
 
 const navigationItems = [
@@ -20,6 +21,7 @@ const navigationItems = [
   { id: 'faq', name: 'FAQ 관리', href: '/admin/faq', icon: HelpCircle },
   { id: 'payments', name: '결제 관리', href: '/admin/payments', icon: DollarSign },
   { id: 'credit-packages', name: '크레딧 패키지 관리', href: '/admin/credit-packages', icon: Package },
+  { id: 'categories', name: '카테고리 관리', href: '/admin/categories', icon: Grid3X3 },
   { id: 'agents', name: '에이전트 관리', href: '/admin/agents', icon: Bot },
 ];
 

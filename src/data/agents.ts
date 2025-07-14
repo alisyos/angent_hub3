@@ -1,4 +1,4 @@
-import { AIAgent, CreditPackage } from '@/types/agent';
+import { AIAgent, CreditPackage, Category } from '@/types/agent';
 
 export const aiAgents: AIAgent[] = [
   {
@@ -93,7 +93,7 @@ export const aiAgents: AIAgent[] = [
     creditCost: 18,
     icon: '🎉',
     hashtags: ['이벤트기획', 'SNS마케팅', '프로모션', '고객참여'],
-    isActive: true
+    isActive: false
   },
   {
     id: 'blog-generator',
@@ -109,7 +109,7 @@ export const aiAgents: AIAgent[] = [
     creditCost: 15,
     icon: '✍️',
     hashtags: ['블로그', '콘텐츠마케팅', 'SEO', '글쓰기'],
-    isActive: true
+    isActive: false
   },
   {
     id: 'ppt-generator',
@@ -124,7 +124,7 @@ export const aiAgents: AIAgent[] = [
     creditCost: 25,
     icon: '📈',
     hashtags: ['프레젠테이션', 'PPT', '발표자료', '비즈니스'],
-    isActive: true
+    isActive: false
   },
   {
     id: 'ad-analyzer',
@@ -222,5 +222,41 @@ export const creditPackages: CreditPackage[] = [
     bonus: 5,
     isActive: false,
     order: 7
+  }
+];
+
+export const categories: Category[] = [
+  {
+    id: 'general-office',
+    name: '일반사무',
+    description: '업무 효율성을 높이는 일반 사무 업무 지원 AI',
+    color: 'blue',
+    icon: 'Briefcase',
+    order: 1,
+    isActive: true,
+    createdAt: '2024-01-01T00:00:00Z',
+    updatedAt: '2024-01-01T00:00:00Z'
+  },
+  {
+    id: 'marketing-advertising',
+    name: '마케팅/광고',
+    description: '마케팅 전략 수립 및 광고 효과 분석 AI',
+    color: 'green',
+    icon: 'Megaphone',
+    order: 2,
+    isActive: true,
+    createdAt: '2024-01-01T00:00:00Z',
+    updatedAt: '2024-01-01T00:00:00Z'
+  },
+  {
+    id: 'content-creation',
+    name: '콘텐츠 제작',
+    description: '창의적인 콘텐츠 제작 및 편집 지원 AI',
+    color: 'purple',
+    icon: 'PenTool',
+    order: 3,
+    isActive: true,
+    createdAt: '2024-01-01T00:00:00Z',
+    updatedAt: '2024-01-01T00:00:00Z'
   }
 ]; 
