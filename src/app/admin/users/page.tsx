@@ -386,9 +386,18 @@ export default function AdminUsers() {
   };
 
   const handleEditUser = (userData: Partial<AdminUser>) => {
-    console.log('사용자 정보 수정:', userData);
+    if (userData.password) {
+      console.log('사용자 정보 수정 (비밀번호 포함):', {
+        ...userData,
+        password: '***비밀번호 변경됨***'
+      });
+      // 실제 구현에서는 비밀번호 해시화 후 API 호출
+    } else {
+      console.log('사용자 정보 수정:', userData);
+    }
     // 실제 구현에서는 API 호출
-    // 현재는 콘솔에 로그만 출력
+    // 성공 시 성공 메시지 표시
+    alert('사용자 정보가 성공적으로 수정되었습니다.');
   };
 
   const headerActions = (
@@ -735,6 +744,30 @@ function UserDetailModal({ user, currentPeriodCredits }: { user: AdminUser; curr
       {user.companyInfo && (
         <div>
           <h3 className="text-lg font-medium text-gray-900 mb-4">회사 정보</h3>
+          
+          {/* 회사 로고 */}
+          {user.companyInfo.logo && (
+            <div className="mb-6 p-4 bg-gray-50 rounded-lg">
+              <h4 className="text-sm font-medium text-gray-700 mb-3">회사 로고</h4>
+              <div className="flex items-start space-x-4">
+                <div className="flex-shrink-0">
+                  <img
+                    src={user.companyInfo.logo.filePath}
+                    alt="회사 로고"
+                    className="w-24 h-24 object-contain border border-gray-200 rounded-lg bg-white"
+                  />
+                </div>
+                <div className="flex-1">
+                  <div className="text-sm text-gray-600 space-y-1">
+                    <p><strong>파일명:</strong> {user.companyInfo.logo.originalName}</p>
+                    <p><strong>크기:</strong> {(user.companyInfo.logo.fileSize / 1024).toFixed(1)} KB</p>
+                    <p><strong>업로드일:</strong> {new Date(user.companyInfo.logo.uploadedAt).toLocaleDateString('ko-KR')}</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
+          
           <div className="grid grid-cols-2 gap-4">
             <div>
               <label className="block text-sm font-medium text-gray-500">회사명</label>

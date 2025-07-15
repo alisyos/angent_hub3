@@ -1,4 +1,5 @@
 import { AIAgent, User as BaseUser, CompanyInfo } from './agent';
+import { CompanyLogo } from './company';
 
 // === 사용자 관리 관련 타입 ===
 export interface User extends BaseUser {
@@ -19,12 +20,13 @@ export interface AdminUser extends User {
   status: 'active' | 'suspended' | 'inactive';
   registeredAt: string;
   phone?: string;
+  password?: string; // 비밀번호 수정 시에만 사용
   companyInfo?: CompanyDetails;
   employees?: User[]; // 회사 관리자인 경우
   activityLogs: UserActivityLog[];
 }
 
-export interface CompanyDetails extends CompanyInfo {
+export interface CompanyDetails extends Omit<CompanyInfo, 'logo'> {
   businessNumber: string;
   address: string;
   phone: string;
@@ -36,6 +38,7 @@ export interface CompanyDetails extends CompanyInfo {
   email?: string;
   website?: string;
   description?: string;
+  logo?: CompanyLogo;
 }
 
 export interface UserActivityLog {

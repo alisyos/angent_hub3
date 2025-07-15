@@ -72,6 +72,22 @@ export default function Login() {
       
       localStorage.setItem('userInfo', JSON.stringify(userInfo));
       
+      // 회사관리자나 회사일반사용자의 경우 회사 로고 정보도 저장
+      if (account.role === '회사관리자' || account.role === '회사일반사용자') {
+        const companyLogo = {
+          id: 1,
+          companyId: 1,
+          fileName: 'logo.png',
+          originalName: 'company_logo.png',
+          filePath: '/logo.png',
+          fileSize: 6865,
+          mimeType: 'image/png',
+          uploadedAt: '2024-01-10T10:00:00Z',
+          isActive: true
+        };
+        localStorage.setItem('companyLogo', JSON.stringify(companyLogo));
+      }
+      
       // 역할에 따른 리디렉션
       setTimeout(() => {
         setIsLoading(false);

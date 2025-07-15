@@ -92,7 +92,18 @@ export const mockUsers: User[] = [
       phone: '02-1234-5678',
       employeeCount: 15,
       subscriptionPlan: 'Enterprise',
-      totalEmployees: []
+      totalEmployees: [],
+      logo: {
+        id: 1,
+        companyId: 2,
+        fileName: 'logo.png',
+        originalName: 'company_logo.png',
+        filePath: '/logo.png',
+        fileSize: 6865,
+        mimeType: 'image/png',
+        uploadedAt: '2024-01-10T10:00:00Z',
+        isActive: true
+      }
     },
     activityLogs: [
       {
@@ -178,7 +189,18 @@ export const mockUsers: User[] = [
       phone: '02-9876-5432',
       employeeCount: 8,
       subscriptionPlan: 'Professional',
-      totalEmployees: []
+      totalEmployees: [],
+      logo: {
+        id: 2,
+        companyId: 4,
+        fileName: 'logo-marketing.svg',
+        originalName: 'digital_marketing_logo.svg',
+        filePath: '/logo-marketing.svg',
+        fileSize: 2560,
+        mimeType: 'image/svg+xml',
+        uploadedAt: '2024-01-08T11:30:00Z',
+        isActive: true
+      }
     },
     activityLogs: [
       {
@@ -281,7 +303,18 @@ export const mockUsers: User[] = [
       phone: '02-1234-5678',
       employeeCount: 15,
       subscriptionPlan: 'Enterprise',
-      totalEmployees: []
+      totalEmployees: [],
+      logo: {
+        id: 1,
+        companyId: 2,
+        fileName: 'logo.png',
+        originalName: 'company_logo.png',
+        filePath: '/logo.png',
+        fileSize: 6865,
+        mimeType: 'image/png',
+        uploadedAt: '2024-01-10T10:00:00Z',
+        isActive: true
+      }
     },
     activityLogs: [
       {
@@ -353,7 +386,18 @@ export const mockUsers: User[] = [
       phone: '02-9876-5432',
       employeeCount: 8,
       subscriptionPlan: 'Professional',
-      totalEmployees: []
+      totalEmployees: [],
+      logo: {
+        id: 2,
+        companyId: 4,
+        fileName: 'logo-marketing.svg',
+        originalName: 'digital_marketing_logo.svg',
+        filePath: '/logo-marketing.svg',
+        fileSize: 2560,
+        mimeType: 'image/svg+xml',
+        uploadedAt: '2024-01-08T11:30:00Z',
+        isActive: true
+      }
     },
     activityLogs: [
       {
@@ -395,6 +439,159 @@ export const mockUsers: User[] = [
         details: '리뷰 분석 AI 사용 (15 크레딧)',
         timestamp: '2024-01-06T14:20:00Z',
         ipAddress: '192.168.1.301'
+      }
+    ]
+  },
+  {
+    id: '8',
+    email: 'kim.sh@designstudio.com',
+    name: '김상혁',
+    type: 'company_admin',
+    credits: 2500,
+    profileImage: '',
+    status: 'active',
+    registeredAt: '2024-01-05T09:30:00Z',
+    lastLoginAt: '2024-01-19T17:20:00Z',
+    totalCreditsUsed: 4200,
+    totalSpent: 420000,
+    companyInfo: {
+      name: '크리에이티브 디자인',
+      businessNumber: '456-78-90123',
+      address: '서울시 마포구 홍대입구로 789',
+      phone: '02-5555-7777',
+      employeeCount: 12,
+      subscriptionPlan: 'Professional',
+      totalEmployees: [],
+      logo: {
+        id: 3,
+        companyId: 8,
+        fileName: 'logo-design.svg',
+        originalName: 'creative_design_logo.svg',
+        filePath: '/logo-design.svg',
+        fileSize: 3200,
+        mimeType: 'image/svg+xml',
+        uploadedAt: '2024-01-05T09:30:00Z',
+        isActive: true
+      }
+    },
+    activityLogs: [
+      {
+        id: 'log8-1',
+        userId: '8',
+        action: 'agent_use',
+        details: 'AI 카드뉴스 생성기 사용 (20 크레딧)',
+        timestamp: '2024-01-19T17:00:00Z',
+        ipAddress: '192.168.1.500'
+      },
+      {
+        id: 'log8-2',
+        userId: '8',
+        action: 'agent_use',
+        details: 'AI PPT 슬라이드 생성기 사용 (25 크레딧)',
+        timestamp: '2024-01-18T14:30:00Z',
+        ipAddress: '192.168.1.500'
+      }
+    ]
+  },
+  {
+    id: '9',
+    email: 'lim.jh@finance.co.kr',
+    name: '임지현',
+    type: 'company_admin',
+    credits: 3000,
+    profileImage: '',
+    status: 'active',
+    registeredAt: '2023-12-20T13:45:00Z',
+    lastLoginAt: '2024-01-20T11:30:00Z',
+    totalCreditsUsed: 6800,
+    totalSpent: 680000,
+    companyInfo: {
+      name: '스마트금융',
+      businessNumber: '789-01-23456',
+      address: '서울시 중구 을지로 321',
+      phone: '02-3333-9999',
+      employeeCount: 45,
+      subscriptionPlan: 'Enterprise',
+      totalEmployees: [],
+      logo: {
+        id: 4,
+        companyId: 9,
+        fileName: 'logo-finance.svg',
+        originalName: 'smart_finance_logo.svg',
+        filePath: '/logo-finance.svg',
+        fileSize: 2800,
+        mimeType: 'image/svg+xml',
+        uploadedAt: '2023-12-20T13:45:00Z',
+        isActive: true
+      }
+    },
+    activityLogs: [
+      {
+        id: 'log9-1',
+        userId: '9',
+        action: 'agent_use',
+        details: '음성파일 기반 문서 자동화 AI 사용 (30 크레딧)',
+        timestamp: '2024-01-20T11:15:00Z',
+        ipAddress: '192.168.1.600'
+      },
+      {
+        id: 'log9-2',
+        userId: '9',
+        action: 'agent_use',
+        details: '회의록 자동화 AI 사용 (10 크레딧)',
+        timestamp: '2024-01-19T15:20:00Z',
+        ipAddress: '192.168.1.600'
+      }
+    ]
+  },
+  {
+    id: '10',
+    email: 'yoo.kg@consulting.com',
+    name: '유경국',
+    type: 'company_admin',
+    credits: 1500,
+    profileImage: '',
+    status: 'active',
+    registeredAt: '2024-01-03T10:15:00Z',
+    lastLoginAt: '2024-01-18T16:45:00Z',
+    totalCreditsUsed: 3500,
+    totalSpent: 350000,
+    companyInfo: {
+      name: '비즈니스 컨설팅',
+      businessNumber: '234-56-78901',
+      address: '서울시 서초구 강남대로 654',
+      phone: '02-7777-1234',
+      employeeCount: 25,
+      subscriptionPlan: 'Professional',
+      totalEmployees: [],
+      logo: {
+        id: 5,
+        companyId: 10,
+        fileName: 'logo-consulting.svg',
+        originalName: 'business_consulting_logo.svg',
+        filePath: '/logo-consulting.svg',
+        fileSize: 2400,
+        mimeType: 'image/svg+xml',
+        uploadedAt: '2024-01-03T10:15:00Z',
+        isActive: true
+      }
+    },
+    activityLogs: [
+      {
+        id: 'log10-1',
+        userId: '10',
+        action: 'agent_use',
+        details: 'AI PPT 슬라이드 생성기 사용 (25 크레딧)',
+        timestamp: '2024-01-18T16:30:00Z',
+        ipAddress: '192.168.1.700'
+      },
+      {
+        id: 'log10-2',
+        userId: '10',
+        action: 'agent_use',
+        details: '광고 문구 분석 및 제안 AI 사용 (20 크레딧)',
+        timestamp: '2024-01-17T11:45:00Z',
+        ipAddress: '192.168.1.700'
       }
     ]
   }

@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { User, CreditCard, Menu, X, LogOut, Settings } from 'lucide-react';
+import { CompanyLogo } from '@/types/company';
 
 interface UserInfo {
   email: string;
@@ -16,6 +17,7 @@ interface UserInfo {
 export default function Header() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [userInfo, setUserInfo] = useState<UserInfo | null>(null);
+  const [companyLogo, setCompanyLogo] = useState<CompanyLogo | null>(null);
 
   useEffect(() => {
     // 로그인 상태 확인
@@ -25,6 +27,19 @@ export default function Header() {
         const parsed = JSON.parse(savedUserInfo);
         if (parsed.isLoggedIn) {
           setUserInfo(parsed);
+          
+          // 회사 사용자인 경우 회사 로고 확인
+          if (parsed.role === '회사관리자' || parsed.role === '회사일반사용자') {
+            const savedCompanyLogo = localStorage.getItem('companyLogo');
+            if (savedCompanyLogo) {
+              try {
+                const logoData = JSON.parse(savedCompanyLogo);
+                setCompanyLogo(logoData);
+              } catch (error) {
+                console.error('Failed to parse company logo:', error);
+              }
+            }
+          }
         }
       } catch (error) {
         console.error('Failed to parse user info:', error);
@@ -103,9 +118,25 @@ export default function Header() {
         <div className="flex justify-between items-center h-16">
           {/* Logo */}
           <div className="flex-shrink-0">
-                      <Link href="/" className="text-xl font-bold gradient-bg bg-clip-text text-transparent">
-            AI 에이전트 허브
-          </Link>
+            {companyLogo && (userInfo?.role === '회사관리자' || userInfo?.role === '회사일반사용자') ? (
+              <Link href="/" className="flex flex-col items-center space-y-1">
+                <img
+                  src={companyLogo.filePath}
+                  alt="회사 로고"
+                  className="h-6 max-w-none object-contain"
+                  style={{ maxHeight: '24px', width: 'auto' }}
+                />
+                <span className="text-xs font-bold gradient-bg bg-clip-text text-transparent whitespace-nowrap">
+                  AI 에이전트 허브
+                </span>
+              </Link>
+            ) : (
+              <Link href="/" className="flex items-center">
+                <span className="text-xl font-bold gradient-bg bg-clip-text text-transparent">
+                  AI 에이전트 허브
+                </span>
+              </Link>
+            )}
           </div>
 
           {/* Desktop Navigation */}

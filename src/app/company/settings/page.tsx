@@ -4,11 +4,12 @@ import { useState, useEffect, Suspense } from 'react';
 import { useSearchParams } from 'next/navigation';
 import { useModal } from '@/contexts/ModalContext';
 import CompanyLayout from '@/components/CompanyLayout';
+import ConfirmModal from '@/components/ConfirmModal';
 import { 
   Building,
   CreditCard,
   Save,
-
+  Upload,
   Shield,
   Copy,
   Eye,
@@ -16,8 +17,11 @@ import {
   AlertCircle,
   CheckCircle,
   HelpCircle,
-  X
+  X,
+  Image as ImageIcon,
+  Trash2
 } from 'lucide-react';
+import { CompanyInfo, CompanyLogo } from '@/types/company';
 
 function CompanySettingsContent() {
   const { showModal } = useModal();
@@ -25,7 +29,7 @@ function CompanySettingsContent() {
   const [activeTab, setActiveTab] = useState('company');
 
   // 회사 정보 상태
-  const [companyInfo, setCompanyInfo] = useState({
+  const [companyInfo, setCompanyInfo] = useState<CompanyInfo>({
     name: '테크 스타트업',
     companyName: '테크 스타트업',
     businessNumber: '123-45-67890',
@@ -39,8 +43,25 @@ function CompanySettingsContent() {
     employeeCount: '10-50명',
     companySize: '10-50명',
     establishedYear: '2020',
-    description: '혁신적인 소프트웨어 솔루션을 개발하는 스타트업입니다.'
+    description: '혁신적인 소프트웨어 솔루션을 개발하는 스타트업입니다.',
+    logo: {
+      id: 1,
+      companyId: 1,
+      fileName: 'logo.png',
+      originalName: 'company_logo.png',
+      filePath: '/logo.png',
+      fileSize: 6865, // 6.7KB 
+      mimeType: 'image/png',
+      uploadedAt: '2024-01-10T10:00:00Z',
+      isActive: true
+    }
   });
+
+  // 로고 관련 상태
+  const [logoFile, setLogoFile] = useState<File | null>(null);
+  const [logoPreview, setLogoPreview] = useState<string | null>(null);
+  const [logoUploading, setLogoUploading] = useState(false);
+  const [showLogoDeleteConfirm, setShowLogoDeleteConfirm] = useState(false);
 
   // 결제 설정 상태
   const [billingSettings, setBillingSettings] = useState({
@@ -83,6 +104,21 @@ function CompanySettingsContent() {
     }
   }, [searchParams]);
 
+  // 초기 데이터 로드
+  useEffect(() => {
+    // 저장된 회사 로고 정보 불러오기
+    const savedCompanyLogo = localStorage.getItem('companyLogo');
+    if (savedCompanyLogo) {
+      try {
+        const logoData = JSON.parse(savedCompanyLogo);
+        setCompanyInfo(prev => ({ ...prev, logo: logoData }));
+        setLogoPreview(logoData.filePath);
+      } catch (error) {
+        console.error('Failed to parse company logo:', error);
+      }
+    }
+  }, []);
+
   // 탭 메뉴 설정
   const tabs = [
     { id: 'company', name: '회사 정보', icon: Building },
@@ -92,12 +128,24 @@ function CompanySettingsContent() {
 
   // 회사 정보 관련 함수
   const handleSaveCompanyInfo = () => {
+    // 회사 정보와 로고 정보를 함께 저장
     console.log('Company info saved:', companyInfo);
+    
+    // 로고 정보가 있으면 localStorage에 저장
+    if (companyInfo.logo) {
+      localStorage.setItem('companyLogo', JSON.stringify(companyInfo.logo));
+    }
+
     showModal({
       title: '저장 완료',
       message: '회사 정보가 저장되었습니다.',
       type: 'success'
     });
+
+    // 헤더 업데이트를 위해 페이지 새로고침 (실제 환경에서는 상태 관리를 사용)
+    setTimeout(() => {
+      window.location.reload();
+    }, 1500);
   };
 
   const handleSaveBillingSettings = () => {
@@ -115,6 +163,103 @@ function CompanySettingsContent() {
 
   const handleBillingChange = (field: string, value: string | boolean) => {
     setBillingSettings(prev => ({ ...prev, [field]: value }));
+  };
+
+  // 로고 관련 함수
+  const handleLogoFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+
+    // 파일 타입 검증
+    if (!file.type.startsWith('image/')) {
+      showModal({
+        title: '오류',
+        message: '이미지 파일만 업로드 가능합니다.',
+        type: 'error'
+      });
+      return;
+    }
+
+    // 파일 크기 검증 (5MB)
+    const maxSize = 5 * 1024 * 1024;
+    if (file.size > maxSize) {
+      showModal({
+        title: '오류',
+        message: '파일 크기가 5MB를 초과할 수 없습니다.',
+        type: 'error'
+      });
+      return;
+    }
+
+    setLogoFile(file);
+
+    // 미리보기 생성
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      setLogoPreview(e.target?.result as string);
+    };
+    reader.readAsDataURL(file);
+  };
+
+  const handleLogoUpload = async () => {
+    if (!logoFile) return;
+
+    setLogoUploading(true);
+    
+    try {
+      // 실제 구현에서는 서버에 업로드
+      // 현재는 로컬 저장소에 저장하는 시뮬레이션
+      await new Promise(resolve => setTimeout(resolve, 1000));
+
+      const logoData: CompanyLogo = {
+        id: Date.now(),
+        companyId: 1,
+        fileName: `company_logo_${Date.now()}.${logoFile.name.split('.').pop()}`,
+        originalName: logoFile.name,
+        filePath: logoPreview || '',
+        fileSize: logoFile.size,
+        mimeType: logoFile.type,
+        uploadedAt: new Date().toISOString(),
+        isActive: true
+      };
+
+      // 로컬 저장소에 저장
+      localStorage.setItem('companyLogo', JSON.stringify(logoData));
+
+      setCompanyInfo(prev => ({ ...prev, logo: logoData }));
+      setLogoFile(null);
+
+      showModal({
+        title: '업로드 완료',
+        message: '회사 로고가 성공적으로 업로드되었습니다.',
+        type: 'success'
+      });
+    } catch (error) {
+      showModal({
+        title: '업로드 실패',
+        message: '로고 업로드 중 오류가 발생했습니다.',
+        type: 'error'
+      });
+    } finally {
+      setLogoUploading(false);
+    }
+  };
+
+  const handleLogoRemove = () => {
+    setShowLogoDeleteConfirm(true);
+  };
+
+  const handleConfirmLogoRemove = () => {
+    localStorage.removeItem('companyLogo');
+    setCompanyInfo(prev => ({ ...prev, logo: undefined }));
+    setLogoPreview(null);
+    setLogoFile(null);
+    
+    showModal({
+      title: '삭제 완료',
+      message: '회사 로고가 삭제되었습니다.',
+      type: 'success'
+    });
   };
 
   // 회사 코드 관련 함수
@@ -200,6 +345,108 @@ function CompanySettingsContent() {
         {/* 회사 정보 */}
         {activeTab === 'company' && (
           <div className="space-y-6">
+            {/* 회사 로고 섹션 */}
+            <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+              <h3 className="text-lg font-semibold text-gray-900 mb-6">회사 로고</h3>
+              
+              <div className="flex flex-col lg:flex-row lg:items-start lg:space-x-8 space-y-6 lg:space-y-0">
+                {/* 현재 로고 표시 */}
+                <div className="flex-shrink-0">
+                  <div className="w-32 h-32 border-2 border-dashed border-gray-300 rounded-lg flex items-center justify-center bg-gray-50">
+                    {companyInfo.logo || logoPreview ? (
+                      <img
+                        src={logoPreview || companyInfo.logo?.filePath}
+                        alt="회사 로고"
+                        className="w-full h-full object-contain rounded-lg"
+                      />
+                    ) : (
+                      <div className="text-center">
+                        <ImageIcon className="w-8 h-8 text-gray-400 mx-auto mb-2" />
+                        <p className="text-sm text-gray-500">로고 없음</p>
+                      </div>
+                    )}
+                  </div>
+                </div>
+
+                {/* 로고 업로드 영역 */}
+                <div className="flex-1 space-y-4">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      로고 파일 선택
+                    </label>
+                    <div className="flex items-center space-x-4">
+                      <input
+                        type="file"
+                        accept="image/*"
+                        onChange={handleLogoFileChange}
+                        className="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100"
+                      />
+                    </div>
+                    <p className="text-xs text-gray-500 mt-1">
+                      JPG, PNG, GIF 파일 (최대 5MB)
+                    </p>
+                  </div>
+
+                  {/* 업로드 버튼 */}
+                  {logoFile && (
+                    <div className="flex items-center space-x-3">
+                      <button
+                        onClick={handleLogoUpload}
+                        disabled={logoUploading}
+                        className="flex items-center space-x-2 px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed"
+                      >
+                        {logoUploading ? (
+                          <>
+                            <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                            <span>업로드 중...</span>
+                          </>
+                        ) : (
+                          <>
+                            <Upload className="w-4 h-4" />
+                            <span>로고 업로드</span>
+                          </>
+                        )}
+                      </button>
+                      
+                      <button
+                        onClick={() => {
+                          setLogoFile(null);
+                          setLogoPreview(companyInfo.logo?.filePath || null);
+                        }}
+                        className="px-4 py-2 text-gray-600 border border-gray-300 rounded-md hover:bg-gray-50"
+                      >
+                        취소
+                      </button>
+                    </div>
+                  )}
+
+                  {/* 현재 로고 삭제 버튼 */}
+                  {companyInfo.logo && !logoFile && (
+                    <button
+                      onClick={handleLogoRemove}
+                      className="flex items-center space-x-2 px-4 py-2 text-red-600 border border-red-300 rounded-md hover:bg-red-50"
+                    >
+                      <Trash2 className="w-4 h-4" />
+                      <span>로고 삭제</span>
+                    </button>
+                  )}
+
+                  {/* 로고 정보 */}
+                  {companyInfo.logo && (
+                    <div className="bg-gray-50 rounded-lg p-4">
+                      <h4 className="text-sm font-medium text-gray-900 mb-2">현재 로고 정보</h4>
+                      <div className="text-sm text-gray-600 space-y-1">
+                        <p>파일명: {companyInfo.logo.originalName}</p>
+                        <p>크기: {(companyInfo.logo.fileSize / 1024).toFixed(1)} KB</p>
+                        <p>업로드일: {new Date(companyInfo.logo.uploadedAt).toLocaleDateString()}</p>
+                      </div>
+                    </div>
+                  )}
+                </div>
+              </div>
+            </div>
+
+            {/* 기본 정보 섹션 */}
             <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
               <h3 className="text-lg font-semibold text-gray-900 mb-6">기본 정보</h3>
               
@@ -654,6 +901,18 @@ function CompanySettingsContent() {
           </div>
         </div>
       )}
+
+      {/* 로고 삭제 확인 모달 */}
+      <ConfirmModal
+        isOpen={showLogoDeleteConfirm}
+        onClose={() => setShowLogoDeleteConfirm(false)}
+        onConfirm={handleConfirmLogoRemove}
+        title="로고 삭제 확인"
+        message="정말로 회사 로고를 삭제하시겠습니까?"
+        confirmText="삭제"
+        cancelText="취소"
+        type="danger"
+      />
     </CompanyLayout>
   );
 }
