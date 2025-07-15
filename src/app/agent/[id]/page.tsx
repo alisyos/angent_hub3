@@ -5,6 +5,8 @@ import { useParams, useRouter } from 'next/navigation';
 import { useModal } from '@/contexts/ModalContext';
 import Header from '@/components/Header';
 import Footer from '@/components/Footer';
+import FavoritesSection from '@/components/FavoritesSection';
+import { useFavorites } from '@/hooks/useFavorites';
 import { aiAgents } from '@/data/agents';
 import { AIAgent, AgentInput, AgentCategory } from '@/types/agent';
 import { ArrowLeft, Play, Coins, Upload, Download, Copy, Briefcase, Megaphone, PenTool, Grid3X3, ChevronLeft, ChevronRight, ChevronDown, ChevronRight as ChevronRightSmall } from 'lucide-react';
@@ -13,14 +15,15 @@ export default function AgentExecution() {
   const params = useParams();
   const router = useRouter();
   const { showModal } = useModal();
+  const { loggedIn } = useFavorites();
   const [agent, setAgent] = useState<AIAgent | null>(null);
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const [formData, setFormData] = useState<Record<string, any>>({});
   const [isExecuting, setIsExecuting] = useState(false);
   const [result, setResult] = useState<string | null>(null);
-  // const [selectedCategory, setSelectedCategory] = useState<AgentCategory | 'agentList'>('agentList');
+  const [selectedCategory, setSelectedCategory] = useState<AgentCategory | 'agentList' | string>('agentList');
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
-  const [expandedCategories, setExpandedCategories] = useState<Set<AgentCategory | 'agentList'>>(new Set(['agentList']));
+  const [expandedCategories, setExpandedCategories] = useState<Set<AgentCategory | 'agentList' | string>>(new Set(['agentList']));
 
   useEffect(() => {
     const agentId = params.id as string;
@@ -101,6 +104,10 @@ export default function AgentExecution() {
   };
 
   const handleAgentNavigation = (targetAgent: AIAgent) => {
+    router.push(`/agent/${targetAgent.id}`);
+  };
+
+  const handleAgentClick = (targetAgent: AIAgent) => {
     router.push(`/agent/${targetAgent.id}`);
   };
 
@@ -253,11 +260,37 @@ ${agent.outputs.map(output => `📄 ${output}`).join('\n')}
                     <div key={category}>
                       {/* Category Header */}
                       <button
-                        onClick={() => isSidebarOpen ? toggleCategory(category) : router.push('/')}
-                        className={`w-full flex items-center p-2 rounded-lg hover:bg-gray-100 transition-all duration-200 ${!isSidebarOpen ? 'justify-center' : ''}`}
+                        onClick={() => {
+                          if (isSidebarOpen) {
+                            toggleCategory(category);
+                            // 토글 방식: 이미 선택된 카테고리를 다시 클릭하면 전체로 돌아감
+                            if (selectedCategory === category) {
+                              setSelectedCategory('agentList');
+                            } else {
+                              setSelectedCategory(category);
+                            }
+                          } else {
+                            if (selectedCategory === category) {
+                              setSelectedCategory('agentList');
+                            } else {
+                              setSelectedCategory(category);
+                            }
+                          }
+                        }}
+                        className={`w-full flex items-center p-2 rounded-lg hover:bg-gray-100 transition-all duration-200 ${!isSidebarOpen ? 'justify-center' : ''} ${
+                          selectedCategory === category ? 'bg-blue-50 text-blue-700' : ''
+                        }`}
                         title={!isSidebarOpen ? getCategoryLabel(category) : ''}
                       >
-                        <Icon className={`w-4 h-4 ${isSidebarOpen ? 'mr-2' : ''} text-gray-600`} />
+                        {!isSidebarOpen ? (
+                          <div className={`w-8 h-8 rounded-lg flex items-center justify-center ${
+                            selectedCategory === category ? 'bg-blue-100 text-blue-600' : 'bg-gray-100 text-gray-600'
+                          }`}>
+                            <Icon className="w-5 h-5" />
+                          </div>
+                        ) : (
+                          <Icon className={`w-4 h-4 mr-2 ${selectedCategory === category ? 'text-blue-600' : 'text-gray-600'}`} />
+                        )}
                         {isSidebarOpen && (
                           <>
                             <span className="font-medium flex-1 text-left text-gray-700">
@@ -360,11 +393,37 @@ ${agent.outputs.map(output => `📄 ${output}`).join('\n')}
                   <div key={category}>
                     {/* Category Header */}
                     <button
-                      onClick={() => isSidebarOpen ? toggleCategory(category) : router.push('/')}
-                      className={`w-full flex items-center p-2 rounded-lg hover:bg-gray-100 transition-all duration-200 ${!isSidebarOpen ? 'justify-center' : ''}`}
+                      onClick={() => {
+                        if (isSidebarOpen) {
+                          toggleCategory(category);
+                          // 토글 방식: 이미 선택된 카테고리를 다시 클릭하면 전체로 돌아감
+                          if (selectedCategory === category) {
+                            setSelectedCategory('agentList');
+                          } else {
+                            setSelectedCategory(category);
+                          }
+                        } else {
+                          if (selectedCategory === category) {
+                            setSelectedCategory('agentList');
+                          } else {
+                            setSelectedCategory(category);
+                          }
+                        }
+                      }}
+                      className={`w-full flex items-center p-2 rounded-lg hover:bg-gray-100 transition-all duration-200 ${!isSidebarOpen ? 'justify-center' : ''} ${
+                        selectedCategory === category ? 'bg-blue-50 text-blue-700' : ''
+                      }`}
                       title={!isSidebarOpen ? getCategoryLabel(category) : ''}
                     >
-                      <Icon className={`w-4 h-4 ${isSidebarOpen ? 'mr-2' : ''} text-gray-600`} />
+                      {!isSidebarOpen ? (
+                        <div className={`w-8 h-8 rounded-lg flex items-center justify-center ${
+                          selectedCategory === category ? 'bg-blue-100 text-blue-600' : 'bg-gray-100 text-gray-600'
+                        }`}>
+                          <Icon className="w-5 h-5" />
+                        </div>
+                      ) : (
+                        <Icon className={`w-4 h-4 mr-2 ${selectedCategory === category ? 'text-blue-600' : 'text-gray-600'}`} />
+                      )}
                       {isSidebarOpen && (
                         <>
                           <span className="font-medium flex-1 text-left text-gray-700">
@@ -415,6 +474,26 @@ ${agent.outputs.map(output => `📄 ${output}`).join('\n')}
                 );
               })}
             </nav>
+
+            {/* Favorites Section */}
+            <FavoritesSection
+              isSidebarOpen={isSidebarOpen}
+              onAgentClick={handleAgentClick}
+              selectedCategory={selectedCategory}
+              onCategorySelect={setSelectedCategory}
+              expandedCategories={expandedCategories}
+              onToggleExpand={(category: string) => {
+                setExpandedCategories(prev => {
+                  const newSet = new Set(prev);
+                  if (newSet.has(category)) {
+                    newSet.delete(category);
+                  } else {
+                    newSet.add(category);
+                  }
+                  return newSet;
+                });
+              }}
+            />
           </div>
         </aside>
 

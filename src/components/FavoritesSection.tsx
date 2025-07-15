@@ -164,11 +164,23 @@ export default function FavoritesSection({
                 {/* Folder Header */}
                 <div className="flex items-center relative">
                   <button
-                    onClick={() => 
-                      isSidebarOpen 
-                        ? onToggleExpand(`favorites-${folder.id}`)
-                        : onCategorySelect(`favorites-${folder.id}`)
-                    }
+                    onClick={() => {
+                      if (isSidebarOpen) {
+                        onToggleExpand(`favorites-${folder.id}`);
+                        // 토글 방식: 이미 선택된 폴더를 다시 클릭하면 전체로 돌아감
+                        if (selectedCategory === `favorites-${folder.id}`) {
+                          onCategorySelect('agentList');
+                        } else {
+                          onCategorySelect(`favorites-${folder.id}`);
+                        }
+                      } else {
+                        if (selectedCategory === `favorites-${folder.id}`) {
+                          onCategorySelect('agentList');
+                        } else {
+                          onCategorySelect(`favorites-${folder.id}`);
+                        }
+                      }
+                    }}
                     className={`flex-1 flex items-center p-2 rounded-lg transition-all duration-200 ${
                       isSelected 
                         ? 'bg-blue-50 text-blue-700' 

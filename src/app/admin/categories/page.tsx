@@ -208,6 +208,18 @@ const iconList = [
   { name: 'Sliders', icon: Sliders, label: '슬라이더' }
 ];
 
+// 색상 옵션 정의
+const colorOptions = [
+  { name: 'blue', label: '파랑', bg: 'bg-blue-100', text: 'text-blue-800', border: 'border-blue-200' },
+  { name: 'green', label: '초록', bg: 'bg-green-100', text: 'text-green-800', border: 'border-green-200' },
+  { name: 'purple', label: '보라', bg: 'bg-purple-100', text: 'text-purple-800', border: 'border-purple-200' },
+  { name: 'red', label: '빨강', bg: 'bg-red-100', text: 'text-red-800', border: 'border-red-200' },
+  { name: 'yellow', label: '노랑', bg: 'bg-yellow-100', text: 'text-yellow-800', border: 'border-yellow-200' },
+  { name: 'indigo', label: '남색', bg: 'bg-indigo-100', text: 'text-indigo-800', border: 'border-indigo-200' },
+  { name: 'pink', label: '분홍', bg: 'bg-pink-100', text: 'text-pink-800', border: 'border-pink-200' },
+  { name: 'gray', label: '회색', bg: 'bg-gray-100', text: 'text-gray-800', border: 'border-gray-200' }
+];
+
 export default function CategoryManagement() {
   const { showModal } = useModal();
   const [categories, setCategories] = useState<Category[]>(
@@ -287,6 +299,12 @@ export default function CategoryManagement() {
   const getIconComponent = (iconName: string) => {
     const iconItem = iconList.find(item => item.name === iconName);
     return iconItem ? iconItem.icon : Grid3X3;
+  };
+
+  // 색상 매핑
+  const getColorConfig = (colorName: string) => {
+    const colorConfig = colorOptions.find(option => option.name === colorName);
+    return colorConfig || colorOptions[0]; // 기본값은 파랑
   };
 
   // 순서 변경 핸들러
@@ -402,7 +420,7 @@ export default function CategoryManagement() {
     });
   };
 
-  // 테이블 컬럼 정의 (설명, 색상 컬럼 제거)
+  // 테이블 컬럼 정의
   const columns = [
     {
       key: 'name',
@@ -410,11 +428,12 @@ export default function CategoryManagement() {
       sortable: true,
       render: (cat: Category) => {
         const IconComponent = getIconComponent(cat.icon);
+        const colorConfig = getColorConfig(cat.color);
         
         return (
           <div className="flex items-center space-x-3">
             <div className={`w-10 h-10 rounded-lg flex items-center justify-center ${
-              cat.isActive ? 'bg-blue-100 text-blue-600' : 'bg-gray-100 text-gray-400'
+              cat.isActive ? `${colorConfig.bg} ${colorConfig.text}` : 'bg-gray-100 text-gray-400'
             }`}>
               <IconComponent className="w-5 h-5" />
             </div>
@@ -445,6 +464,25 @@ export default function CategoryManagement() {
             {agentCount > 0 && (
               <div className="w-2 h-2 bg-green-500 rounded-full"></div>
             )}
+          </div>
+        );
+      }
+    },
+    {
+      key: 'color',
+      label: '컬러',
+      sortable: false,
+      render: (cat: Category) => {
+        const colorConfig = getColorConfig(cat.color);
+        return (
+          <div className="flex items-center space-x-2">
+            <div 
+              className={`w-6 h-6 rounded-full border-2 ${colorConfig.bg} ${colorConfig.border}`}
+              title={colorConfig.label}
+            ></div>
+            <span className={`text-xs px-2 py-1 rounded-full ${colorConfig.bg} ${colorConfig.text}`}>
+              {colorConfig.label}
+            </span>
           </div>
         );
       }
@@ -557,6 +595,8 @@ export default function CategoryManagement() {
         onClose={() => setShowAddModal(false)}
         onSubmit={handleAddCategory}
         title="카테고리 추가"
+        colorOptions={colorOptions}
+        iconList={iconList}
       />
 
       {/* 카테고리 수정 모달 */}
@@ -570,6 +610,8 @@ export default function CategoryManagement() {
         title="카테고리 수정"
         initialData={selectedCategory}
         onDelete={handleDeleteCategory}
+        colorOptions={colorOptions}
+        iconList={iconList}
       />
     </AdminLayout>
   );
@@ -582,12 +624,15 @@ interface CategoryModalProps {
   onDelete?: (cat: Category) => void;
   title: string;
   initialData?: Category | null;
+  colorOptions: { name: string; label: string; bg: string; text: string; border: string; }[];
+  iconList: { name: string; icon: any; label: string; }[];
 }
 
-function CategoryModal({ isOpen, onClose, onSubmit, onDelete, title, initialData }: CategoryModalProps) {
+function CategoryModal({ isOpen, onClose, onSubmit, onDelete, title, initialData, colorOptions, iconList }: CategoryModalProps) {
   const [formData, setFormData] = useState<Partial<Category>>({
     name: '',
     icon: 'Grid3X3',
+    color: 'blue',
     isActive: true
   });
 
@@ -598,6 +643,7 @@ function CategoryModal({ isOpen, onClose, onSubmit, onDelete, title, initialData
       setFormData({
         name: '',
         icon: 'Grid3X3',
+        color: 'blue',
         isActive: true
       });
     }
@@ -648,10 +694,15 @@ function CategoryModal({ isOpen, onClose, onSubmit, onDelete, title, initialData
             <div className="space-y-2">
               {/* 현재 선택된 아이콘 미리보기 */}
               <div className="flex items-center space-x-2 p-3 bg-gray-50 rounded-md">
-                <div className="w-8 h-8 bg-blue-100 rounded-lg flex items-center justify-center">
+                <div className={`w-8 h-8 rounded-lg flex items-center justify-center ${
+                  (() => {
+                    const currentColor = colorOptions.find(c => c.name === formData.color) || colorOptions[0];
+                    return `${currentColor.bg} ${currentColor.text}`;
+                  })()
+                }`}>
                   {(() => {
                     const IconComponent = iconList.find(item => item.name === formData.icon)?.icon || Grid3X3;
-                    return <IconComponent className="w-5 h-5 text-blue-600" />;
+                    return <IconComponent className="w-5 h-5" />;
                   })()}
                 </div>
                 <span className="text-sm text-gray-700">
@@ -664,17 +715,61 @@ function CategoryModal({ isOpen, onClose, onSubmit, onDelete, title, initialData
                 {iconList.map((iconItem) => {
                   const IconComponent = iconItem.icon;
                   const isSelected = formData.icon === iconItem.name;
+                  const currentColor = colorOptions.find(c => c.name === formData.color) || colorOptions[0];
                   return (
                     <button
                       key={iconItem.name}
                       type="button"
                       onClick={() => handleInputChange('icon', iconItem.name)}
                       className={`w-10 h-10 rounded-lg flex items-center justify-center hover:bg-gray-100 transition-colors ${
-                        isSelected ? 'bg-blue-100 text-blue-600 ring-2 ring-blue-500' : 'text-gray-600'
+                        isSelected ? `${currentColor.bg} ${currentColor.text} ring-2 ring-${formData.color}-500` : 'text-gray-600'
                       }`}
                       title={iconItem.label}
                     >
                       <IconComponent className="w-5 h-5" />
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">
+              색상 *
+            </label>
+            <div className="space-y-2">
+              {/* 현재 선택된 색상 미리보기 */}
+              <div className="flex items-center space-x-2 p-3 bg-gray-50 rounded-md">
+                <div className={`w-8 h-8 rounded-full border-2 ${
+                  (() => {
+                    const currentColor = colorOptions.find(c => c.name === formData.color) || colorOptions[0];
+                    return `${currentColor.bg} ${currentColor.border}`;
+                  })()
+                }`}></div>
+                <span className="text-sm text-gray-700">
+                  {colorOptions.find(c => c.name === formData.color)?.label || '파랑'}
+                </span>
+              </div>
+              
+              {/* 색상 선택 그리드 */}
+              <div className="grid grid-cols-4 gap-3 border border-gray-200 rounded-md p-3">
+                {colorOptions.map((colorOption) => {
+                  const isSelected = formData.color === colorOption.name;
+                  return (
+                    <button
+                      key={colorOption.name}
+                      type="button"
+                      onClick={() => handleInputChange('color', colorOption.name)}
+                      className={`flex items-center space-x-3 p-2 rounded-lg border-2 transition-all hover:bg-gray-50 ${
+                        isSelected ? `${colorOption.border} bg-gray-50` : 'border-transparent'
+                      }`}
+                      title={colorOption.label}
+                    >
+                      <div className={`w-6 h-6 rounded-full ${colorOption.bg} ${colorOption.border} border-2`}></div>
+                      <span className={`text-sm font-medium ${isSelected ? colorOption.text : 'text-gray-700'}`}>
+                        {colorOption.label}
+                      </span>
                     </button>
                   );
                 })}

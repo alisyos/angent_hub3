@@ -19,14 +19,14 @@ import { Search, Briefcase, Megaphone, PenTool, Grid3X3, ChevronLeft, ChevronRig
 
 export default function Dashboard() {
   const { showModal } = useModal();
-  const { getAgentsInFolder, loggedIn } = useFavorites();
+  const { getAgentsInFolder, loggedIn, favorites } = useFavorites();
   // const searchParams = useSearchParams();
   const [selectedCategory, setSelectedCategory] = useState<AgentCategory | 'agentList' | string>('agentList');
   const [searchQuery, setSearchQuery] = useState('');
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
   const [expandedCategories, setExpandedCategories] = useState<Set<AgentCategory | 'agentList' | string>>(new Set(['agentList']));
   const [currentPage, setCurrentPage] = useState(1);
-  const [itemsPerPage, setItemsPerPage] = useState(9);
+  const [itemsPerPage, setItemsPerPage] = useState(12);
 
   // Handle URL category parameter
   // useEffect(() => {
@@ -91,16 +91,18 @@ export default function Dashboard() {
     setCurrentPage(1);
   }, [selectedCategory, searchQuery]);
 
-  // Calculate category counts
+  // Calculate category counts (always show actual counts, not filtered)
   const categoryCounts = useMemo(() => {
+    const allActiveAgents = aiAgents.filter(agent => agent.isActive);
+    
     const counts: Record<AgentCategory | 'agentList', number> = {
-      'agentList': aiAgents.filter(agent => agent.isActive).length,
+      'agentList': allActiveAgents.length,
       '일반사무': 0,
       '마케팅/광고': 0,
       '콘텐츠 제작': 0,
     };
 
-    aiAgents.filter(agent => agent.isActive).forEach(agent => {
+    allActiveAgents.forEach(agent => {
       counts[agent.category]++;
     });
 
@@ -163,6 +165,31 @@ export default function Dashboard() {
   };
 
   const getAgentsByCategory = (category: AgentCategory | 'agentList') => {
+    // 선택된 카테고리가 있다면 해당 카테고리의 에이전트만 표시
+    if (selectedCategory !== 'agentList') {
+      if (selectedCategory.startsWith('favorites-')) {
+        // 즐겨찾기 폴더가 선택된 경우
+        if (loggedIn) {
+          const folderId = selectedCategory.replace('favorites-', '');
+          const agentIds = getAgentsInFolder(folderId);
+          const favoriteAgents = agentIds.map(id => aiAgents.find(agent => agent.id === id)).filter(Boolean) as AIAgent[];
+          
+          if (category === 'agentList') {
+            return favoriteAgents.filter(agent => agent.isActive);
+          }
+          return favoriteAgents.filter(agent => agent.isActive && agent.category === category);
+        }
+      } else {
+        // 일반 카테고리가 선택된 경우
+        const categoryAgents = aiAgents.filter(agent => agent.isActive && agent.category === selectedCategory);
+        if (category === 'agentList') {
+          return categoryAgents;
+        }
+        return categoryAgents.filter(agent => agent.category === category);
+      }
+    }
+
+    // 기본 동작 (전체 에이전트 표시)
     if (category === 'agentList') {
       return aiAgents.filter(agent => agent.isActive);
     }
@@ -208,11 +235,37 @@ export default function Dashboard() {
                   <div key={category}>
                     {/* Category Header */}
                     <button
-                      onClick={() => isSidebarOpen ? toggleCategory(category) : setSelectedCategory(category)}
-                      className={`w-full flex items-center p-2 rounded-lg hover:bg-gray-100 transition-all duration-200 ${!isSidebarOpen ? 'justify-center' : ''}`}
+                      onClick={() => {
+                        if (isSidebarOpen) {
+                          toggleCategory(category);
+                          // 토글 방식: 이미 선택된 카테고리를 다시 클릭하면 전체로 돌아감
+                          if (selectedCategory === category) {
+                            setSelectedCategory('agentList');
+                          } else {
+                            setSelectedCategory(category);
+                          }
+                        } else {
+                          if (selectedCategory === category) {
+                            setSelectedCategory('agentList');
+                          } else {
+                            setSelectedCategory(category);
+                          }
+                        }
+                      }}
+                      className={`w-full flex items-center p-2 rounded-lg hover:bg-gray-100 transition-all duration-200 ${!isSidebarOpen ? 'justify-center' : ''} ${
+                        selectedCategory === category ? 'bg-blue-50 text-blue-700' : ''
+                      }`}
                       title={!isSidebarOpen ? getCategoryLabel(category) : ''}
                     >
-                      <Icon className={`w-4 h-4 ${isSidebarOpen ? 'mr-2' : ''} text-gray-600`} />
+                      {!isSidebarOpen ? (
+                        <div className={`w-8 h-8 rounded-lg flex items-center justify-center ${
+                          selectedCategory === category ? 'bg-blue-100 text-blue-600' : 'bg-gray-100 text-gray-600'
+                        }`}>
+                          <Icon className="w-5 h-5" />
+                        </div>
+                      ) : (
+                        <Icon className={`w-4 h-4 mr-2 ${selectedCategory === category ? 'text-blue-600' : 'text-gray-600'}`} />
+                      )}
                       {isSidebarOpen && (
                         <>
                           <span className="font-medium flex-1 text-left text-gray-700">
@@ -340,6 +393,7 @@ export default function Dashboard() {
                   setItemsPerPage(items);
                   setCurrentPage(1);
                 }}
+                itemsPerPageOptions={[12, 30, 60, 90]}
                 className="mt-8"
               />
             </>
