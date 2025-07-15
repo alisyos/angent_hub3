@@ -114,7 +114,7 @@ export interface FAQCategory {
 // === 문의 관리 관련 타입 ===
 export interface InquiryAdmin {
   id: string;
-  type: 'service' | 'technical' | 'billing' | 'account' | 'other';
+  type: 'service' | 'technical' | 'billing' | 'account' | 'other' | 'agent_request';
   title: string;
   content: string;
   attachments: AttachmentFile[];
@@ -122,6 +122,7 @@ export interface InquiryAdmin {
     id: string;
     name: string;
     email: string;
+    phone?: string;
     type: 'general_user' | 'company_admin' | 'company_employee' | 'admin';
   };
   status: 'pending' | 'completed';
@@ -133,6 +134,19 @@ export interface InquiryAdmin {
   tags: string[];
   category: string;
   isInternal: boolean; // 내부 문의 여부
+  // 에이전트 추가신청 관련 필드
+  agentRequestData?: {
+    agentName: string;
+    agentDescription: string;
+    categoryId: string;
+    developmentType: 'free' | 'paid';
+    developmentCost?: string;
+    contactName: string;
+    contactEmail: string;
+    contactPhone?: string;
+    department?: string;
+    additionalInfo?: string;
+  };
 }
 
 export interface InquiryResponse {

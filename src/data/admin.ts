@@ -412,6 +412,7 @@ export const mockInquiries: InquiryAdmin[] = [
       id: '1',
       name: '김철수',
       email: 'kim.cs@example.com',
+      phone: '010-1234-5678',
       type: 'general_user'
     },
     status: 'pending',
@@ -433,6 +434,7 @@ export const mockInquiries: InquiryAdmin[] = [
       id: '2',
       name: '이영희',
       email: 'lee.yh@techstartup.com',
+      phone: '010-2345-6789',
       type: 'company_admin'
     },
     status: 'pending',
@@ -468,6 +470,7 @@ export const mockInquiries: InquiryAdmin[] = [
       id: '5',
       name: '최동현',
       email: 'choi.dh@freelancer.com',
+      phone: '010-5678-9012',
       type: 'general_user'
     },
     status: 'completed',
@@ -790,6 +793,156 @@ export const mockInquiries: InquiryAdmin[] = [
     tags: ['회사계정', '크레딧분배'],
     category: 'billing',
     isInternal: false
+  },
+  {
+    id: '11',
+    type: 'agent_request',
+    title: '계약서 검토 AI 에이전트 개발 요청',
+    content: '법무팀에서 사용할 수 있는 계약서 검토 AI 에이전트 개발을 요청드립니다. 계약서 내용을 분석하고 리스크를 식별하는 기능이 필요합니다.',
+    attachments: [
+      {
+        id: 'att11',
+        filename: 'contract-sample.pdf',
+        originalName: '계약서 샘플.pdf',
+        size: 512000,
+        mimeType: 'application/pdf',
+        uploadedAt: '2024-01-21T09:00:00Z',
+        downloadUrl: '/attachments/att11'
+      }
+    ],
+    user: {
+      id: '2',
+      name: '이영희',
+      email: 'lee.yh@techstartup.com',
+      phone: '010-1234-5678',
+      type: 'company_admin'
+    },
+    status: 'pending',
+    assignedTo: 'admin-001',
+    responses: [
+      {
+        id: 'resp11',
+        inquiryId: '11',
+        content: '에이전트 개발 요청을 검토 중입니다. 기술적 검토와 비용 산정 후 답변드리겠습니다.',
+        attachments: [],
+        author: {
+          id: 'admin-001',
+          name: '개발팀',
+          role: 'admin'
+        },
+        isInternal: false,
+        createdAt: '2024-01-21T10:30:00Z'
+      }
+    ],
+    createdAt: '2024-01-21T09:00:00Z',
+    updatedAt: '2024-01-21T10:30:00Z',
+    tags: ['에이전트개발', '법무', '계약서'],
+    category: 'agent_request',
+    isInternal: false,
+    agentRequestData: {
+      agentName: '계약서 검토 AI',
+      agentDescription: '계약서 내용을 분석하고 리스크를 식별하는 AI 에이전트',
+      categoryId: 'office',
+      developmentType: 'paid',
+      developmentCost: '300만원',
+      contactName: '이영희',
+      contactEmail: 'lee.yh@techstartup.com',
+      contactPhone: '010-1234-5678',
+      department: '법무팀',
+      additionalInfo: '기존 계약서 템플릿과 연동 가능하면 좋겠습니다.'
+    }
+  },
+  {
+    id: '12',
+    type: 'agent_request',
+    title: '마케팅 성과 분석 AI 에이전트 개발 요청',
+    content: '마케팅 캠페인 성과를 자동으로 분석하고 개선 방안을 제안하는 AI 에이전트가 필요합니다.',
+    attachments: [],
+    user: {
+      id: '9',
+      name: '박민수',
+      email: 'park.ms@startup.kr',
+      phone: '010-9876-5432',
+      type: 'company_admin'
+    },
+    status: 'pending',
+    assignedTo: undefined,
+    responses: [],
+    createdAt: '2024-01-20T16:00:00Z',
+    updatedAt: '2024-01-20T16:00:00Z',
+    tags: ['에이전트개발', '마케팅', '성과분석'],
+    category: 'agent_request',
+    isInternal: false,
+    agentRequestData: {
+      agentName: '마케팅 성과 분석 AI',
+      agentDescription: '마케팅 캠페인 성과를 자동으로 분석하고 개선 방안을 제안하는 AI 에이전트',
+      categoryId: 'marketing',
+      developmentType: 'free',
+      contactName: '박민수',
+      contactEmail: 'park.ms@startup.kr',
+      contactPhone: '010-9876-5432',
+      department: '마케팅팀',
+      additionalInfo: 'Google Analytics와 연동 가능하면 좋겠습니다.'
+    }
+  },
+  {
+    id: '13',
+    type: 'agent_request',
+    title: '보고서 자동 생성 AI 에이전트 개발 요청',
+    content: '주간, 월간 보고서를 자동으로 생성하는 AI 에이전트 개발을 요청합니다.',
+    attachments: [
+      {
+        id: 'att13',
+        filename: 'report-template.xlsx',
+        originalName: '보고서 템플릿.xlsx',
+        size: 256000,
+        mimeType: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+        uploadedAt: '2024-01-19T14:00:00Z',
+        downloadUrl: '/attachments/att13'
+      }
+    ],
+    user: {
+      id: '5',
+      name: '최동현',
+      email: 'choi.dh@freelancer.com',
+      phone: '010-5678-9012',
+      type: 'general_user'
+    },
+    status: 'completed',
+    assignedTo: 'admin-002',
+    responses: [
+      {
+        id: 'resp13',
+        inquiryId: '13',
+        content: '요청하신 보고서 자동 생성 AI 에이전트 개발이 완료되었습니다. 베타 버전을 테스트해보시고 피드백을 주시면 감사하겠습니다.',
+        attachments: [],
+        author: {
+          id: 'admin-002',
+          name: '개발팀',
+          role: 'admin'
+        },
+        isInternal: false,
+        createdAt: '2024-01-19T17:00:00Z'
+      }
+    ],
+    createdAt: '2024-01-19T14:00:00Z',
+    updatedAt: '2024-01-19T17:00:00Z',
+    resolvedAt: '2024-01-19T17:00:00Z',
+    tags: ['에이전트개발', '보고서', '자동화'],
+    category: 'agent_request',
+    isInternal: false,
+    agentRequestData: {
+      agentName: '보고서 자동 생성 AI',
+      agentDescription: '주간, 월간 보고서를 자동으로 생성하는 AI 에이전트',
+      categoryId: 'office',
+      developmentType: 'paid',
+      developmentCost: '200만원',
+      contactName: '최동현',
+      contactEmail: 'choi.dh@freelancer.com',
+      contactPhone: '010-5555-1234',
+      department: '기획팀',
+      additionalInfo: '엑셀 템플릿 기반으로 생성 가능하면 좋겠습니다.'
+    }
   }
 ];
 

@@ -64,7 +64,7 @@ export default function Header() {
         { name: '에이전트', href: '/' },
         { name: '크레딧 충전', href: '/credits' },
         { name: 'FAQ', href: '/faq' },
-        { name: '문의하기', href: '/contact' },
+        { name: '고객지원', href: '/contact' },
       ];
     }
 
@@ -72,7 +72,7 @@ export default function Header() {
       { name: '에이전트', href: '/' },
       { name: '크레딧 충전', href: '/credits' },
       { name: 'FAQ', href: '/faq' },
-      { name: '문의하기', href: '/contact' },
+      { name: '고객지원', href: '/contact' },
     ];
 
     // 역할별 추가 메뉴

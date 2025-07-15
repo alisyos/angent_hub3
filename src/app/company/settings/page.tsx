@@ -26,16 +26,20 @@ function CompanySettingsContent() {
 
   // 회사 정보 상태
   const [companyInfo, setCompanyInfo] = useState({
+    name: '테크 스타트업',
     companyName: '테크 스타트업',
     businessNumber: '123-45-67890',
+    ceo: '김대표',
     ceoName: '김대표',
     address: '서울특별시 강남구 테헤란로 123',
     phone: '02-1234-5678',
     email: 'contact@techstartup.com',
     website: 'https://techstartup.com',
     industry: '소프트웨어 개발',
+    employeeCount: '10-50명',
     companySize: '10-50명',
-    establishedYear: '2020'
+    establishedYear: '2020',
+    description: '혁신적인 소프트웨어 솔루션을 개발하는 스타트업입니다.'
   });
 
   // 결제 설정 상태
@@ -46,13 +50,30 @@ function CompanySettingsContent() {
     rechargeAmount: 100000,
     rechargeThreshold: 10000,
     receiveInvoice: true,
-    invoiceEmail: 'billing@techstartup.com'
+    invoiceEmail: 'billing@techstartup.com',
+    issueTaxInvoice: false,
+    contactName: '',
+    contactPhone: '',
+    contactEmail: ''
   });
 
   // 회사 코드 상태
-  const [companyCode, setCompanyCode] = useState('TECH2024');
+  const [companyCode, setCompanyCode] = useState({
+    id: 1,
+    code: 'TECH2024',
+    name: '',
+    description: '',
+    isVisible: false,
+    createdAt: '2024-01-01',
+    isCreated: false
+  });
   const [showCompanyCode, setShowCompanyCode] = useState(false);
   const [copied, setCopied] = useState(false);
+  const [showConfirmModal, setShowConfirmModal] = useState(false);
+  const [newCodeData, setNewCodeData] = useState({
+    name: '',
+    description: ''
+  });
 
   // 초기 탭 설정
   useEffect(() => {
@@ -103,7 +124,8 @@ function CompanySettingsContent() {
 
   const handleCopyCode = () => {
     navigator.clipboard.writeText(companyCode.code);
-    // TODO: Add toast notification for copy success
+    setCopied(true);
+    setTimeout(() => setCopied(false), 2000);
   };
 
   const handleShowConfirmModal = () => {
