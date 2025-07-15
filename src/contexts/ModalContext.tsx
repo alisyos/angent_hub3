@@ -1,9 +1,10 @@
 'use client';
 
-import { createContext, useContext, useState, ReactNode } from 'react';
+import { createContext, useContext, useState, ReactNode, useEffect } from 'react';
 import Modal from '@/components/Modal';
+import { setGlobalShowModal } from '@/utils/notifications';
 
-interface ModalConfig {
+export interface ModalConfig {
   title?: string;
   message: string;
   type?: 'info' | 'success' | 'warning' | 'error';
@@ -32,6 +33,11 @@ export function ModalProvider({ children }: { children: ReactNode }) {
       setModalConfig(null);
     }, 150); // 애니메이션 시간
   };
+
+  // 전역 모달 함수 설정
+  useEffect(() => {
+    setGlobalShowModal(showModal);
+  }, []);
 
   const handleConfirm = () => {
     if (modalConfig?.onConfirm) {

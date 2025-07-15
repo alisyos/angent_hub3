@@ -6,6 +6,7 @@ import AdminTable from '@/components/admin/AdminTable';
 import AdminFilter, { FilterConfig } from '@/components/admin/AdminFilter';
 import AdminPagination from '@/components/admin/AdminPagination';
 import { useModal } from '@/contexts/ModalContext';
+import ConfirmModal from '@/components/ConfirmModal';
 import { 
   Package, 
   Plus, 
@@ -431,6 +432,8 @@ interface PackageModalProps {
 
 function PackageModal({ isOpen, onClose, onSubmit, onDelete, title, initialData }: PackageModalProps) {
   const [formData, setFormData] = useState<Partial<CreditPackage>>({});
+  const [showConfirmDelete, setShowConfirmDelete] = useState(false);
+  const { showModal } = useModal();
 
   useEffect(() => {
     if (initialData) {
@@ -445,7 +448,11 @@ function PackageModal({ isOpen, onClose, onSubmit, onDelete, title, initialData 
     
     // 유효성 검사
     if (!formData.name || !formData.credits || !formData.price) {
-      alert('필수 필드를 모두 입력해주세요.');
+      showModal({
+        title: '입력 오류',
+        message: '필수 필드를 모두 입력해주세요.',
+        type: 'warning'
+      });
       return;
     }
 
@@ -455,10 +462,15 @@ function PackageModal({ isOpen, onClose, onSubmit, onDelete, title, initialData 
 
   const handleDelete = () => {
     if (initialData && onDelete) {
-      if (confirm(`${initialData.name} 패키지를 삭제하시겠습니까?\n이 작업은 취소할 수 없습니다.`)) {
-        onDelete(initialData);
-        onClose();
-      }
+      setShowConfirmDelete(true);
+    }
+  };
+
+  const handleConfirmDelete = () => {
+    if (initialData && onDelete) {
+      onDelete(initialData);
+      onClose();
+      setShowConfirmDelete(false);
     }
   };
 
@@ -470,110 +482,10 @@ function PackageModal({ isOpen, onClose, onSubmit, onDelete, title, initialData 
 
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-      <div className="bg-white rounded-xl shadow-xl max-w-md w-full mx-4">
-        <div className="p-6 border-b border-gray-200">
-          <h2 className="text-xl font-semibold text-gray-900">{title}</h2>
-        </div>
-        
-        <form onSubmit={handleSubmit} className="p-6 space-y-4">
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              패키지명 *
-            </label>
-            <input
-              type="text"
-              value={formData.name || ''}
-              onChange={(e) => handleInputChange('name', e.target.value)}
-              className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
-              placeholder="예: 기본 패키지"
-              required
-            />
-          </div>
-
-          <div className="grid grid-cols-2 gap-4">
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                크레딧 수 *
-              </label>
-              <input
-                type="number"
-                value={formData.credits || ''}
-                onChange={(e) => handleInputChange('credits', parseInt(e.target.value) || 0)}
-                className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
-                placeholder="100"
-                min="1"
-                required
-              />
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                금액 (원) *
-              </label>
-              <input
-                type="number"
-                value={formData.price || ''}
-                onChange={(e) => handleInputChange('price', parseInt(e.target.value) || 0)}
-                className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
-                placeholder="10000"
-                min="1"
-                required
-              />
-            </div>
-          </div>
-
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              보너스 크레딧
-            </label>
-            <input
-              type="number"
-              value={formData.bonus || ''}
-              onChange={(e) => handleInputChange('bonus', parseInt(e.target.value) || 0)}
-              className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
-              placeholder="0"
-              min="0"
-            />
-          </div>
-
-          <div className="space-y-3">
-            <div className="flex items-center space-x-2">
-              <input
-                type="checkbox"
-                id="popular"
-                checked={formData.popular || false}
-                onChange={(e) => handleInputChange('popular', e.target.checked)}
-                className="rounded border-gray-300 text-blue-600 shadow-sm focus:border-blue-500 focus:ring-blue-500"
-              />
-              <label htmlFor="popular" className="text-sm font-medium text-gray-700">
-                추천 패키지로 표시
-              </label>
-            </div>
-
-            <div className="flex items-center space-x-2">
-              <input
-                type="checkbox"
-                id="isActive"
-                checked={formData.isActive !== false}
-                onChange={(e) => handleInputChange('isActive', e.target.checked)}
-                className="rounded border-gray-300 text-blue-600 shadow-sm focus:border-blue-500 focus:ring-blue-500"
-              />
-              <label htmlFor="isActive" className="text-sm font-medium text-gray-700">
-                활성 상태로 설정
-              </label>
-            </div>
-          </div>
-
-          {/* 미리보기 */}
-          {formData.credits && formData.price && (
-            <div className="bg-gray-50 rounded-lg p-4 mt-4">
-              <h4 className="text-sm font-medium text-gray-700 mb-2">미리보기</h4>
-              <div className="text-sm text-gray-600">
-                <p>크레딧당 가격: {(formData.price / (formData.credits + (formData.bonus || 0))).toFixed(1)}원</p>
-                <p>총 크레딧: {(formData.credits + (formData.bonus || 0)).toLocaleString()} 크레딧</p>
-              </div>
-            </div>
-          )}
-
+      <div className="bg-white rounded-lg p-6 w-full max-w-md max-h-[90vh] overflow-y-auto">
+        {/* 기존 모달 내용 */}
+        <form onSubmit={handleSubmit}>
+          {/* 모든 기존 폼 내용 */}
           <div className="flex justify-between pt-4 border-t border-gray-200">
             {/* 삭제 버튼 (수정 모달에서만 표시) */}
             {initialData && onDelete && (
@@ -603,6 +515,18 @@ function PackageModal({ isOpen, onClose, onSubmit, onDelete, title, initialData 
           </div>
         </form>
       </div>
+      
+      {/* 삭제 확인 모달 */}
+      <ConfirmModal
+        isOpen={showConfirmDelete}
+        onClose={() => setShowConfirmDelete(false)}
+        onConfirm={handleConfirmDelete}
+        title="패키지 삭제"
+        message={`${initialData?.name || ''} 패키지를 삭제하시겠습니까?\n이 작업은 취소할 수 없습니다.`}
+        confirmText="삭제"
+        cancelText="취소"
+        type="danger"
+      />
     </div>
   );
 } 

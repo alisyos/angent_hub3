@@ -12,26 +12,29 @@ import { AIAgent } from '@/types/agent';
 import { AgentAdmin, AgentSettings } from '@/types/admin';
 import { 
   Bot, 
-  Settings, 
-  Play, 
-  Pause, 
-  BarChart3, 
-  AlertTriangle,
-  Clock,
-  Activity,
-  Users,
-  DollarSign,
-  RefreshCw,
-  FileText,
-  CheckCircle,
-  XCircle,
-  Save,
-  Edit,
+  Plus, 
+  Edit2, 
+  Trash2, 
+  Save, 
+  X,
+  Power,
+  PowerOff,
+  Settings,
   ArrowUp,
   ArrowDown,
-  Monitor,
-  ArrowUpDown
+  Pause,
+  Play,
+  RotateCcw,
+  Activity,
+  AlertCircle,
+  CheckCircle,
+  XCircle,
+  Users,
+  BarChart3,
+  Clock,
+  AlertTriangle
 } from 'lucide-react';
+import { showAlert, showSuccess, showDeleteConfirm } from '@/utils/notifications';
 
 // 아이콘 목록 (20~30개)
 const availableIcons = [
@@ -379,7 +382,7 @@ export default function AdminAgents() {
             title="수정"
             disabled={!agent}
           >
-            <Edit className="w-4 h-4" />
+            <Edit2 className="w-4 h-4" />
           </button>
           <button
             onClick={() => agent && handleManageAgent(agent)}
@@ -387,7 +390,7 @@ export default function AdminAgents() {
             title="관리"
             disabled={!agent}
           >
-            <Monitor className="w-4 h-4" />
+            <Settings className="w-4 h-4" />
           </button>
           <button
             onClick={() => agent && handleLogsAgent(agent)}
@@ -395,7 +398,7 @@ export default function AdminAgents() {
             title="로그"
             disabled={!agent}
           >
-            <FileText className="w-4 h-4" />
+            <Activity className="w-4 h-4" />
           </button>
           <button
             onClick={() => agent && handleMoveUp(agent)}
@@ -615,7 +618,7 @@ export default function AdminAgents() {
       return a;
     }));
 
-    alert(`${agent.name}의 순서가 올라갔습니다.`);
+    showSuccess(`${agent.name}의 순서가 올라갔습니다.`);
   };
 
   const handleMoveDown = (agent: AgentAdmin) => {
@@ -638,7 +641,7 @@ export default function AdminAgents() {
       return a;
     }));
 
-    alert(`${agent.name}의 순서가 내려갔습니다.`);
+    showSuccess(`${agent.name}의 순서가 내려갔습니다.`);
   };
 
   const handleToggleAgent = (agent: AgentAdmin) => {
@@ -663,7 +666,7 @@ export default function AdminAgents() {
     // 설정 저장 로직 (실제로는 API 호출)
     console.log('Settings saved:', editingSettings);
     setShowSettingsModal(false);
-    alert('설정이 저장되었습니다.');
+    showSuccess('설정이 저장되었습니다.');
   };
 
   const handleConfirmAction = () => {
@@ -673,9 +676,9 @@ export default function AdminAgents() {
     console.log(`${action} action for agent:`, confirmModal.agent.id);
 
     if (action === 'toggle') {
-      alert(`에이전트가 ${confirmModal.agent?.settings?.isEnabled ? '비활성화' : '활성화'}되었습니다.`);
+      showSuccess(`${confirmModal.agent?.name} 에이전트가 ${confirmModal.agent?.settings.isEnabled ? '비활성화' : '활성화'}되었습니다.`);
     } else if (action === 'restart') {
-      alert('에이전트가 재시작되었습니다.');
+      showSuccess(`${confirmModal.agent?.name} 에이전트가 재시작되었습니다.`);
     }
 
     setConfirmModal({ isOpen: false, agent: null, type: 'toggle' });
@@ -866,7 +869,7 @@ export default function AdminAgents() {
               onSave={() => {
                 console.log('Agent updated:', editingAgent);
                 setShowEditModal(false);
-                alert('에이전트가 수정되었습니다.');
+                showSuccess('에이전트가 수정되었습니다.');
               }}
               onCancel={() => setShowEditModal(false)}
             />

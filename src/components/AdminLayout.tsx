@@ -4,6 +4,8 @@ import { ReactNode, useState, useEffect } from 'react';
 import Header from '@/components/Header';
 import Footer from '@/components/Footer';
 import AdminNavigation from '@/components/AdminNavigation';
+import { useModal } from '@/contexts/ModalContext';
+import { Search, Calendar, Filter, ChevronDown } from 'lucide-react';
 
 interface AdminLayoutProps {
   children: ReactNode;
@@ -28,12 +30,13 @@ export default function AdminLayout({
   customDateRange,
   onCustomDateRange
 }: AdminLayoutProps) {
+  const { showModal } = useModal();
   const [internalSelectedPeriod, setInternalSelectedPeriod] = useState('최근 7일');
   const [showCustomDatePicker, setShowCustomDatePicker] = useState(false);
   const [customStartDate, setCustomStartDate] = useState('');
   const [customEndDate, setCustomEndDate] = useState('');
   
-  // 권한 체크 - 관리자만 관리자 페이지에 접근 가능
+  // 관리자 권한 확인
   useEffect(() => {
     const savedUserInfo = localStorage.getItem('userInfo');
     if (savedUserInfo) {
@@ -41,8 +44,14 @@ export default function AdminLayout({
         const userInfo = JSON.parse(savedUserInfo);
         if (!userInfo.isLoggedIn || userInfo.role !== '관리자') {
           // 관리자가 아니면 메인 페이지로 리다이렉트
-          alert('관리자만 접근할 수 있는 페이지입니다.');
-          window.location.href = '/';
+          showModal({
+            title: '접근 권한 없음',
+            message: '관리자만 접근할 수 있는 페이지입니다.',
+            type: 'warning',
+            onConfirm: () => {
+              window.location.href = '/';
+            }
+          });
           return;
         }
       } catch (error) {
@@ -51,10 +60,16 @@ export default function AdminLayout({
       }
     } else {
       // 로그인 정보가 없으면 로그인 페이지로 리다이렉트
-      alert('로그인이 필요합니다.');
-      window.location.href = '/login';
+      showModal({
+        title: '로그인 필요',
+        message: '로그인이 필요합니다.',
+        type: 'warning',
+        onConfirm: () => {
+          window.location.href = '/login';
+        }
+      });
     }
-  }, []);
+  }, [showModal]);
 
   // 커스텀 날짜 범위 설정
   useEffect(() => {

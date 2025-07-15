@@ -10,17 +10,21 @@ import Header from '@/components/Header';
 import Footer from '@/components/Footer';
 import AgentCard from '@/components/AgentCard';
 import AdminPagination from '@/components/admin/AdminPagination';
+import FavoritesSection from '@/components/FavoritesSection';
+import { useFavorites } from '@/hooks/useFavorites';
+import { isLoggedIn } from '@/utils/auth';
 import { aiAgents } from '@/data/agents';
 import { AIAgent, AgentCategory } from '@/types/agent';
 import { Search, Briefcase, Megaphone, PenTool, Grid3X3, ChevronLeft, ChevronRight, ChevronDown, ChevronRight as ChevronRightSmall } from 'lucide-react';
 
 export default function Dashboard() {
   const { showModal } = useModal();
+  const { getAgentsInFolder, loggedIn } = useFavorites();
   // const searchParams = useSearchParams();
-  const [selectedCategory, setSelectedCategory] = useState<AgentCategory | 'agentList'>('agentList');
+  const [selectedCategory, setSelectedCategory] = useState<AgentCategory | 'agentList' | string>('agentList');
   const [searchQuery, setSearchQuery] = useState('');
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
-  const [expandedCategories, setExpandedCategories] = useState<Set<AgentCategory | 'agentList'>>(new Set(['agentList']));
+  const [expandedCategories, setExpandedCategories] = useState<Set<AgentCategory | 'agentList' | string>>(new Set(['agentList']));
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage, setItemsPerPage] = useState(9);
 
@@ -33,13 +37,34 @@ export default function Dashboard() {
   //   }
   // }, [searchParams]);
 
+  // Reset to agentList if user logs out and was viewing a favorites folder
+  useEffect(() => {
+    if (!loggedIn && selectedCategory.startsWith('favorites-')) {
+      setSelectedCategory('agentList');
+    }
+  }, [loggedIn, selectedCategory]);
+
   // Filter agents based on category and search query
   const filteredAgents = useMemo(() => {
     let filtered = aiAgents.filter(agent => agent.isActive);
 
     // Category filter
     if (selectedCategory !== 'agentList') {
-      filtered = filtered.filter(agent => agent.category === selectedCategory);
+      // Check if it's a favorites folder
+      if (selectedCategory.startsWith('favorites-')) {
+        // Only filter by favorites if user is logged in
+        if (loggedIn) {
+          const folderId = selectedCategory.replace('favorites-', '');
+          const agentIds = getAgentsInFolder(folderId);
+          filtered = filtered.filter(agent => agentIds.includes(agent.id));
+        } else {
+          // If not logged in, show all agents instead of favorites
+          filtered = aiAgents.filter(agent => agent.isActive);
+        }
+      } else {
+        // Regular category filter
+        filtered = filtered.filter(agent => agent.category === selectedCategory);
+      }
     }
 
     // Search filter
@@ -53,7 +78,7 @@ export default function Dashboard() {
     }
 
     return filtered;
-  }, [selectedCategory, searchQuery]);
+  }, [selectedCategory, searchQuery, getAgentsInFolder, loggedIn]);
 
   // Pagination logic
   const totalPages = Math.ceil(filteredAgents.length / itemsPerPage);
@@ -87,27 +112,7 @@ export default function Dashboard() {
     if (typeof window === 'undefined') return;
     
     // 로그인 상태 확인
-    const userInfo = localStorage.getItem('userInfo');
-    if (!userInfo) {
-      showModal({
-        title: '로그인 필요',
-        message: 'AI 에이전트를 사용하려면 로그인이 필요합니다.',
-        type: 'warning'
-      });
-      return;
-    }
-
-    try {
-      const parsedUserInfo = JSON.parse(userInfo);
-      if (!parsedUserInfo.isLoggedIn) {
-        showModal({
-          title: '로그인 필요',
-          message: 'AI 에이전트를 사용하려면 로그인이 필요합니다.',
-          type: 'warning'
-        });
-        return;
-      }
-    } catch {
+    if (!isLoggedIn()) {
       showModal({
         title: '로그인 필요',
         message: 'AI 에이전트를 사용하려면 로그인이 필요합니다.',
@@ -139,27 +144,13 @@ export default function Dashboard() {
     '콘텐츠 제작': PenTool,
   };
 
-  // const categoryColors = {
-  //   agentList: 'bg-gray-100 text-gray-800 border-gray-200 hover:bg-gray-200',
-  //   '일반사무': 'bg-blue-100 text-blue-800 border-blue-200 hover:bg-blue-200',
-  //   '마케팅/광고': 'bg-green-100 text-green-800 border-green-200 hover:bg-green-200',
-  //   '콘텐츠 제작': 'bg-purple-100 text-purple-800 border-purple-200 hover:bg-purple-200',
-  // };
-
-  // const selectedCategoryColors = {
-  //   agentList: 'bg-gray-600 text-white border-gray-600',
-  //   '일반사무': 'bg-blue-600 text-white border-blue-600',
-  //   '마케팅/광고': 'bg-green-600 text-white border-green-600',
-  //   '콘텐츠 제작': 'bg-purple-600 text-white border-purple-600',
-  // };
-
   const categories: (AgentCategory | 'agentList')[] = ['agentList', '일반사무', '마케팅/광고', '콘텐츠 제작'];
 
   const getCategoryLabel = (category: AgentCategory | 'agentList') => {
     return category === 'agentList' ? 'Agent List' : category;
   };
 
-  const toggleCategory = (category: AgentCategory | 'agentList') => {
+  const toggleCategory = (category: AgentCategory | 'agentList' | string) => {
     setExpandedCategories(prev => {
       const newSet = new Set(prev);
       if (newSet.has(category)) {
@@ -263,6 +254,16 @@ export default function Dashboard() {
                 );
               })}
             </nav>
+
+            {/* Favorites Section */}
+            <FavoritesSection
+              isSidebarOpen={isSidebarOpen}
+              onAgentClick={handleAgentClick}
+              selectedCategory={selectedCategory}
+              onCategorySelect={setSelectedCategory}
+              expandedCategories={expandedCategories}
+              onToggleExpand={toggleCategory}
+            />
           </div>
         </aside>
 
@@ -318,7 +319,7 @@ export default function Dashboard() {
           {/* Agents Grid */}
           {paginatedAgents.length > 0 ? (
             <>
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8 items-stretch">
                 {paginatedAgents.map((agent) => (
                   <AgentCard
                     key={agent.id}

@@ -1,7 +1,9 @@
 'use client';
 
 import { useState, useMemo, useEffect } from 'react';
+import { useModal } from '@/contexts/ModalContext';
 import CompanyLayout from '@/components/CompanyLayout';
+import ConfirmModal from '@/components/ConfirmModal';
 import AdminPagination from '@/components/admin/AdminPagination';
 import { aiAgents } from '@/data/agents';
 import { extendedEmployeeData, departmentData } from '@/data/company';
@@ -12,10 +14,32 @@ import {
   X,
   ChevronUp,
   ChevronDown,
-  Filter
+  Filter,
+  Edit2,
+  Trash2,
+  Users,
+  UserPlus,
+  UserMinus,
+  Building,
+  Star
 } from 'lucide-react';
 
+interface Employee {
+  id: string;
+  name: string;
+  email: string;
+  position: string;
+  department: string;
+  joinDate: string;
+  credits: number;
+  usedCredits: number;
+  status: 'active' | 'inactive';
+  lastLogin: string;
+  permissions: string[];
+}
+
 export default function CompanyEmployees() {
+  const { showModal } = useModal();
   const [activeTab, setActiveTab] = useState('employees');
   const [currentPage, setCurrentPage] = useState(1);
   const [isAgentModalOpen, setIsAgentModalOpen] = useState(false);
@@ -32,6 +56,16 @@ export default function CompanyEmployees() {
   // 편집 모달 상태
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [editingEmployee, setEditingEmployee] = useState<typeof allEmployees[0] | null>(null);
+  const [showConfirmDelete, setShowConfirmDelete] = useState(false);
+
+  // 직원 삭제 처리
+  const handleConfirmDelete = () => {
+    if (!editingEmployee) return;
+    setEmployees(prev => prev.filter(emp => emp.id !== editingEmployee.id));
+    setIsEditModalOpen(false);
+    setEditingEmployee(null);
+    setShowConfirmDelete(false);
+  };
   
   // 부서 관리 필터 및 정렬 상태
   const [departmentSearchTerm, setDepartmentSearchTerm] = useState('');
@@ -276,11 +310,7 @@ export default function CompanyEmployees() {
 
     const handleDelete = () => {
       if (!editingEmployee) return;
-      if (confirm('정말로 이 직원 계정을 삭제하시겠습니까?')) {
-        setEmployees(prev => prev.filter(emp => emp.id !== editingEmployee.id));
-        setIsEditModalOpen(false);
-        setEditingEmployee(null);
-      }
+      setShowConfirmDelete(true);
     };
 
     if (!editingEmployee) return null;
@@ -1079,6 +1109,16 @@ export default function CompanyEmployees() {
       
       {/* 에이전트 선택 모달 */}
       {isAgentModalOpen && <AgentSelectionModal />}
+
+      {/* 확인 모달 */}
+      <ConfirmModal
+        isOpen={showConfirmDelete}
+        title="계정 삭제"
+        message="정말로 이 직원 계정을 삭제하시겠습니까?"
+        onConfirm={handleConfirmDelete}
+        onClose={() => setShowConfirmDelete(false)}
+        type="danger"
+      />
     </CompanyLayout>
   );
 } 

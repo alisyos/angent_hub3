@@ -2,6 +2,7 @@
 
 import { useState, useEffect, Suspense } from 'react';
 import { useSearchParams } from 'next/navigation';
+import { useModal } from '@/contexts/ModalContext';
 import CompanyLayout from '@/components/CompanyLayout';
 import { 
   Building,
@@ -19,47 +20,49 @@ import {
 } from 'lucide-react';
 
 function CompanySettingsContent() {
+  const { showModal } = useModal();
   const searchParams = useSearchParams();
   const [activeTab, setActiveTab] = useState('company');
+
+  // 회사 정보 상태
   const [companyInfo, setCompanyInfo] = useState({
-    name: '테크이노베이션 주식회사',
+    companyName: '테크 스타트업',
     businessNumber: '123-45-67890',
+    ceoName: '김대표',
     address: '서울특별시 강남구 테헤란로 123',
     phone: '02-1234-5678',
-    email: 'info@techinnovation.com',
-    website: 'https://techinnovation.com',
-    ceo: '김대표',
-    employeeCount: '150명',
+    email: 'contact@techstartup.com',
+    website: 'https://techstartup.com',
     industry: '소프트웨어 개발',
-    description: 'AI 기반 솔루션을 제공하는 테크 기업입니다.'
+    companySize: '10-50명',
+    establishedYear: '2020'
   });
 
+  // 결제 설정 상태
   const [billingSettings, setBillingSettings] = useState({
-    issueTaxInvoice: false,
-    contactName: '',
-    contactPhone: '',
-    contactEmail: ''
+    defaultPaymentMethod: 'corporate_card',
+    billingCycle: 'monthly',
+    autoRecharge: false,
+    rechargeAmount: 100000,
+    rechargeThreshold: 10000,
+    receiveInvoice: true,
+    invoiceEmail: 'billing@techstartup.com'
   });
 
-  // 회사 코드 관련 상태
-  const [companyCode, setCompanyCode] = useState({
-    id: 1,
-    code: 'COMP2024001',
-    name: '회사 인증 코드',
-    description: '직원 가입을 위한 회사 인증 코드',
-    isVisible: false,
-    createdAt: '2024-01-15',
-    isCreated: true
-  });
+  // 회사 코드 상태
+  const [companyCode, setCompanyCode] = useState('TECH2024');
+  const [showCompanyCode, setShowCompanyCode] = useState(false);
+  const [copied, setCopied] = useState(false);
 
-  const [newCodeData, setNewCodeData] = useState({
-    name: '회사 인증 코드',
-    description: '직원 가입을 위한 회사 인증 코드'
-  });
+  // 초기 탭 설정
+  useEffect(() => {
+    const tab = searchParams.get('tab');
+    if (tab && ['company', 'billing', 'code'].includes(tab)) {
+      setActiveTab(tab);
+    }
+  }, [searchParams]);
 
-  // 확인 모달 상태
-  const [showConfirmModal, setShowConfirmModal] = useState(false);
-
+  // 탭 메뉴 설정
   const tabs = [
     { id: 'company', name: '회사 정보', icon: Building },
     { id: 'billing', name: '결제 설정', icon: CreditCard },
@@ -69,12 +72,20 @@ function CompanySettingsContent() {
   // 회사 정보 관련 함수
   const handleSaveCompanyInfo = () => {
     console.log('Company info saved:', companyInfo);
-    alert('회사 정보가 저장되었습니다.');
+    showModal({
+      title: '저장 완료',
+      message: '회사 정보가 저장되었습니다.',
+      type: 'success'
+    });
   };
 
   const handleSaveBillingSettings = () => {
     console.log('Billing settings saved:', billingSettings);
-    alert('결제 설정이 저장되었습니다.');
+    showModal({
+      title: '저장 완료',
+      message: '결제 설정이 저장되었습니다.',
+      type: 'success'
+    });
   };
 
   const handleCompanyInfoChange = (field: string, value: string) => {

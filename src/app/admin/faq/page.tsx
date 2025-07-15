@@ -1,7 +1,8 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import AdminLayout from '@/components/AdminLayout';
+import { showAlert, showDeleteConfirm } from '@/utils/notifications';
 import AdminStats from '@/components/admin/AdminStats';
 import AdminFilter from '@/components/admin/AdminFilter';
 import AdminTable from '@/components/admin/AdminTable';
@@ -23,7 +24,12 @@ import {
   X,
   Check,
   ArrowUp,
-  ArrowDown
+  ArrowDown,
+  MessageSquare,
+  Edit2,
+  Search,
+  AlertCircle,
+  CheckCircle
 } from 'lucide-react';
 
 export default function AdminFAQ() {
@@ -305,8 +311,10 @@ export default function AdminFAQ() {
   };
 
   const handleDeleteFaq = (faq: FAQAdmin) => {
-    setFaqs(prev => prev.filter(f => f.id !== faq.id));
-    alert('FAQ가 삭제되었습니다.');
+    showDeleteConfirm('FAQ를 삭제하시겠습니까?', () => {
+      setFaqs(prev => prev.filter(f => f.id !== faq.id));
+      showAlert('FAQ가 삭제되었습니다.', 'success');
+    });
   };
 
   const handleSaveFaq = (updatedFaq?: FAQAdmin) => {
@@ -318,10 +326,11 @@ export default function AdminFAQ() {
           : f
       ));
       setShowDetailModal(false);
+      showAlert('FAQ가 수정되었습니다.', 'success');
     } else {
       // 새 FAQ 생성
       if (!editingFaq.category || !editingFaq.question || !editingFaq.answer) {
-        alert('카테고리, 질문, 답변을 모두 입력해주세요.');
+        showAlert('카테고리, 질문, 답변을 모두 입력해주세요.', 'warning');
         return;
       }
 
@@ -348,6 +357,7 @@ export default function AdminFAQ() {
         order: 1,
         tags: []
       });
+      showAlert('FAQ가 추가되었습니다.', 'success');
     }
   };
 
@@ -403,7 +413,7 @@ export default function AdminFAQ() {
           <AdminStats
             title="게시된 FAQ"
             value={faqs.filter(f => f.isPublished).length}
-            icon={Check}
+            icon={CheckCircle}
             color="green"
           />
         </div>
