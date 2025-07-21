@@ -34,6 +34,8 @@ import AddUserModal from '@/components/admin/AddUserModal';
 import EditUserModal from '@/components/admin/EditUserModal';
 import { mockUsers, generateUserActivityLogs } from '@/data/admin';
 import { AdminUser } from '@/types/admin';
+import ScreenDefinitionButton from '@/components/ScreenDefinitionButton';
+import { getScreenDefinition } from '@/data/screenDefinitions';
 
 export default function AdminUsers() {
   const [searchValue, setSearchValue] = useState('');
@@ -400,6 +402,9 @@ export default function AdminUsers() {
     alert('사용자 정보가 성공적으로 수정되었습니다.');
   };
 
+  // 화면 정의서 정보 가져오기
+  const screenDefinitionInfo = getScreenDefinition('/admin/users');
+
   const headerActions = (
     <div className="flex items-center space-x-3">
       <button 
@@ -672,6 +677,14 @@ export default function AdminUsers() {
           }}
           user={selectedUser}
           onSave={handleEditUser}
+        />
+      )}
+
+      {/* 화면 정의서 버튼 */}
+      {screenDefinitionInfo && (
+        <ScreenDefinitionButton
+          pageTitle={screenDefinitionInfo.title}
+          definition={screenDefinitionInfo.definition}
         />
       )}
     </AdminLayout>

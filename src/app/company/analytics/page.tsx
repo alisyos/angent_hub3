@@ -6,6 +6,8 @@ import CompanyLayout from '@/components/CompanyLayout';
 import Modal from '@/components/Modal';
 import AdminPagination from '@/components/admin/AdminPagination';
 import { aiAgents } from '@/data/agents';
+import ScreenDefinitionButton from '@/components/ScreenDefinitionButton';
+import { getScreenDefinition } from '@/data/screenDefinitions';
 import { 
   Users,
   Building,
@@ -377,6 +379,9 @@ function CompanyAnalyticsContent() {
       data: null
     });
   };
+
+  // 화면 정의서 정보 가져오기
+  const screenDefinitionInfo = getScreenDefinition('/company/analytics');
 
   return (
     <CompanyLayout 
@@ -786,6 +791,14 @@ function CompanyAnalyticsContent() {
           </div>
         )}
       </Modal>
+
+      {/* 화면 정의서 버튼 */}
+      {screenDefinitionInfo && (
+        <ScreenDefinitionButton
+          pageTitle={screenDefinitionInfo.title}
+          definition={screenDefinitionInfo.definition}
+        />
+      )}
     </CompanyLayout>
   );
 }

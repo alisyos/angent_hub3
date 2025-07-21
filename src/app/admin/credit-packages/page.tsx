@@ -20,6 +20,8 @@ import {
 } from 'lucide-react';
 import { CreditPackage } from '@/types/agent';
 import { creditPackages as initialPackages } from '@/data/agents';
+import ScreenDefinitionButton from '@/components/ScreenDefinitionButton';
+import { getScreenDefinition } from '@/data/screenDefinitions';
 
 export default function CreditPackageManagement() {
   const { showModal } = useModal();
@@ -312,6 +314,9 @@ export default function CreditPackageManagement() {
     }
   ];
 
+  // 화면 정의서 정보 가져오기
+  const screenDefinitionInfo = getScreenDefinition('/admin/credit-packages');
+
   return (
     <AdminLayout
       title="크레딧 패키지 관리"
@@ -416,6 +421,14 @@ export default function CreditPackageManagement() {
         title="패키지 수정"
         initialData={selectedPackage}
       />
+
+      {/* 화면 정의서 버튼 */}
+      {screenDefinitionInfo && (
+        <ScreenDefinitionButton
+          pageTitle={screenDefinitionInfo.title}
+          definition={screenDefinitionInfo.definition}
+        />
+      )}
     </AdminLayout>
   );
 }

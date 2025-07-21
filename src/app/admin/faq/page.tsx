@@ -10,6 +10,8 @@ import AdminModal from '@/components/admin/AdminModal';
 import AdminPagination from '@/components/admin/AdminPagination';
 import { mockFAQs } from '@/data/admin';
 import { FAQAdmin } from '@/types/admin';
+import ScreenDefinitionButton from '@/components/ScreenDefinitionButton';
+import { getScreenDefinition } from '@/data/screenDefinitions';
 import { 
   HelpCircle,
   Plus,
@@ -394,6 +396,9 @@ export default function AdminFAQ() {
     </button>
   );
 
+  // 화면 정의서 정보 가져오기
+  const screenDefinitionInfo = getScreenDefinition('/admin/faq');
+
   return (
     <AdminLayout
       title="FAQ 관리"
@@ -483,6 +488,14 @@ export default function AdminFAQ() {
             onTagRemove={handleTagRemove}
           />
         </AdminModal>
+
+        {/* 화면 정의서 버튼 */}
+        {screenDefinitionInfo && (
+          <ScreenDefinitionButton
+            pageTitle={screenDefinitionInfo.title}
+            definition={screenDefinitionInfo.definition}
+          />
+        )}
     </AdminLayout>
   );
 }

@@ -7,6 +7,8 @@ import ConfirmModal from '@/components/ConfirmModal';
 import AdminPagination from '@/components/admin/AdminPagination';
 import { aiAgents } from '@/data/agents';
 import { extendedEmployeeData, departmentData } from '@/data/company';
+import ScreenDefinitionButton from '@/components/ScreenDefinitionButton';
+import { getScreenDefinition } from '@/data/screenDefinitions';
 import { 
   Settings,
   Plus,
@@ -740,6 +742,9 @@ export default function CompanyEmployees() {
     );
   };
 
+  // 화면 정의서 정보 가져오기
+  const screenDefinitionInfo = getScreenDefinition('/company/employees');
+
   return (
     <CompanyLayout 
       title="직원/부서 관리"
@@ -1119,6 +1124,14 @@ export default function CompanyEmployees() {
         onClose={() => setShowConfirmDelete(false)}
         type="danger"
       />
+
+      {/* 화면 정의서 버튼 */}
+      {screenDefinitionInfo && (
+        <ScreenDefinitionButton
+          pageTitle={screenDefinitionInfo.title}
+          definition={screenDefinitionInfo.definition}
+        />
+      )}
     </CompanyLayout>
   );
 } 

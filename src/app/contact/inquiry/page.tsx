@@ -3,6 +3,8 @@
 import { useState } from 'react';
 import { useModal } from '@/contexts/ModalContext';
 import ContactLayout from '@/components/ContactLayout';
+import ScreenDefinitionButton from '@/components/ScreenDefinitionButton';
+import { getScreenDefinition } from '@/data/screenDefinitions';
 import { Mail, Phone, MapPin, Send, FileText, Zap, CreditCard, User, Paperclip, X } from 'lucide-react';
 
 export default function ContactInquiry() {
@@ -370,6 +372,17 @@ export default function ContactInquiry() {
         </div>
       </div>
       </div>
+      
+      {/* 화면 정의 플로팅 버튼 */}
+      {(() => {
+        const screenDef = getScreenDefinition('/contact/inquiry');
+        return screenDef ? (
+          <ScreenDefinitionButton 
+            pageTitle={screenDef.title}
+            definition={screenDef.definition}
+          />
+        ) : null;
+      })()}
     </ContactLayout>
   );
 } 

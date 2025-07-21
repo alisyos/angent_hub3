@@ -5,6 +5,8 @@ import { useRouter } from 'next/navigation';
 import { Mail, Lock, Eye, EyeOff } from 'lucide-react';
 import { useModal } from '@/contexts/ModalContext';
 import Footer from '@/components/Footer';
+import ScreenDefinitionButton from '@/components/ScreenDefinitionButton';
+import { getScreenDefinition } from '@/data/screenDefinitions';
 
 // 테스트 계정 정보
 const testAccounts = [
@@ -289,6 +291,17 @@ export default function Login() {
       </div>
       
       <Footer />
+      
+      {/* 화면 정의 플로팅 버튼 */}
+      {(() => {
+        const screenDef = getScreenDefinition('/login');
+        return screenDef ? (
+          <ScreenDefinitionButton 
+            pageTitle={screenDef.title}
+            definition={screenDef.definition}
+          />
+        ) : null;
+      })()}
     </div>
   );
 } 

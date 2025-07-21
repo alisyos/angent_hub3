@@ -10,6 +10,8 @@ import AdminPagination from '@/components/admin/AdminPagination';
 import { aiAgents } from '@/data/agents';
 import { AIAgent } from '@/types/agent';
 import { AgentAdmin, AgentSettings } from '@/types/admin';
+import ScreenDefinitionButton from '@/components/ScreenDefinitionButton';
+import { getScreenDefinition } from '@/data/screenDefinitions';
 import { 
   Bot, 
   Plus, 
@@ -711,6 +713,9 @@ export default function AdminAgents() {
   const endIndex = startIndex + itemsPerPage;
   const paginatedAgents = filteredAgents.slice(startIndex, endIndex);
 
+  // 화면 정의서 정보 가져오기
+  const screenDefinitionInfo = getScreenDefinition('/admin/agents');
+
   return (
     <AdminLayout
       title="AI 에이전트 관리"
@@ -932,6 +937,14 @@ export default function AdminAgents() {
           </div>
         </div>
         </AdminModal>
+
+        {/* 화면 정의서 버튼 */}
+        {screenDefinitionInfo && (
+          <ScreenDefinitionButton
+            pageTitle={screenDefinitionInfo.title}
+            definition={screenDefinitionInfo.definition}
+          />
+        )}
     </AdminLayout>
   );
 }

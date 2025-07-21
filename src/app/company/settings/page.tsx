@@ -22,6 +22,8 @@ import {
   Trash2
 } from 'lucide-react';
 import { CompanyInfo, CompanyLogo } from '@/types/company';
+import ScreenDefinitionButton from '@/components/ScreenDefinitionButton';
+import { getScreenDefinition } from '@/data/screenDefinitions';
 
 function CompanySettingsContent() {
   const { showModal } = useModal();
@@ -311,6 +313,9 @@ function CompanySettingsContent() {
       setActiveTab(tab);
     }
   }, [searchParams]);
+
+  // 화면 정의서 정보 가져오기
+  const screenDefinitionInfo = getScreenDefinition('/company/settings');
 
   return (
     <CompanyLayout 
@@ -913,6 +918,14 @@ function CompanySettingsContent() {
         cancelText="취소"
         type="danger"
       />
+
+      {/* 화면 정의서 버튼 */}
+      {screenDefinitionInfo && (
+        <ScreenDefinitionButton
+          pageTitle={screenDefinitionInfo.title}
+          definition={screenDefinitionInfo.definition}
+        />
+      )}
     </CompanyLayout>
   );
 }

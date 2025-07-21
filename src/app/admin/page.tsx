@@ -2,6 +2,8 @@
 
 import { useState } from 'react';
 import AdminLayout from '@/components/AdminLayout';
+import ScreenDefinitionButton from '@/components/ScreenDefinitionButton';
+import { getScreenDefinition } from '@/data/screenDefinitions';
 import { 
   Users, 
   Bot, 
@@ -441,6 +443,17 @@ export default function AdminDashboard() {
             </table>
           </div>
         </div>
+        
+        {/* 화면 정의 플로팅 버튼 */}
+        {(() => {
+          const screenDef = getScreenDefinition('/admin');
+          return screenDef ? (
+            <ScreenDefinitionButton 
+              pageTitle={screenDef.title}
+              definition={screenDef.definition}
+            />
+          ) : null;
+        })()}
     </AdminLayout>
   );
 } 

@@ -4,6 +4,8 @@ import { useState, useEffect } from 'react';
 import Header from '@/components/Header';
 import Footer from '@/components/Footer';
 import AdminPagination from '@/components/admin/AdminPagination';
+import ScreenDefinitionButton from '@/components/ScreenDefinitionButton';
+import { getScreenDefinition } from '@/data/screenDefinitions';
 import { 
   User, 
   Mail, 
@@ -1153,6 +1155,17 @@ export default function Profile() {
       </main>
       
       <Footer />
+      
+      {/* 화면 정의 플로팅 버튼 */}
+      {(() => {
+        const screenDef = getScreenDefinition('/profile');
+        return screenDef ? (
+          <ScreenDefinitionButton 
+            pageTitle={screenDef.title}
+            definition={screenDef.definition}
+          />
+        ) : null;
+      })()}
     </div>
   );
 }

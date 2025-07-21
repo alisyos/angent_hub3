@@ -8,6 +8,8 @@ import Footer from '@/components/Footer';
 import FavoritesSection from '@/components/FavoritesSection';
 import { useFavorites } from '@/hooks/useFavorites';
 import { aiAgents } from '@/data/agents';
+import ScreenDefinitionButton from '@/components/ScreenDefinitionButton';
+import { getScreenDefinition } from '@/data/screenDefinitions';
 import { AIAgent, AgentInput, AgentCategory } from '@/types/agent';
 import { ArrowLeft, Play, Coins, Upload, Download, Copy, Briefcase, Megaphone, PenTool, Grid3X3, ChevronLeft, ChevronRight, ChevronDown, ChevronRight as ChevronRightSmall } from 'lucide-react';
 
@@ -628,6 +630,17 @@ ${agent.outputs.map(output => `📄 ${output}`).join('\n')}
       </div>
       
       <Footer />
+      
+      {/* 화면 정의 플로팅 버튼 */}
+      {(() => {
+        const screenDef = getScreenDefinition('/agent/[id]');
+        return screenDef ? (
+          <ScreenDefinitionButton 
+            pageTitle={screenDef.title}
+            definition={screenDef.definition}
+          />
+        ) : null;
+      })()}
     </div>
   );
 } 

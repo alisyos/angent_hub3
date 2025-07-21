@@ -6,6 +6,8 @@ import { useModal } from '@/contexts/ModalContext';
 import { creditPackages } from '@/data/agents';
 import Header from '@/components/Header';
 import Footer from '@/components/Footer';
+import ScreenDefinitionButton from '@/components/ScreenDefinitionButton';
+import { getScreenDefinition } from '@/data/screenDefinitions';
 
 export default function Credits() {
   const { showModal } = useModal();
@@ -278,6 +280,17 @@ export default function Credits() {
       </main>
       
       <Footer />
+      
+      {/* 화면 정의 플로팅 버튼 */}
+      {(() => {
+        const screenDef = getScreenDefinition('/credits');
+        return screenDef ? (
+          <ScreenDefinitionButton 
+            pageTitle={screenDef.title}
+            definition={screenDef.definition}
+          />
+        ) : null;
+      })()}
     </div>
   );
 } 

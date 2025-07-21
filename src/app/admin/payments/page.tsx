@@ -9,6 +9,8 @@ import AdminModal from '@/components/admin/AdminModal';
 import AdminPagination from '@/components/admin/AdminPagination';
 import { mockPayments } from '@/data/admin';
 import { PaymentAdmin } from '@/types/admin';
+import ScreenDefinitionButton from '@/components/ScreenDefinitionButton';
+import { getScreenDefinition } from '@/data/screenDefinitions';
 import { 
   CreditCard,
   DollarSign,
@@ -563,6 +565,9 @@ export default function AdminPayments() {
     setShowAddModal(false);
     alert(`${addFormData.userName}님의 결제 내역이 추가되었습니다.`);
   };
+
+  // 화면 정의서 정보 가져오기
+  const screenDefinitionInfo = getScreenDefinition('/admin/payments');
 
 
 
@@ -1154,6 +1159,14 @@ export default function AdminPayments() {
           </div>
           )}
         </AdminModal>
+
+        {/* 화면 정의서 버튼 */}
+        {screenDefinitionInfo && (
+          <ScreenDefinitionButton
+            pageTitle={screenDefinitionInfo.title}
+            definition={screenDefinitionInfo.definition}
+          />
+        )}
     </AdminLayout>
   );
 }

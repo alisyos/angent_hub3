@@ -2,6 +2,8 @@
 
 import { useState } from 'react';
 import CompanyLayout from '@/components/CompanyLayout';
+import ScreenDefinitionButton from '@/components/ScreenDefinitionButton';
+import { getScreenDefinition } from '@/data/screenDefinitions';
 import { 
   Users,
   Bot,
@@ -431,6 +433,17 @@ export default function CompanyDashboard() {
           </div>
         </div>
       </div>
+      
+      {/* 화면 정의 플로팅 버튼 */}
+      {(() => {
+        const screenDef = getScreenDefinition('/company');
+        return screenDef ? (
+          <ScreenDefinitionButton 
+            pageTitle={screenDef.title}
+            definition={screenDef.definition}
+          />
+        ) : null;
+      })()}
     </CompanyLayout>
   );
 }

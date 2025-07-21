@@ -110,6 +110,8 @@ import {
 } from 'lucide-react';
 import { Category } from '@/types/agent';
 import { categories as initialCategories, aiAgents } from '@/data/agents';
+import ScreenDefinitionButton from '@/components/ScreenDefinitionButton';
+import { getScreenDefinition } from '@/data/screenDefinitions';
 
 // 아이콘 리스트 정의
 const iconList = [
@@ -542,6 +544,9 @@ export default function CategoryManagement() {
     }
   ];
 
+  // 화면 정의서 정보 가져오기
+  const screenDefinitionInfo = getScreenDefinition('/admin/categories');
+
   return (
     <AdminLayout
       title="카테고리 관리"
@@ -613,6 +618,14 @@ export default function CategoryManagement() {
         colorOptions={colorOptions}
         iconList={iconList}
       />
+
+      {/* 화면 정의서 버튼 */}
+      {screenDefinitionInfo && (
+        <ScreenDefinitionButton
+          pageTitle={screenDefinitionInfo.title}
+          definition={screenDefinitionInfo.definition}
+        />
+      )}
     </AdminLayout>
   );
 }

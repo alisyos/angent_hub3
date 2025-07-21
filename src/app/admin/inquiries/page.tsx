@@ -9,6 +9,8 @@ import AdminModal from '@/components/admin/AdminModal';
 import AdminPagination from '@/components/admin/AdminPagination';
 import { mockInquiries } from '@/data/admin';
 import { InquiryAdmin, InquiryResponse } from '@/types/admin';
+import ScreenDefinitionButton from '@/components/ScreenDefinitionButton';
+import { getScreenDefinition } from '@/data/screenDefinitions';
 import { User } from 'lucide-react';
 import { 
   Search, 
@@ -358,6 +360,9 @@ export default function AdminInquiries() {
     );
   }
 
+  // 화면 정의서 정보 가져오기
+  const screenDefinitionInfo = getScreenDefinition('/admin/inquiries');
+
   return (
     <AdminLayout
       title="문의 관리"
@@ -471,6 +476,14 @@ export default function AdminInquiries() {
       >
         {selectedInquiry && <InquiryDetailModal inquiry={selectedInquiry} />}
       </AdminModal>
+
+      {/* 화면 정의서 버튼 */}
+      {screenDefinitionInfo && (
+        <ScreenDefinitionButton
+          pageTitle={screenDefinitionInfo.title}
+          definition={screenDefinitionInfo.definition}
+        />
+      )}
     </AdminLayout>
   );
 }

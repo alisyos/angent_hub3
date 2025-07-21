@@ -16,6 +16,8 @@ import { isLoggedIn } from '@/utils/auth';
 import { aiAgents } from '@/data/agents';
 import { AIAgent, AgentCategory } from '@/types/agent';
 import { Search, Briefcase, Megaphone, PenTool, Grid3X3, ChevronLeft, ChevronRight, ChevronDown, ChevronRight as ChevronRightSmall } from 'lucide-react';
+import ScreenDefinitionButton from '@/components/ScreenDefinitionButton';
+import { getScreenDefinition } from '@/data/screenDefinitions';
 
 export default function Dashboard() {
   const { showModal } = useModal();
@@ -421,6 +423,17 @@ export default function Dashboard() {
       </div>
       
       <Footer />
+      
+      {/* 화면 정의 플로팅 버튼 */}
+      {(() => {
+        const screenDef = getScreenDefinition('/');
+        return screenDef ? (
+          <ScreenDefinitionButton 
+            pageTitle={screenDef.title}
+            definition={screenDef.definition}
+          />
+        ) : null;
+      })()}
     </div>
   );
 }

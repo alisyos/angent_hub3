@@ -4,6 +4,8 @@ import { useState } from 'react';
 import Link from 'next/link';
 import { useModal } from '@/contexts/ModalContext';
 import Footer from '@/components/Footer';
+import ScreenDefinitionButton from '@/components/ScreenDefinitionButton';
+import { getScreenDefinition } from '@/data/screenDefinitions';
 import { 
   Mail, 
   Lock, 
@@ -613,6 +615,17 @@ export default function Register() {
       </div>
       
       <Footer />
+      
+      {/* 화면 정의 플로팅 버튼 */}
+      {(() => {
+        const screenDef = getScreenDefinition('/register');
+        return screenDef ? (
+          <ScreenDefinitionButton 
+            pageTitle={screenDef.title}
+            definition={screenDef.definition}
+          />
+        ) : null;
+      })()}
     </div>
   );
 }

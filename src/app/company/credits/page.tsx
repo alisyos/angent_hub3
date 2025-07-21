@@ -6,6 +6,8 @@ import AdminPagination from '@/components/admin/AdminPagination';
 import { 
   Calendar
 } from 'lucide-react';
+import ScreenDefinitionButton from '@/components/ScreenDefinitionButton';
+import { getScreenDefinition } from '@/data/screenDefinitions';
 
 export default function CompanyCredits() {
   const [dateRange, setDateRange] = useState('7d');
@@ -124,6 +126,9 @@ export default function CompanyCredits() {
     return getFilteredCreditHistory().reduce((sum, item) => sum + item.credits, 0);
   };
 
+  // 화면 정의서 정보 가져오기
+  const screenDefinitionInfo = getScreenDefinition('/company/credits');
+
   return (
     <CompanyLayout 
       title="크레딧 충전 내역"
@@ -238,6 +243,14 @@ export default function CompanyCredits() {
           />
         </div>
       </div>
+
+      {/* 화면 정의서 버튼 */}
+      {screenDefinitionInfo && (
+        <ScreenDefinitionButton
+          pageTitle={screenDefinitionInfo.title}
+          definition={screenDefinitionInfo.definition}
+        />
+      )}
     </CompanyLayout>
   );
 } 
